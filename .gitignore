@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.coverage
+.mypy_cache/
+.DS_Store
+
+# Keep the verified demo artifacts, ignore ad-hoc local runs.
+runs/*
+!runs/demo-verified/
+!runs/demo-verified/results.json
+!runs/demo-verified/report.md
+
+# Local credentials and editor state
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
