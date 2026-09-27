@@ -1,0 +1,51 @@
+{
+  "task": "learning-rate sweep for the optimizer family on the MLP trainer",
+  "paper": {
+    "title": "Adam: A Method for Stochastic Optimization",
+    "authors": "Diederik P. Kingma and Jimmy Ba",
+    "year": 2014,
+    "identifier": "arXiv:1412.6980"
+  },
+  "hypothesis": "The two-parameter logistic head may be too small to separate the optimizer families. This sweep retunes every family for the two-layer MLP so the comparison is not carried over from a different model.",
+  "metric": "test_loss",
+  "seed": 7,
+  "trainer": "mlp",
+  "hidden_sizes": [8],
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "sgd_lr0.03",
+    "optimizer": "sgd",
+    "learning_rate": 0.03,
+    "epochs": 120
+  },
+  "experiments": [
+    {"name": "sgd_lr0.01", "optimizer": "sgd", "learning_rate": 0.01, "epochs": 120},
+    {"name": "sgd_lr0.1", "optimizer": "sgd", "learning_rate": 0.1, "epochs": 120},
+    {"name": "sgd_lr0.3", "optimizer": "sgd", "learning_rate": 0.3, "epochs": 120},
+    {"name": "sgd_momentum_lr0.01", "optimizer": "sgd_momentum", "learning_rate": 0.01, "momentum": 0.9, "epochs": 120},
+    {"name": "sgd_momentum_lr0.03", "optimizer": "sgd_momentum", "learning_rate": 0.03, "momentum": 0.9, "epochs": 120},
+    {"name": "sgd_momentum_lr0.1", "optimizer": "sgd_momentum", "learning_rate": 0.1, "momentum": 0.9, "epochs": 120},
+    {"name": "sgd_momentum_lr0.3", "optimizer": "sgd_momentum", "learning_rate": 0.3, "momentum": 0.9, "epochs": 120},
+    {"name": "adagrad_lr0.01", "optimizer": "adagrad", "learning_rate": 0.01, "epochs": 120},
+    {"name": "adagrad_lr0.03", "optimizer": "adagrad", "learning_rate": 0.03, "epochs": 120},
+    {"name": "adagrad_lr0.1", "optimizer": "adagrad", "learning_rate": 0.1, "epochs": 120},
+    {"name": "adagrad_lr0.3", "optimizer": "adagrad", "learning_rate": 0.3, "epochs": 120},
+    {"name": "rmsprop_lr0.01", "optimizer": "rmsprop", "learning_rate": 0.01, "decay": 0.9, "epochs": 120},
+    {"name": "rmsprop_lr0.03", "optimizer": "rmsprop", "learning_rate": 0.03, "decay": 0.9, "epochs": 120},
+    {"name": "rmsprop_lr0.1", "optimizer": "rmsprop", "learning_rate": 0.1, "decay": 0.9, "epochs": 120},
+    {"name": "rmsprop_lr0.3", "optimizer": "rmsprop", "learning_rate": 0.3, "decay": 0.9, "epochs": 120},
+    {"name": "adam_lr0.01", "optimizer": "adam", "learning_rate": 0.01, "epochs": 120},
+    {"name": "adam_lr0.03", "optimizer": "adam", "learning_rate": 0.03, "epochs": 120},
+    {"name": "adam_lr0.1", "optimizer": "adam", "learning_rate": 0.1, "epochs": 120},
+    {"name": "adam_lr0.3", "optimizer": "adam", "learning_rate": 0.3, "epochs": 120},
+    {"name": "sgd_lr1.0", "optimizer": "sgd", "learning_rate": 1.0, "epochs": 120},
+    {"name": "sgd_momentum_lr1.0", "optimizer": "sgd_momentum", "learning_rate": 1.0, "momentum": 0.9, "epochs": 120},
+    {"name": "adagrad_lr1.0", "optimizer": "adagrad", "learning_rate": 1.0, "epochs": 120},
+    {"name": "rmsprop_lr1.0", "optimizer": "rmsprop", "learning_rate": 1.0, "decay": 0.9, "epochs": 120},
+    {"name": "adam_lr1.0", "optimizer": "adam", "learning_rate": 1.0, "epochs": 120}
+  ]
+}

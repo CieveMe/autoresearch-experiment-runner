@@ -94,6 +94,29 @@ Ten-seed paired comparison (`runs/ademamix-verified/seed-sweep-summary.md`):
 
 ## Why this is a finding about scale, not a verdict on the method
 
+### The MLP re-run (added 2026-09-28, same session)
+
+Everything above used the logistic head, which is almost convex and converges in tens of steps — so
+"the slow EMA does not help" could have been an artefact of the model, not of the method. The suite was
+therefore re-run with `trainer: "mlp"` (two-layer tanh, 8 hidden units, retuned for that model via
+`examples/ademamix-mlp-sweep.json`), and the answer is that **the conclusion survives**:
+
+| arm (10 seeds, MLP) | mean test loss | stdev | seeds beating AdamW |
+|---|---:|---:|---:|
+| adamw | 0.13218 | 0.02473 | — |
+| ademamix, no warmups | 0.13249 | 0.02483 | 3/10 |
+| ademamix, warmups = 45 | 0.14269 | 0.03485 | 3/10 |
+| ademamix, warmups = 120 | 0.15261 | 0.03962 | 2/10 |
+
+On speed the MLP is if anything harsher: Adam averages 20.3 epochs to the target against AdaGrad's 6.2
+and momentum's 7.0, and AdEMAMix again matches AdamW rather than beating it.
+
+**A trap worth recording.** At seed 7 the MLP numbers favour `ademamix_warmup_45` (test loss 0.12124),
+which is the second-worst arm over ten seeds. Anyone quoting the pinned single-seed file — including
+whoever wrote it — would have reported the opposite of the 10-seed result. The pinned file keeps a
+warning pointing at `runs/mlp-verified/ademamix/seed-sweep-summary.md` for exactly that reason, and this
+is the clearest illustration in the repository of why a single run is not evidence.
+
 The slow EMA is designed to pay off over a long horizon (the paper reports language-model training in
 the hundreds of thousands of steps at lr ≈ 1e-3). This task is a 120-epoch full-batch convex problem
 whose parameters converge in ~20–100 steps; there is simply no long horizon for a second, slower

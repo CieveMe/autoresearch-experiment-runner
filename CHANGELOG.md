@@ -25,11 +25,24 @@ All notable changes to this project are documented here. The format follows
   seeds; the paper's own warmup scheme scaled to this budget is 4.5× slower).
 - Thirteen more unit tests (30 total), including an MLP gradient check against finite differences and
   the α = 0 identity with AdamW.
+- **The self-scepticism re-run**: both suites were repeated with the MLP trainer, with every family
+  retuned for that model (`examples/optimizers-mlp.json`, `examples/ademamix-mlp.json` plus their
+  sweeps). The logistic-head conclusions survive: Adam is mid-pack on time-to-target on both models
+  (MLP: 20.3 epochs against AdaGrad 6.2 and momentum 7.0) and the paper's warmup scheme is the worst
+  arm on both (MLP mean test loss 0.14269 / 0.15261 against AdamW's 0.13218).
+- `examples/optimizers-mlp-sweep.json` (24 trials) and `examples/ademamix-mlp-sweep.json` (17 trials),
+  committed with their curves, so the MLP rates can be re-derived rather than trusted.
 
 ### Changed
 
-- `scripts/repro.py` runs **three** suites (71 asserted checks); `scripts/score_task.py` aggregates
-  over all suites and its negative controls now name the file they mutate.
+- `scripts/repro.py` runs **five** suites (121 asserted checks, ~18 s); `scripts/score_task.py`
+  aggregates over all suites and its negative controls now name the file they mutate.
+
+### Fixed
+
+- Trial configs did not inherit the experiment's `seed`, so a "10-seed" MLP run varied the data split
+  while initialising from identical weights. `TRIAL_INHERITED_KEYS` now includes `seed`; the logistic
+  trainer never read it, so the earlier pinned numbers are unaffected and still verify.
 
 ## [0.2.0] — 2026-09-28
 

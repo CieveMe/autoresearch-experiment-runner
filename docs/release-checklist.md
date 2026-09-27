@@ -3,6 +3,14 @@
 Everything that can be prepared in the repository is done. The steps below need the repository
 owner's accounts, so they are not automated.
 
+> **Hard rule before every release: save the release body in the repository first.**
+> Write the exact text you will publish to `docs/release-notes-vX.Y.Z.published.md` and commit it
+> *before* creating the release. GitHub's release body is not part of the git history, so once a
+> release is edited or deleted the only surviving copy is the one in this repository — we lost one
+> already on 2026-09-28 and only had it back because a copy had been kept locally. The `published`
+> suffix marks "what was actually posted" as distinct from `docs/release-notes-vX.Y.Z.md`
+> ("what we prepared").
+
 > **Sequencing note (2026-09-28).** Tag `v0.1.0` already exists on GitHub and points at `0dd90e3`,
 > which does **not** contain the convergence-speed experiment, `CHANGELOG.md` or `.zenodo.json`.
 > Do not publish a release from that tag expecting the archival to include the negative result: push

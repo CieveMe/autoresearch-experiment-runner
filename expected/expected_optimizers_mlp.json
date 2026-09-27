@@ -1,0 +1,67 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 be7ead0661fdd714d0e46405badfc9d8ba84353ca4cf3122f4f1b5f1b12d7b5b",
+  "config": "examples/optimizers-mlp.json",
+  "config_sha256": "be7ead0661fdd714d0e46405badfc9d8ba84353ca4cf3122f4f1b5f1b12d7b5b",
+  "metric": "epochs_to_target",
+  "best": "sgd_momentum",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "sgd": {
+      "optimizer": "sgd",
+      "learning_rate": 1.0,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12460319,
+      "epochs_to_target": 70
+    },
+    "sgd_momentum": {
+      "optimizer": "sgd_momentum",
+      "learning_rate": 1.0,
+      "momentum": 0.9,
+      "epochs": 120,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12544684,
+      "epochs_to_target": 8
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 1.0,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12775166,
+      "epochs_to_target": 14
+    },
+    "rmsprop": {
+      "optimizer": "rmsprop",
+      "learning_rate": 0.03,
+      "decay": 0.9,
+      "epochs": 120,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12958927,
+      "epochs_to_target": 45
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 1.0,
+      "epochs": 120,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12363451,
+      "epochs_to_target": 36
+    }
+  },
+  "notes": [
+    "The MLP re-run exists to test whether the logistic-head conclusions were an artefact of a two-parameter, almost-convex model.",
+    "Every family is retuned for the MLP by the same rule as everywhere else (examples/optimizers-mlp-sweep.json: 24 trials, lowest final training loss, ties to the smaller value).",
+    "Target 0.147 is reachable by every arm (slowest floor ~0.1449) and sits near it, so the metric measures convergence progress rather than the first step.",
+    "Seed-7 numbers are a regression baseline, not evidence: over 10 seeds momentum averages ~7 epochs, AdaGrad and Adam are several times slower and Adam is not the fastest in either model. See runs/mlp-verified/optimizers/seed-sweep-summary.md; the tuned rates come from runs/optimizers-mlp-tuning (lowest final training loss per family, ties to the smaller value)."
+  ]
+}

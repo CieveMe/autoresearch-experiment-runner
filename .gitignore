@@ -35,6 +35,20 @@ runs/*
 !runs/ademamix-verified/tuning-sweep/
 !runs/ademamix-verified/tuning-sweep/report.md
 !runs/ademamix-verified/tuning-sweep/loss-curves.csv
+!runs/mlp-verified/
+!runs/mlp-verified/optimizers/
+!runs/mlp-verified/optimizers/results.json
+!runs/mlp-verified/optimizers/report.md
+!runs/mlp-verified/optimizers/seed-sweep-summary.json
+!runs/mlp-verified/optimizers/seed-sweep-summary.md
+!runs/mlp-verified/ademamix/
+!runs/mlp-verified/ademamix/results.json
+!runs/mlp-verified/ademamix/report.md
+!runs/mlp-verified/ademamix/seed-sweep-summary.json
+!runs/mlp-verified/ademamix/seed-sweep-summary.md
+!runs/mlp-verified/sweeps/
+!runs/mlp-verified/sweeps/optimizers-report.md
+!runs/mlp-verified/sweeps/ademamix-report.md
 
 # Local credentials and editor state
 .env

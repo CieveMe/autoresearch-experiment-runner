@@ -1,5 +1,9 @@
 # Release notes — v0.2.0
 
+> **The body below is the text as it was actually published.** The verbatim body that was pasted
+> into the GitHub release is kept next to it as `docs/release-notes-v0.2.0.published.md`, because a
+> release body deleted on GitHub is gone for good and the repository is the only place that survives.
+
 Paste this into the GitHub release form (target: `main` after `ed0be38` and `77512b6` are pushed;
 tag `v0.2.0`).
 

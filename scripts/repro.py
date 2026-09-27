@@ -55,6 +55,18 @@ SUITES: Dict[str, Dict[str, str]] = {
         "expected": "expected/expected_ademamix.json",
         "label": "AdEMAMix (2024) against AdamW on time-to-target",
     },
+    "optimizers-mlp": {
+        "config": "examples/optimizers-mlp.json",
+        "output": "runs/optimizers-mlp",
+        "expected": "expected/expected_optimizers_mlp.json",
+        "label": "optimizer family on the MLP trainer (does the ranking survive a bigger model?)",
+    },
+    "ademamix-mlp": {
+        "config": "examples/ademamix-mlp.json",
+        "output": "runs/ademamix-mlp",
+        "expected": "expected/expected_ademamix_mlp.json",
+        "label": "AdEMAMix on the MLP trainer (speed versus final quality)",
+    },
 }
 
 

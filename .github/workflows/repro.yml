@@ -38,6 +38,11 @@ jobs:
       - name: Regenerate the AdEMAMix tuning curves
         if: matrix.python == '3.12'
         run: python -m autoresearch.cli run --config examples/ademamix-sweep.json --output runs/ademamix-tuning
+      - name: Regenerate the MLP tuning curves
+        if: matrix.python == '3.12'
+        run: |
+          python -m autoresearch.cli run --config examples/optimizers-mlp-sweep.json --output runs/optimizers-mlp-tuning
+          python -m autoresearch.cli run --config examples/ademamix-mlp-sweep.json --output runs/ademamix-mlp-tuning
       - name: Upload reproduction artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -51,6 +56,12 @@ jobs:
             runs/ademamix
             runs/seed-sweep-ademamix
             runs/ademamix-tuning
+            runs/optimizers-mlp
+            runs/ademamix-mlp
+            runs/seed-sweep-optimizers-mlp
+            runs/seed-sweep-ademamix-mlp
+            runs/optimizers-mlp-tuning
+            runs/ademamix-mlp-tuning
 
   docker:
     name: reproduce (docker)

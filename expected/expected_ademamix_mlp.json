@@ -1,0 +1,71 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 0acc10bdd3f96b3f301e426e80a54604063007f58f27b3f80684b1a9f296f68d",
+  "config": "examples/ademamix-mlp.json",
+  "config_sha256": "0acc10bdd3f96b3f301e426e80a54604063007f58f27b3f80684b1a9f296f68d",
+  "metric": "test_loss",
+  "best": "ademamix_warmup_45",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 120,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12697878,
+      "epochs_to_target": 62
+    },
+    "ademamix_no_warmups": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "alpha": 2.0,
+      "epochs": 120,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12682993,
+      "epochs_to_target": 62
+    },
+    "ademamix_warmup_45": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "alpha_warmup": 45,
+      "beta3_warmup": 45,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12124079,
+      "epochs_to_target": 70
+    },
+    "ademamix_warmup_120": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "alpha_warmup": 120,
+      "beta3_warmup": 120,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12454467,
+      "epochs_to_target": 74
+    },
+    "sgd_momentum": {
+      "optimizer": "sgd_momentum",
+      "learning_rate": 1.0,
+      "momentum": 0.9,
+      "epochs": 120,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12544684,
+      "epochs_to_target": 30
+    }
+  },
+  "notes": [
+    "This suite is the answer to 'was the logistic-head result an artefact of an almost-convex two-parameter model?'",
+    "Ranked by final test loss (metric = test_loss); epochs_to_target at 0.143 is reported alongside and verified too.",
+    "WARNING, and the reason this suite is useful: on seed 7 the pinned numbers favour ademamix_warmup_45, but over 10 seeds it is the second-worst arm (mean test loss 0.14269 +/- 0.03485 against AdamW's 0.13218 +/- 0.02473). The seed-7 values are a regression baseline only - the verdict comes from runs/mlp-verified/ademamix/seed-sweep-summary.md, not from this file.",
+    "10-seed verdict: the speed claim is not reproduced (AdEMAMix and AdamW reach the target within 0-12 epochs of each other and momentum is faster than both), and the paper's warmup scheme is clearly worse at this budget on both trainers (logistic and MLP). The no-warmup AdEMAMix is indistinguishable from AdamW (0.13249 vs 0.13218)."
+  ]
+}

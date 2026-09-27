@@ -18,6 +18,19 @@ LOWER_IS_BETTER_METRICS = frozenset(
     {"test_loss", "train_loss", "duration_ms", "epochs", "epochs_to_target"}
 )
 
+# Keys that describe the experiment (trainer, model shape, schedule) rather than one arm
+# of it. Declaring them once at the top level keeps a config readable: an MLP suite should
+# not have to repeat `hidden_sizes` in every arm.
+TRIAL_INHERITED_KEYS = (
+    "trainer",
+    "hidden_sizes",
+    "init_seed",
+    "seed",  # so a trainer that initialises from the seed (the MLP) varies with the sweep seed
+    "schedule",
+    "warmup_steps",
+    "min_lr_factor",
+)
+
 
 def is_lower_is_better(metric: str) -> bool:
     return metric in LOWER_IS_BETTER_METRICS
@@ -66,12 +79,13 @@ def run(config_path: Path, output_dir: Path) -> Dict[str, Any]:
     results: List[Dict[str, Any]] = []
     for trial in trials:
         started = time.perf_counter()
-        fit = trainer.fit(train_rows, trial)
-        train_metrics = trainer.evaluate(train_rows, fit.params, trial)
-        test_metrics = trainer.evaluate(test_rows, fit.params, trial)
+        trial_config = {**{key: config[key] for key in TRIAL_INHERITED_KEYS if key in config}, **trial}
+        fit = trainer.fit(train_rows, trial_config)
+        train_metrics = trainer.evaluate(train_rows, fit.params, trial_config)
+        test_metrics = trainer.evaluate(test_rows, fit.params, trial_config)
         results.append({
             "name": trial["name"],
-            "config": trial,
+            "config": trial_config,
             "train_accuracy": round(train_metrics["accuracy"], 6),
             "test_accuracy": round(test_metrics["accuracy"], 6),
             "train_loss": round(fit.final_loss, 8),

@@ -298,6 +298,66 @@ ablation all average **13.7 ± 4.69** epochs (range 8–23) and the paired diffe
    (`docs/papers/ademamix-2024.md`) says exactly that, and testing the paper's regime would need the
    paper's regime — long training, mini-batches, its own harness — which is out of scope here.
 
+### 5.6 Does any of this survive a bigger model? (the self-scepticism run)
+
+Sections 5.1–5.5 all used a logistic head with two weights and a bias — an almost-convex model that
+converges in tens of steps. That is the strongest objection to every result above: "Adam is mid-pack on
+speed" and "the slow EMA does not help" could both be artefacts of a model with almost no curvature.
+So both suites were re-run with `trainer: "mlp"` (two-layer tanh, 8 hidden units), and **every family
+was retuned for that model** by the same rule (`examples/optimizers-mlp-sweep.json`, 24 trials, and
+`examples/ademamix-mlp-sweep.json`, 17 trials; lowest final training loss, ties to the smaller value).
+
+One implementation detail mattered enough to fix before believing any of it: the MLP initialises from
+the seed, but a trial config did not inherit the experiment's `seed`, so a "10-seed" run varied the
+data split while every run started from the same weights. `TRIAL_INHERITED_KEYS` now includes `seed`,
+and the numbers below are from after that fix (the logistic trainer never read the seed, so suites
+5.1–5.5 are unaffected and still verify).
+
+Ten-seed results, MLP trainer:
+
+| suite | arm | metric mean | stdev | best in |
+|---|---|---:|---:|---:|
+| `optimizers-mlp` | **adagrad** | **6.2 epochs** | 3.99 | 7/10 |
+| `optimizers-mlp` | sgd_momentum | 7.0 epochs | 1.33 | 2/10 |
+| `optimizers-mlp` | **adam** | **20.3 epochs** | 13.23 | 1/10 |
+| `optimizers-mlp` | rmsprop | 33.3 epochs | 14.30 | 0/10 |
+| `optimizers-mlp` | sgd | 36.1 epochs | 17.78 | 0/10 |
+| `ademamix-mlp` | sgd_momentum | 0.13026 test loss | 0.02343 | 6/10 |
+| `ademamix-mlp` | adamw (baseline) | 0.13218 | 0.02473 | 1/10 |
+| `ademamix-mlp` | ademamix, no warmups | 0.13249 | 0.02483 | 0/10 |
+| `ademamix-mlp` | ademamix, warmups = 45 | 0.14269 | 0.03485 | 3/10 |
+| `ademamix-mlp` | ademamix, warmups = 120 | 0.15261 | 0.03962 | 0/10 |
+
+Paired per-seed comparison against AdamW (positive = lower test loss): AdEMAMix without warmups
+**−0.00018 ± 0.00020** (3/10 seeds better), warmups = 45 **−0.00509 ± 0.00946** (3/10), warmups = 120
+**−0.00966 ± 0.01279** (2/10). At seed 7 the MLP also reproduces the earlier loss ordering: Adam has
+the lowest final loss of the family suite (`train 0.13620`, `test 0.12363` against momentum's
+`0.14078 / 0.12545`).
+
+**Findings.**
+
+1. **Both negative results survive the model change.** On the MLP, Adam is again mid-pack on
+   time-to-target (20.3 epochs; AdaGrad 6.2, momentum 7.0 — roughly a 3× gap, larger than on the
+   logistic head), and it again has the lowest final loss. The slow-EMA method is again not faster:
+   AdEMAMix and AdamW reach the target within a few epochs of each other, and momentum beats both.
+2. **The harm from the paper's warmup scheme also survives.** At this budget (120 epochs, lr ≈ 0.3)
+   the ramped-warmup arms are the two worst on the MLP by a wide margin (0.14269 and 0.15261 against
+   0.13218), which is the same direction as the logistic suite. The two trainers disagree about the
+   *magnitude*, not about the sign.
+3. **The no-warmup AdEMAMix is indistinguishable from AdamW on both trainers** (MLP: 0.13249 versus
+   0.13218, i.e. −0.14% relative, 3/10 seeds better; logistic: identical to the printed precision).
+   That is the cleanest statement this repository can make about the method: the slow EMA, as
+   configured here, does not change the outcome.
+4. **The single-seed trap, demonstrated in this very repository.** At seed 7 the MLP suite's pinned
+   numbers favour `ademamix_warmup_45` (test loss 0.12124) — an arm that is the **second worst of five
+   over ten seeds**. This is exactly why the `expected/` files are regression baselines rather than
+   evidence, and why every claim in this report quotes a seed sweep. The trap is left in the repository
+   on purpose: `expected/expected_ademamix_mlp.json` carries a warning that points at the sweep.
+
+Still not measured, and unchanged from §7: full-batch gradients, one dataset family, one hidden-layer
+size, and ten seeds with a test-loss standard deviation around 0.023 — enough to separate "0.13 from
+0.15", not enough to resolve a 0.0003 difference.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |
