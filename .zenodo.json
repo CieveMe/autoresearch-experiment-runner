@@ -1,0 +1,31 @@
+{
+  "title": "AutoResearch Lite: a reproducible paper-inspired experiment runner (Adam mechanism reproduction and convergence-speed comparison)",
+  "upload_type": "software",
+  "license": "MIT",
+  "access_right": "open",
+  "language": "eng",
+  "creators": [
+    {
+      "name": "He, Zhen"
+    }
+  ],
+  "description": "<p>A dependency-free experiment runner that turns a paper's research question into a configuration-driven, verifiable experiment task.</p><p>The bundled reproduction maps the first/second moment estimates and bias correction of Adam (Kingma &amp; Ba, arXiv:1412.6980) into runnable Python and compares them against fixed-learning-rate SGD under fixed seeds and epoch budgets.</p><p>A second experiment measures convergence speed (epochs to reach a target training loss) against SGD with heavy-ball momentum, AdaGrad and RMSProp, with every optimizer family tuned by the same coarse learning-rate sweep. In that experiment Adam is not the fastest; the negative result is reported in full.</p><p>Every reported number is pinned in an expected-values file with explicit tolerances and checked by one command that also runs the unit tests, and the checking harness is validated against deliberately broken implementations (negative controls). The repository also ships a task contract that expresses the reproduction as a repeatable, scoreable task for an automated research loop.</p>",
+  "keywords": [
+    "reproducibility",
+    "paper reproduction",
+    "optimizer",
+    "adam",
+    "convergence speed",
+    "experiment runner",
+    "agent tasks",
+    "research automation"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "arXiv:1412.6980",
+      "relation": "references",
+      "resource_type": "publication-preprint"
+    }
+  ],
+  "notes": "Version 0.1.0 is the first public release. Add the DOI badge to README.md once Zenodo has minted it."
+}

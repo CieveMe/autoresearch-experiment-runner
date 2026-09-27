@@ -100,6 +100,12 @@ def verify(results_path: Path, expected_path: Path) -> Tuple[List[str], List[str
                 got.get("epochs") == want["epochs"],
                 f"expected {want['epochs']}, got {got.get('epochs')}",
             )
+        if "epochs_to_target" in want:
+            check(
+                f"trial[{name}].epochs_to_target",
+                got.get("epochs_to_target") == want["epochs_to_target"],
+                f"expected {want['epochs_to_target']}, got {got.get('epochs_to_target')}",
+            )
     return failures, checks
 
 

@@ -6,9 +6,10 @@
 | Artifact | `autoresearch-lite` v0.2.0 — `https://github.com/CieveMe/autoresearch-experiment-runner` |
 | Reproduction level | **mechanism-level** (algorithm re-implementation + controlled head-to-head), not benchmark-level |
 | Config revision | `examples/classification.json`, SHA-256 `cc85ba76ddcdff91f561bb0366fd3228c00e5b46541af8e4cdc04563926e040f` |
-| One command | `python scripts/repro.py` (cross-platform) or `make repro` |
+| Second experiment | `examples/optimizers.json` — convergence speed (epochs to a tight target) against SGD, SGD+momentum, AdaGrad and RMSProp; SHA-256 `808b4c1692271929dd61293f66bf97c0682f9907e8724713d9570a1f94eaeddf` |
+| One command | `python scripts/repro.py` (runs both experiments, cross-platform) or `make repro` |
 | Verified on | 2026-09-28, CPython 3.12.5, Windows 11 (x64), no network, no third-party packages |
-| Expected numbers | `expected/expected_metrics.json`, 17 machine-checked assertions |
+| Expected numbers | `expected/expected_metrics.json` (17 assertions) and `expected/expected_optimizers.json` (28 assertions), both machine-checked |
 
 ## Verdict in one paragraph
 
@@ -22,6 +23,15 @@ datasets/architectures (MNIST, CIFAR-10, IMDB) were deliberately not used. Adam'
 the loss (probability calibration), not in accuracy: the SGD control is 0.25 pp *more* accurate on
 average. Everything above is regenerated and re-checked by one command, and the checking harness was
 itself validated against two deliberately broken implementations (see §9).
+
+**The second experiment produced a negative result, and it is the more interesting half.** The
+paper's headline claim is *faster convergence*, not "lower loss at a fixed budget", so a second
+experiment measures epochs-to-target with every optimizer family tuned by the same coarse
+learning-rate sweep. There **Adam is not the fastest**: AdaGrad reaches a target close to the
+converged floor first in **10/10 seeds** (mean 4.7 epochs vs Adam's 22.6), SGD with momentum beats
+Adam 10/10 as well, and plain SGD never reaches the floor at any swept rate. The two experiments
+answer different questions and must not be quoted interchangeably; §5.4 gives the numbers and §7
+lists what remains unmeasured.
 
 ## 1. Claim under test
 
@@ -172,24 +182,100 @@ compared is the **directional claim** and the **mechanism**: the update rule beh
 describes on a task whose optimum is known and reproducible, and the conclusion holds under noise
 injected through the data seed.
 
+### 5.4 Convergence speed with the optimizer family (and a negative result)
+
+Section 5.1–5.3 answer "which optimizer ends up with the lower loss at a fixed epoch budget". The
+paper's actual claim is **faster convergence**, so this second experiment measures *when* each method
+gets there:
+
+* **metric**: `epochs_to_target` — the first epoch whose training loss is ≤ the target.
+* **target**: `0.16`, deliberately close to the converged floor (~0.12–0.14). With a *loose* target
+  (0.30) the metric mostly measures the size of the first steps: AdaGrad at lr = 4 "reaches" it in
+  epoch 2. Both regimes are committed — see `runs/optimizers-verified/lr-sweep/`.
+* **fair tuning**: each family uses the learning rate that produced the lowest final training loss in
+  `examples/optimizers-sweep.json` (a 24-trial coarse sweep over 5 families, curves committed as CSV).
+  Ties break toward the smaller rate. Without this step the comparison would be measuring tuning luck.
+* **budget**: 120 epochs, fixed seed 7 for the reference run and seeds 0–9 for the sweep.
+
+Reference run (seed 7):
+
+| trial | test accuracy | test loss | epochs to 0.16 |
+|---|---:|---:|---:|
+| adagrad (lr 4.0) | 93.50% | 0.12246563 | **12** |
+| adam_no_bias_correction (lr 0.15) | 93.50% | 0.12187267 | 13 |
+| sgd_momentum (lr 0.8) | 93.50% | 0.12345500 | 23 |
+| adam (lr 0.4) | 93.50% | 0.12346246 | 33 |
+| rmsprop (lr 0.2) | 93.00% | 0.12431982 | 57 |
+| sgd (lr 0.6) | 94.00% | 0.20381571 | never |
+
+Ten-seed sweep (`runs/optimizers-verified/seed-sweep-summary.md`):
+
+| trial | epochs mean | stdev | min–max | reached | best in |
+|---|---:|---:|---|---:|---:|
+| **adagrad** | **4.7** | 3.33 | 2–12 | 10/10 | **10/10** |
+| adam_no_bias_correction | 10.1 | 1.79 | 8–13 | 10/10 | 0/10 |
+| sgd_momentum | 16.7 | 3.92 | 12–23 | 10/10 | 0/10 |
+| adam | 22.6 | 6.40 | 15–33 | 10/10 | 0/10 |
+| rmsprop | 42.0 | 9.64 | 29–57 | 10/10 | 0/10 |
+| sgd | — | — | — | 0/10 | 0/10 |
+
+Paired per-seed comparison (positive = fewer epochs than the reference):
+
+| comparison | better in | mean improvement | stdev |
+|---|---:|---:|---:|
+| adagrad vs adam | 10/10 | +17.9 epochs | 3.45 |
+| adam_no_bias_correction vs adam | 10/10 | +12.5 epochs | 4.62 |
+| sgd_momentum vs adam | 10/10 | +5.9 epochs | 2.51 |
+| adam vs rmsprop | 10/10 | +19.4 epochs | 3.41 |
+| adam vs sgd | — | not comparable: SGD never reached the target in 10/10 seeds | — |
+
+**Findings.**
+
+1. **The paper's "Adam converges faster" claim is not reproduced in this setup.** AdaGrad and
+   momentum reach a near-floor target meaningfully sooner; RMSProp is the slowest of the adaptive
+   methods; plain SGD never gets to the floor even at a 4× larger learning rate than the fixed
+   baseline. On this task the honest summary is "adaptive and momentum methods beat plain SGD;
+   among them Adam is not the fastest to the target".
+2. **Bias correction costs time here.** Disabling it makes Adam reach the target in 10/10 seeds
+   sooner (12.5 ± 4.62 epochs) and leaves the final loss marginally *lower* (0.12187 vs 0.12346).
+   Bias correction matters most in the first few steps, and its effect is largest when the budget is
+   short; with a 120-epoch budget on a convex problem, the extra early-time scaling is not obviously
+   a benefit. This is a property of *this* configuration, not a refutation of the paper's reasoning.
+3. **Accuracy is unaffected.** Every method lands between 93.0% and 94.6% mean test accuracy, and the
+   plain-SGD baseline is the most accurate — the differences here are optimization dynamics, not
+   generalisation.
+4. **Section 5.1 is not contradicted, it is a different question.** At a fixed 80-epoch budget Adam
+   had the lowest test loss; measured by time-to-a-tight-target it is mid-pack. Quoting either number
+   as "Adam vs SGD" without saying which question was asked would be misleading.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |
 |---|---|---|---|
 | D1 | Full-batch instead of mini-batch gradients | keeps the run deterministic, offline and dependency-free | bias correction matters most in the first steps; stochastic-gradient effects are **not** exercised |
 | D2 | α = 0.08 instead of the default 0.001 | 80 full-batch steps on an 800-row problem is a very short budget | the paper's "default settings work well" claim is not tested |
-| D3 | Both optimizers evaluated by final test loss / accuracy only (no per-epoch curve) | the runner records final metrics | **convergence speed itself is not measured**; "lower loss at equal budget" is not "faster convergence" |
+| D3 | Section 5.1–5.3 evaluate final test loss / accuracy only | that experiment asks "which floor is lower at a fixed budget" | those numbers do **not** measure convergence speed; §5.4 is the experiment that does |
 | D4 | L2 added to the gradient, not decoupled weight decay | matches the 2014 paper's formulation | the regularized variant is not an AdamW test |
 | D5 | `ε` added after the square root, as in the original Algorithm 1 | faithfulness to the 2014/2015 text; later revisions restate the denominator with an ε̂ term | numerically irrelevant here (ε = 1e-8) |
+| D6 | AdaGrad / RMSProp / SGD+momentum implemented from their published descriptions, not from a shared framework | keeps the run dependency-free and auditable | framework-specific details (e.g. exact ε placement, momentum conventions) may differ from other implementations |
+| D7 | §5.4 learning rates chosen by a coarse grid, target 0.16 chosen by hand | a fixed hand-picked rate per family would compare tuning luck; the target must sit near the floor to measure convergence rather than the first step | both choices change the ranking; the sweep curves are committed so the choice can be redone |
 
 ## 7. Limitations and threats to validity
 
 - **Task scale.** 800 rows, 2 features, 80 epochs. This cannot speak to ImageNet-scale behaviour.
-- **No convergence-speed measurement** (D3). The reproduced claim is "lower loss at a fixed budget".
-- **Tuning asymmetry.** `sgd_control` uses a hand-picked lr = 0.35 and is the *stronger* SGD arm; the
-  `baseline` at lr = 0.15 is weaker. Both are reported so the reader can see the asymmetry, but no
-  exhaustive SGD learning-rate sweep was run. A reviewer should treat "Adam wins" as "Adam wins
-  against these two SGD settings".
+- **Convergence speed is measured in §5.4 only**, and its ranking is sensitive to the target and to
+  the swept rate grid. §5.1's "Adam wins" must be read as "Adam wins against these two SGD settings
+  at a fixed budget".
+- **Tuning asymmetry in §5.1.** `sgd_control` uses a hand-picked lr = 0.35 and is the *stronger* SGD
+  arm; the `baseline` at lr = 0.15 is weaker. §5.4 removes this asymmetry by sweeping all families,
+  and there Adam is mid-pack.
+- **The rate grid is not saturated.** In §5.4 the best loss for every adaptive family sits at or
+  beyond the largest swept rate (AdaGrad 4.0, Adam 0.40, RMSProp 0.20–0.40, momentum 0.80), so "the
+  tuned rate" is "the best rate inside this grid", not a global optimum. A finer/edge-extended sweep
+  is a stated next step.
+- **A loose target inverts the story.** At target 0.30 the metric is dominated by the first step
+  (AdaGrad lr = 4 reaches it in 2 epochs) and the ranking flattens. Reporting a single
+  `epochs_to_target` number without the target would be misleading; both regimes are committed.
 - **One dataset family.** Conclusions are specific to this synthetic linear-margin task.
 - **Ten seeds, no formal test.** Seeds are paired, so a paired test would be defensible; this report
   reports mean/stdev/min/max and win counts instead of a p-value.
@@ -232,19 +318,28 @@ deliberately not "tuned" to look good. This is also why the assertion must be a 
 against a pinned artifact rather than a "did it improve?" check: on a small synthetic task, a wrong
 implementation can look better.
 
+A second defect was found the same way, by cross-checking two outputs instead of trusting one: the
+seed-sweep table reported RMSProp as the per-seed winner for §5.4 while the per-seed data clearly
+showed AdaGrad. `epochs_to_target` had been added to the runner's "lower is better" set but not to the
+copy of that set inside `scripts/seed_sweep.py`, which inverted the ranking. The set now lives once
+(`LOWER_IS_BETTER_METRICS` in `autoresearch/runner.py`) and `tests/test_metric_direction.py` fails if a
+metric is added without a declared direction.
+
 CI (`.github/workflows/repro.yml`) runs the same reproduction on Python 3.10 and 3.12 on Linux plus a
-container run, and uploads `runs/demo` as an artifact.
+container run, and uploads `runs/demo` and `runs/seed-sweep` as artifacts.
 
 ## 10. Provenance and artifacts
 
 | Artifact | Path |
 |---|---|
-| Experiment config (single source of truth) | `examples/classification.json` |
-| Expected numbers + tolerances | `expected/expected_metrics.json` |
-| Verified single-seed result | `runs/demo-verified/results.json`, `runs/demo-verified/report.md` |
-| Verified 10-seed aggregate | `runs/demo-verified/seed-sweep-summary.json`, `.md` |
-| Fresh run (regenerated by the one command, not committed) | `runs/demo/`, `runs/seed-sweep/` |
-| Environment of a run | `runs/demo/environment.json` |
+| Experiment configs (single source of truth) | `examples/classification.json`, `examples/optimizers.json` |
+| Learning-rate sweep used to tune §5.4 | `examples/optimizers-sweep.json` (24 trials) |
+| Expected numbers + tolerances | `expected/expected_metrics.json`, `expected/expected_optimizers.json` |
+| Verified single-seed results | `runs/demo-verified/`, `runs/optimizers-verified/` (`results.json`, `report.md`, `loss-curves.csv`) |
+| Verified 10-seed aggregates | `runs/*-verified/seed-sweep-summary.json`, `.md` |
+| Committed sweep curves (recompute any target) | `runs/optimizers-verified/lr-sweep/loss-curves.csv` |
+| Fresh runs (regenerated by the one command, not committed) | `runs/demo/`, `runs/optimizers/`, `runs/seed-sweep*/` |
+| Environment of a run | `runs/demo/environment.json`, `runs/optimizers/environment.json` |
 
 Everything in `runs/demo-verified/` is generated, not hand-written; the tests assert that the committed
 result still matches `expected/expected_metrics.json`, so a regeneration that changes a number fails CI.
@@ -260,9 +355,24 @@ MNIST / CIFAR-10 / IMDB 实验，因此不宣称复现论文表格中的任何�
 配置哈希原先按原始字节计算，Windows 检出（CRLF）会把同一版本算成两个不同的哈希。
 `python scripts/repro.py` 一条命令即可重跑并断言 17 项预期数值。
 
+**第二个实验（收敛速度）给出了负结果**：论文的主张是"更快收敛"，而不只是"同等轮数下损失更低"，
+所以第二个实验测量"达到目标损失的轮数"，并且**每个优化器家族都用同一套粗粒度学习率扫描选出自己的
+学习率**（扫描 24 组，曲线已提交）。结论是 **Adam 并不最快**：AdaGrad 在 **10/10 个种子**上最先达标
+（平均 4.7 轮 vs Adam 22.6 轮），带动量的 SGD 也 10/10 快于 Adam，朴素 SGD 在扫描过的所有学习率下
+**从未**到达该目标。附带发现：关闭偏差修正后 Adam 反而 10/10 更快达标（快 12.5 ± 4.6 轮），最终损失
+也略低——说明偏差修正的收益在**极短训练预算**下最明显，在 120 轮的全批量凸任务上不一定划算。
+两个实验回答的是**不同问题**（固定轮数下的损失水平 vs 达到目标的轮数），不能互相替代引用；
+第 7 节列出了仍未测量的部分（学习率网格未饱和、目标阈值人工选定、仍是全批量凸任务）。
+
 ## References
 
 1. D. P. Kingma, J. Ba. *Adam: A Method for Stochastic Optimization.* arXiv:1412.6980, 2014; ICLR 2015.
 2. I. Loshchilov, F. Hutter. *Decoupled Weight Decay Regularization.* arXiv:1711.05101, 2017/2019
    (cited only for the L2/adaptive interaction noted in §5.2).
-3. Repository: `https://github.com/CieveMe/autoresearch-experiment-runner` (see `CITATION.cff`).
+3. J. Duchi, E. Hazan, Y. Singer. *Adaptive Subgradient Methods for Online Learning and Stochastic
+   Optimization.* JMLR 12:2121–2159, 2011 (AdaGrad, the §5.4 baseline that reaches the target first).
+4. T. Tieleman, G. Hinton. *Lecture 6.5 — rmsprop: Divide the gradient by a running average of its
+   recent magnitude.* COURSERA: Neural Networks for Machine Learning, 2012 (RMSProp).
+5. B. T. Polyak. *Some methods of speeding up the convergence of iteration methods.* USSR
+   Computational Mathematics and Mathematical Physics, 1964 (heavy-ball momentum, used in §5.4).
+6. Repository: `https://github.com/CieveMe/autoresearch-experiment-runner` (see `CITATION.cff`).

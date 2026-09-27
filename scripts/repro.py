@@ -33,6 +33,23 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.verify_results import DEFAULT_EXPECTED, verify  # noqa: E402
+from autoresearch.runner import is_lower_is_better, rank_key  # noqa: E402
+
+# Each suite is one experiment config plus the numbers it is expected to produce.
+SUITES: Dict[str, Dict[str, str]] = {
+    "main": {
+        "config": "examples/classification.json",
+        "output": "runs/demo",
+        "expected": "expected/expected_metrics.json",
+        "label": "Adam mechanism reproduction (fixed epoch budget)",
+    },
+    "optimizers": {
+        "config": "examples/optimizers.json",
+        "output": "runs/optimizers",
+        "expected": "expected/expected_optimizers.json",
+        "label": "optimizer convergence speed (tuned rates, tight target)",
+    },
+}
 
 
 def _header(title: str) -> None:
@@ -82,86 +99,99 @@ def _environment(config_path: Path) -> Dict[str, Any]:
 def _print_result_table(results_path: Path) -> None:
     payload = json.loads(results_path.read_text(encoding="utf-8"))
     metric = payload["metric"]
-    lower_is_better = metric in {"test_loss", "train_loss", "duration_ms", "epochs"}
-    rows = sorted(
-        payload["results"],
-        key=lambda item: ((1 if lower_is_better else -1) * item[metric], item["test_loss"]),
-    )
-    print(f"| trial | test_accuracy | test_loss | epochs | duration_ms |")
-    print("|---|---:|---:|---:|---:|")
+    lower_is_better = is_lower_is_better(metric)
+    rows = sorted(payload["results"], key=lambda item: rank_key(item, metric, lower_is_better))
+    print("| trial | test_accuracy | test_loss | epochs | epochs_to_target | duration_ms |")
+    print("|---|---:|---:|---:|---:|---:|")
     for item in rows:
         marker = " *" if item["name"] == payload["best"]["name"] else ""
+        to_target = item.get("epochs_to_target")
+        to_target = "not reached" if to_target is None else to_target
         print(
             f"| {item['name']}{marker} | {item['test_accuracy']:.2%} | "
-            f"{item['test_loss']} | {item['epochs']} | {item['duration_ms']} |"
+            f"{item['test_loss']} | {item['epochs']} | {to_target} | {item['duration_ms']} |"
         )
     print(f"(* = best by `{metric}`)")
 
 
 def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Reproduce the AutoResearch Lite experiments")
-    parser.add_argument("--config", type=Path, default=ROOT / "examples" / "classification.json")
-    parser.add_argument("--output", type=Path, default=ROOT / "runs" / "demo")
+    parser.add_argument("--suite", choices=["all", *SUITES.keys()], default="all",
+                        help="which experiment suite(s) to run (default: all)")
+    parser.add_argument("--config", type=Path, default=None,
+                        help="run a single ad-hoc config instead of the named suites")
+    parser.add_argument("--output", type=Path, default=ROOT / "runs" / "ad-hoc")
     parser.add_argument("--expected", type=Path, default=DEFAULT_EXPECTED)
     parser.add_argument("--skip-tests", action="store_true", help="skip `python -m unittest`")
-    parser.add_argument("--env-report", type=Path, default=None, help="where to write environment.json")
     args = parser.parse_args(argv)
 
-    config_path = args.config if args.config.is_absolute() else (ROOT / args.config)
-    output_dir = args.output if args.output.is_absolute() else (ROOT / args.output)
-    expected_path = args.expected if args.expected.is_absolute() else (ROOT / args.expected)
-    results_path = output_dir / "results.json"
-
     print("AutoResearch Lite - one-command reproduction")
-    _header("environment")
-    try:
-        environment = _environment(config_path)
-    except Exception as exc:  # pragma: no cover - defensive
-        print(f"FAILED to read environment: {exc}")
-        return 1
-    for key, value in environment.items():
-        print(f"{key}: {value}")
-    env_report = args.env_report or (output_dir / "environment.json")
-    env_report.parent.mkdir(parents=True, exist_ok=True)
-    env_report.write_text(json.dumps(environment, indent=2) + "\n", encoding="utf-8")
 
-    _header("step 1/4 validate config")
-    if _run([sys.executable, "-m", "autoresearch.cli", "validate-config", "--config", str(config_path)]) != 0:
-        print("FAILED: config validation")
-        return 1
-
-    _header("step 2/4 run experiments")
-    if _run([
-        sys.executable, "-m", "autoresearch.cli", "run",
-        "--config", str(config_path), "--output", str(output_dir),
-    ]) != 0:
-        print("FAILED: experiment run")
-        return 1
-
-    _header("step 3/4 verify numbers against expectations")
-    print(f"expected file: {expected_path.relative_to(ROOT) if expected_path.is_relative_to(ROOT) else expected_path}")
-    failures, checks = verify(results_path, expected_path)
-    for line in checks:
-        print(line)
-    _print_result_table(results_path)
-    if failures:
-        print()
-        print(f"FAILED: {len(failures)} expectation(s) not met")
-        return 1
+    if args.config is not None:
+        config_path = args.config if args.config.is_absolute() else (ROOT / args.config)
+        output_dir = args.output if args.output.is_absolute() else (ROOT / args.output)
+        expected_path = args.expected if args.expected.is_absolute() else (ROOT / args.expected)
+        suites = [("ad-hoc", {"config": str(config_path), "output": str(output_dir),
+                              "expected": str(expected_path), "label": "ad-hoc config"})]
+    else:
+        names = list(SUITES) if args.suite == "all" else [args.suite]
+        suites = [(name, SUITES[name]) for name in names]
 
     exit_code = 0
+    verified_total = 0
+    failures_total: List[str] = []
+
+    for name, suite in suites:
+        config_path = ROOT / suite["config"]
+        output_dir = ROOT / suite["output"]
+        expected_path = ROOT / suite["expected"]
+        results_path = output_dir / "results.json"
+
+        _header(f"suite `{name}` — {suite['label']}")
+        print(f"config:   {suite['config']}")
+        print(f"expected: {suite['expected']}")
+        try:
+            environment = _environment(config_path)
+        except Exception as exc:  # pragma: no cover - defensive
+            print(f"FAILED to read environment: {exc}")
+            return 1
+        for key, value in environment.items():
+            print(f"  {key}: {value}")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        (output_dir / "environment.json").write_text(json.dumps(environment, indent=2) + "\n", encoding="utf-8")
+
+        if _run([sys.executable, "-m", "autoresearch.cli", "validate-config", "--config", str(config_path)]) != 0:
+            print("FAILED: config validation")
+            return 1
+        if _run([
+            sys.executable, "-m", "autoresearch.cli", "run",
+            "--config", str(config_path), "--output", str(output_dir),
+        ]) != 0:
+            print("FAILED: experiment run")
+            return 1
+
+        failures, checks = verify(results_path, expected_path)
+        for line in checks:
+            print(line)
+        _print_result_table(results_path)
+        verified_total += len(checks)
+        if failures:
+            failures_total.extend(failures)
+            exit_code = 1
+            print(f"FAILED: {len(failures)} expectation(s) not met in suite `{name}`")
+
     if not args.skip_tests:
-        _header("step 4/4 unit tests")
+        _header("unit tests")
         if _run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"]) != 0:
             print("FAILED: unit tests")
             exit_code = 1
     else:
-        _header("step 4/4 unit tests (skipped)")
+        _header("unit tests (skipped)")
 
     _header("summary")
-    print(f"artifacts: {output_dir}")
-    print(f"report:    {output_dir / 'report.md'}")
-    print(f"verified:  {len(checks)} checks, {len(failures)} failures")
+    for name, suite in suites:
+        print(f"artifacts[{name}]: {suite['output']}")
+    print(f"verified:  {verified_total} checks, {len(failures_total)} failures")
     print("RESULT: PASS" if exit_code == 0 else "RESULT: FAIL")
     return exit_code
 

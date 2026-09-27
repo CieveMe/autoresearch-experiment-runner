@@ -49,11 +49,11 @@ def _ignore(directory: str, names: List[str]) -> set[str]:
 NEGATIVE_CONTROLS: Dict[str, List[Dict[str, str]]] = {
     "no-bias-correction": [
         {
-            "old": "corrected_first = first_moment[index] / (1.0 - beta1**step)",
+            "old": "corrected_first = first_moment[index] / (1.0 - beta1**step) if bias_correction else first_moment[index]",
             "new": "corrected_first = first_moment[index]",
         },
         {
-            "old": "corrected_second = second_moment[index] / (1.0 - beta2**step)",
+            "old": "corrected_second = second_moment[index] / (1.0 - beta2**step) if bias_correction else second_moment[index]",
             "new": "corrected_second = second_moment[index]",
         },
     ],

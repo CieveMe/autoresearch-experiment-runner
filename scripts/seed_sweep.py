@@ -27,7 +27,14 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from autoresearch.runner import config_sha256, run  # noqa: E402
+from autoresearch.runner import config_sha256, is_lower_is_better, rank_key, run  # noqa: E402
+
+INF = float("inf")
+
+
+def _metric_or_inf(value):
+    """``None`` means "never reached the target", which must rank last."""
+    return INF if value is None else value
 
 
 def parse_seeds(spec: str) -> List[int]:
@@ -55,7 +62,7 @@ def _aggregate(
     config_path: Path,
     references: Sequence[str] = ("baseline",),
 ) -> Dict[str, Any]:
-    lower_is_better = metric in {"test_loss", "train_loss", "duration_ms", "epochs"}
+    lower_is_better = is_lower_is_better(metric)
     names: List[str] = []
     for payload in payloads:
         for item in payload["results"]:
@@ -65,17 +72,19 @@ def _aggregate(
     trials: Dict[str, Any] = {}
     for name in names:
         rows = [next(item for item in payload["results"] if item["name"] == name) for payload in payloads]
-        metrics = [row[metric] for row in rows]
+        raw_metrics = [row[metric] for row in rows]
+        metrics = [value for value in raw_metrics if value is not None]
         accuracies = [row["test_accuracy"] for row in rows]
         trials[name] = {
             "optimizer": rows[0]["config"].get("optimizer"),
             "learning_rate": rows[0]["config"].get("learning_rate"),
             "weight_decay": rows[0]["config"].get("weight_decay", 0.0),
             "epochs": rows[0]["config"].get("epochs"),
-            "metric_mean": round(statistics.fmean(metrics), 8),
+            "reached_in": len(metrics),
+            "metric_mean": round(statistics.fmean(metrics), 8) if metrics else None,
             "metric_stdev": round(statistics.stdev(metrics), 8) if len(metrics) > 1 else 0.0,
-            "metric_min": min(metrics),
-            "metric_max": max(metrics),
+            "metric_min": min(metrics) if metrics else None,
+            "metric_max": max(metrics) if metrics else None,
             "test_accuracy_mean": round(statistics.fmean(accuracies), 6),
             "test_accuracy_stdev": round(statistics.stdev(accuracies), 6) if len(accuracies) > 1 else 0.0,
             "wins": 0,
@@ -84,7 +93,7 @@ def _aggregate(
     for payload in payloads:
         ranked = sorted(
             payload["results"],
-            key=lambda item: (item[metric] if lower_is_better else -item[metric], item["test_loss"]),
+            key=lambda item: rank_key(item, metric, lower_is_better),
         )
         trials[ranked[0]["name"]]["wins"] += 1
 
@@ -107,17 +116,23 @@ def _aggregate(
         for name in names:
             if name == reference:
                 continue
-            diffs = [
-                sign * (reference_metric[index] - next(row[metric] for row in payload["results"] if row["name"] == name))
-                for index, payload in enumerate(payloads)
-            ]
+            diffs = []
+            incomparable = 0
+            for index, payload in enumerate(payloads):
+                value = next(row[metric] for row in payload["results"] if row["name"] == name)
+                baseline_value = reference_metric[index]
+                if value is None or baseline_value is None:
+                    incomparable += 1
+                    continue
+                diffs.append(sign * (baseline_value - value))
             per_trial[name] = {
                 "better_in": sum(1 for value in diffs if value > 0),
                 "worse_in": sum(1 for value in diffs if value < 0),
-                "mean_improvement": round(statistics.fmean(diffs), 8),
+                "incomparable": incomparable,
+                "mean_improvement": round(statistics.fmean(diffs), 8) if diffs else None,
                 "stdev_improvement": round(statistics.stdev(diffs), 8) if len(diffs) > 1 else 0.0,
-                "min_improvement": min(diffs),
-                "max_improvement": max(diffs),
+                "min_improvement": min(diffs) if diffs else None,
+                "max_improvement": max(diffs) if diffs else None,
             }
         paired[reference] = per_trial
 
@@ -146,14 +161,15 @@ def _markdown(summary: Dict[str, Any]) -> str:
         f"- base config: `{summary['base_config']}` (SHA-256 `{summary['base_config_sha256']}`)",
         "- per-seed config copies are written next to each run and hashed in `summary.json`",
         "",
-        f"| trial | {metric} mean | {metric} stdev | min | max | test_accuracy mean | wins | win rate |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        f"| trial | {metric} mean | {metric} stdev | min | max | reached | test_accuracy mean | wins | win rate |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
-    ordered = sorted(summary["trials"].items(), key=lambda pair: pair[1]["metric_mean"])
+    ordered = sorted(summary["trials"].items(), key=lambda pair: _metric_or_inf(pair[1]["metric_mean"]))
     for name, row in ordered:
         lines.append(
             f"| {name} | {row['metric_mean']} | {row['metric_stdev']} | {row['metric_min']} | "
-            f"{row['metric_max']} | {row['test_accuracy_mean']:.2%} | {row['wins']}/{summary['seed_count']} | "
+            f"{row['metric_max']} | {row.get('reached_in', summary['seed_count'])}/{summary['seed_count']} | "
+            f"{row['test_accuracy_mean']:.2%} | {row['wins']}/{summary['seed_count']} | "
             f"{row['win_rate']:.0%} |"
         )
     for reference, per_trial in (summary.get("paired_improvement") or {}).items():
@@ -161,14 +177,20 @@ def _markdown(summary: Dict[str, Any]) -> str:
             "",
             f"Paired per-seed improvement over `{reference}` (positive = better `{metric}`):",
             "",
-            "| trial | better in | worse in | mean improvement | stdev | min | max |",
-            "|---|---:|---:|---:|---:|---:|---:|",
+            "| trial | better in | worse in | incomparable | mean improvement | stdev | min | max |",
+            "|---|---:|---:|---:|---:|---:|---:|---:|",
         ])
-        for name, row in sorted(per_trial.items(), key=lambda pair: -pair[1]["mean_improvement"]):
+        for name, row in sorted(
+            per_trial.items(),
+            key=lambda pair: (
+                pair[1]["mean_improvement"] is None,
+                -_metric_or_inf(pair[1]["mean_improvement"]),
+            ),
+        ):
             lines.append(
                 f"| {name} | {row['better_in']}/{summary['seed_count']} | {row['worse_in']} | "
-                f"{row['mean_improvement']} | {row['stdev_improvement']} | {row['min_improvement']} | "
-                f"{row['max_improvement']} |"
+                f"{row['incomparable']} | {row['mean_improvement']} | {row['stdev_improvement']} | "
+                f"{row['min_improvement']} | {row['max_improvement']} |"
             )
     lines.append("")
     return "\n".join(lines)

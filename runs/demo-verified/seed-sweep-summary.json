@@ -40,6 +40,7 @@
       "learning_rate": 0.15,
       "weight_decay": 0.0,
       "epochs": 80,
+      "reached_in": 10,
       "metric_mean": 0.38165322,
       "metric_stdev": 0.01586304,
       "metric_min": 0.35596295,
@@ -54,6 +55,7 @@
       "learning_rate": 0.08,
       "weight_decay": 0.0,
       "epochs": 80,
+      "reached_in": 10,
       "metric_mean": 0.20368012,
       "metric_stdev": 0.01816425,
       "metric_min": 0.16660726,
@@ -68,6 +70,7 @@
       "learning_rate": 0.08,
       "weight_decay": 0.01,
       "epochs": 100,
+      "reached_in": 10,
       "metric_mean": 0.31730997,
       "metric_stdev": 0.01843015,
       "metric_min": 0.28119885,
@@ -82,6 +85,7 @@
       "learning_rate": 0.35,
       "weight_decay": 0.0,
       "epochs": 80,
+      "reached_in": 10,
       "metric_mean": 0.28037568,
       "metric_stdev": 0.01838522,
       "metric_min": 0.24736677,
@@ -97,6 +101,7 @@
       "adam_reproduction": {
         "better_in": 10,
         "worse_in": 0,
+        "incomparable": 0,
         "mean_improvement": 0.1779731,
         "stdev_improvement": 0.00771465,
         "min_improvement": 0.16861319,
@@ -105,6 +110,7 @@
       "adam_regularized": {
         "better_in": 10,
         "worse_in": 0,
+        "incomparable": 0,
         "mean_improvement": 0.06434325,
         "stdev_improvement": 0.00637908,
         "min_improvement": 0.057393609999999984,
@@ -113,6 +119,7 @@
       "sgd_control": {
         "better_in": 10,
         "worse_in": 0,
+        "incomparable": 0,
         "mean_improvement": 0.10127754,
         "stdev_improvement": 0.00354625,
         "min_improvement": 0.09701005000000001,
@@ -123,6 +130,7 @@
       "baseline": {
         "better_in": 0,
         "worse_in": 10,
+        "incomparable": 0,
         "mean_improvement": -0.10127754,
         "stdev_improvement": 0.00354625,
         "min_improvement": -0.10859617999999999,
@@ -131,6 +139,7 @@
       "adam_reproduction": {
         "better_in": 10,
         "worse_in": 0,
+        "incomparable": 0,
         "mean_improvement": 0.07669556,
         "stdev_improvement": 0.00553513,
         "min_improvement": 0.06845980999999998,
@@ -139,6 +148,7 @@
       "adam_regularized": {
         "better_in": 0,
         "worse_in": 10,
+        "incomparable": 0,
         "mean_improvement": -0.03693428,
         "stdev_improvement": 0.00382122,
         "min_improvement": -0.04275977000000003,

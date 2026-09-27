@@ -14,7 +14,9 @@
 - 自动评估：比较测试准确率、测试损失、训练轮数和耗时，自动生成 Markdown 报告。
 - 论文复现：以 Adam 为例，将论文中的矩估计和偏差修正映射为可运行实现，并与 SGD baseline 做对照。
 - 环境可迁移：标准库实现，支持 Python 3.10+，提供 Dockerfile 和 Linux Shell 入口。
-- 可验证：包含配置校验、确定性运行和结果产物测试。
+- 可验证：一条命令跑完"校验配置 → 运行实验 → 对照期望数值（17 项断言，含容差）→ 单元测试"，数值不符即非 0 退出，可直接当 CI 门禁。
+- 结论可统计：同一配置跨 10 个种子重跑并做配对比较（不靠单次运行下结论）。
+- 判据可证伪：`scripts/score_task.py` 会把实现改坏后的提交判为失败（负向控制必须被识别）。
 
 ## 快速运行
 
@@ -28,6 +30,40 @@ python -m unittest discover -s tests -v
 Windows PowerShell 可将 `cat` 换成 `Get-Content`。
 
 Windows 也可以直接运行 `scripts/run_demo.ps1`。
+
+## 一键复现与验证（推荐入口）
+
+```bash
+python scripts/repro.py        # 任意平台：环境报告 → 校验配置 → 运行 → 对照期望数值 → 单测
+make repro                     # Linux/macOS 等价入口
+docker compose up --build      # 容器内跑同一套流程，产物写到 ./runs
+```
+
+`scripts/repro.py` 的第三步会用 `expected/expected_metrics.json` 逐项断言 17 个数值（各方案的测试损失、准确率、训练轮数、配置 SHA-256），
+容差写在同一个文件里；`duration_ms` 不参与比对，因为它本来就不可复现。任何一步失败都会以非 0 退出码结束。
+
+想验证"结论是否可重复"（而不只是"这一次能不能跑"）：
+
+```bash
+python scripts/seed_sweep.py --seeds 0-9      # 10 个种子 + 配对提升，输出 summary.json / summary.md
+python scripts/score_task.py                  # 任务评分（0-100 部分得分）+ 两个负向控制
+```
+
+已提交的验证产物在 `runs/demo-verified/`，由单元测试反向断言：如果重新生成得到的数值变了，测试会失败。
+数值来源、与论文的差异、以及"哪些结论不成立"的完整说明见 [`REPRODUCTION.md`](REPRODUCTION.md)；
+把复现转成"可反复尝试、可评分"的实验任务的规范见 [`TASK.md`](TASK.md)（中文版 [`TASK.zh.md`](TASK.zh.md)）。
+
+### 两个实验，两个不同的问题
+
+| 实验 | 问题 | 结果 |
+|---|---|---|
+| `examples/classification.json` | 固定 80 轮时，谁的测试损失更低 | Adam 最低（10/10 种子） |
+| `examples/optimizers.json` | 达到接近收敛下限的目标损失，谁用的轮数更少 | **AdaGrad 最快（10/10 种子，平均 4.7 轮 vs Adam 22.6 轮）** |
+
+第二个实验给每个优化器家族（SGD / 带动量 SGD / AdaGrad / RMSProp / Adam）都用同一套学习率扫描
+（`examples/optimizers-sweep.json`，24 组）选出自己的学习率，避免"用手选学习率比较调参运气"。
+结论是**论文"Adam 收敛更快"这一条在本设置下不成立**——这正是这类实验值得做的原因：能证明它不成立，
+比再复述一遍论文更有价值。完整数据（含逐种子配对比较与学习率-损失曲线）见 `REPRODUCTION.md` 第 5.4 节。
 
 ## Docker
 
@@ -58,6 +94,8 @@ docker run --rm -v "$PWD/runs:/app/runs" autoresearch-lite
 
 ## 参考文档
 
+- 复现报告（英文，含与论文的差异与局限）：`REPRODUCTION.md`
+- 实验任务规范（目标、判据、评分、失败模式、重试协议）：`TASK.md`、`TASK.zh.md`
 - 工程过程与设计取舍：`docs/process/initial-design.md`、`docs/engineering-plan.md`
 - 复现边界与可复现性约束：`docs/reproducibility.md`
 - 论文复现记录：`docs/papers/adam-2014.md`、`docs/papers/adam-2014-result.md`

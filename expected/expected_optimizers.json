@@ -1,0 +1,76 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 808b4c1692271929dd61293f66bf97c0682f9907e8724713d9570a1f94eaeddf",
+  "config": "examples/optimizers.json",
+  "config_sha256": "808b4c1692271929dd61293f66bf97c0682f9907e8724713d9570a1f94eaeddf",
+  "metric": "epochs_to_target",
+  "best": "adagrad",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "baseline": {
+      "optimizer": "sgd",
+      "learning_rate": 0.6,
+      "epochs": 120,
+      "test_accuracy": 0.94,
+      "test_loss": 0.20381571,
+      "epochs_to_target": null
+    },
+    "sgd_momentum": {
+      "optimizer": "sgd_momentum",
+      "learning_rate": 0.8,
+      "momentum": 0.9,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.123455,
+      "epochs_to_target": 23
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 4.0,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12246563,
+      "epochs_to_target": 12
+    },
+    "rmsprop": {
+      "optimizer": "rmsprop",
+      "learning_rate": 0.2,
+      "decay": 0.9,
+      "epochs": 120,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12431982,
+      "epochs_to_target": 57
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.4,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12346246,
+      "epochs_to_target": 33
+    },
+    "adam_no_bias_correction": {
+      "optimizer": "adam",
+      "learning_rate": 0.15,
+      "bias_correction": false,
+      "epochs": 65,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12187267,
+      "epochs_to_target": 13
+    }
+  },
+  "notes": [
+    "Target loss 0.16 is close to the converged floor (~0.12-0.14) on purpose: a loose target mostly measures the size of the first steps, not convergence.",
+    "Each optimizer family uses the learning rate that gave the lowest final training loss in examples/optimizers-sweep.json; ties break toward the smaller rate.",
+    "epochs_to_target is null when the optimizer never reached the target inside the 120-epoch budget; null ranks last.",
+    "duration_ms is excluded; with the sweep, most families sit at the edge of the swept rate grid, which is a stated limitation."
+  ]
+}
