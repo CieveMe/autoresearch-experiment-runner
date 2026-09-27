@@ -45,12 +45,35 @@
 - 区间说明：起点 `5e6d226` 的复现已能运行但**无法自我验证**（`repro.py`、期望数值文件、多种子
   聚合、负向控制都不存在，且配置哈希在 Windows 检出下会漂移）；终点 `8f1dcdf` 上述检查全部通过。
 
-### M3 —（进行中）
+### M3 — 收敛速度实验（负结果）、真实缺陷修复与 0.1.0 发布元数据
 
-- Start: `8f1dcdf`
-- 内容：真实论文实现接入（PyTorch 适配器）、收敛速度指标、稀疏梯度场景、SGD 学习率扫描，
-  以及 T-ADAM-01B/01C/01D 任务变体的首轮实测记录（见 `TODO.md`、`TASK.md` 第 9 节）。
-- End: 待下一个真实提交完成后回填；本文件所在提交即为 M3 的首个文档提交。
+- Commit range: `8f1dcdf`..`ed0be38`
+- 目标与背景：M2 只测了"固定轮数下谁的损失更低"，而论文的主张是"更快收敛"。这一阶段把该主张变成
+  可检验对象，并且**允许它不成立**。
+- 实现要点：`autoresearch/model.py` 增加 SGD+momentum / AdaGrad / RMSProp 与 `bias_correction`
+  开关，`train()` 返回逐轮损失曲线；新增 `epochs_to_target` 指标与 `examples/optimizers.json`、
+  `examples/optimizers-sweep.json`（24 组学习率扫描）、`expected/expected_optimizers.json`；
+  `scripts/repro.py` 改为一次跑两个套件（46 项断言）；`scripts/seed_sweep.py` 支持"未达标 = None"
+  的排序与配对统计；`CHANGELOG.md`、`.zenodo.json`、`docs/release-checklist.md`；单测 8 → 17 项。
+- 对外可观察变化：报告新增 5.4 节并给出**负结果**——AdaGrad 在 10/10 种子上最先达标（平均 4.7 轮 vs
+  Adam 22.6 轮），带动量 SGD 也 10/10 快于 Adam，朴素 SGD 在任何扫描学习率下都未达标；关闭偏差修正
+  后 Adam 反而 10/10 更快（快 12.5 ± 4.6 轮）。同时修掉两个真实缺陷：配置哈希的平台相关性，以及
+  "越小越好"指标集合存在重复定义导致种子扫描把 RMSProp 误报为逐种子获胜者。
+- 如何验证：`python scripts/repro.py`（46/46，退出码 0）、`python -m unittest discover -s tests`
+  （17 项通过）、`python scripts/score_task.py`（100/100，两个负向控制各 82.4/100 且被识别）、
+  `python scripts/seed_sweep.py --config examples/optimizers.json --seeds 0-9`。
+- 区间说明：起点 `8f1dcdf` 时模型只支持 `sgd`/`adam`，没有逐轮曲线、没有达标轮数指标，因此**无法**
+  检验"更快收敛"；终点 `ed0be38` 该项可跑、可断言、结论为负且已如实写进报告。该区间内还包含
+  文档面向读者的清理与一次合并提交（由并行的求职项目工作流完成，见 `37422be`、`0dd90e3`）。
+
+### M4 —（进行中）
+
+- Start: `ed0be38`
+- 内容：稀疏梯度场景（论文声称的优势场景之一）；PyTorch 适配器接入真实论文；
+  多目标阈值的"达标轮数 vs 阈值"曲线；配对显著性检验（p 值/置信区间）；
+  学习率网格向大值延伸并加密（当前各家族最优都在网格边缘）；
+  `TASK.md` 第 9 节三个任务变体（T-ADAM-01B/01C/01D）的首轮实测记录。
+- End: 待后续真实提交完成后回填。
 
 ## 记录模板（后续阶段）
 
