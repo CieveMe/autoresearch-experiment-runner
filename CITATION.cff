@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software or reuse its reproduction harness, please cite it as below."
-title: "AutoResearch Lite: a reproducible paper-inspired experiment runner (Adam mechanism reproduction)"
+title: "AutoResearch Lite: a reproducible paper-inspired experiment runner (Adam mechanism reproduction and convergence-speed comparison)"
 abstract: >-
   A dependency-free experiment runner that turns a paper's research question into a
   configuration-driven, verifiable experiment task. The bundled reproduction implements
@@ -15,6 +15,7 @@ authors:
 version: 0.2.0
 date-released: "2026-09-28"
 license: MIT
+doi: 10.5281/zenodo.23003610
 repository-code: "https://github.com/CieveMe/autoresearch-experiment-runner"
 keywords:
   - reproducibility

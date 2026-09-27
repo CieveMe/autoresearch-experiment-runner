@@ -1,6 +1,9 @@
 # AutoResearch Lite MVP
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23003610.svg)](https://doi.org/10.5281/zenodo.23003610)
+
 > GitHub repository: `https://github.com/CieveMe/autoresearch-experiment-runner`  
+> 已归档到 Zenodo：v0.2.0 → <https://doi.org/10.5281/zenodo.23003626>（全版本概念 DOI：`10.5281/zenodo.23003610`，v0.1.0 → `10.5281/zenodo.23003611`）  
 > 当前版本定位：论文复现与工程能力作品集 MVP。
 
 一个离线、可复现的“论文想法 → 实验任务 → 多方案运行 → 指标评估 → 自动选优 → 报告生成”最小闭环。
