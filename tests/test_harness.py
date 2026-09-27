@@ -97,13 +97,19 @@ class SeedSweepTests(unittest.TestCase):
 
 
 class NegativeControlTests(unittest.TestCase):
-    def test_every_control_fragment_still_exists_in_model_py(self):
-        """Controls must fail loudly instead of silently turning into no-ops."""
-        source = (ROOT / "autoresearch" / "model.py").read_text(encoding="utf-8")
+    def test_every_control_fragment_still_exists_in_the_source_it_names(self):
+        """Controls must fail loudly instead of silently turning into no-ops.
+
+        The fragment is checked in the file the control names, so moving an
+        implementation between modules cannot quietly disarm a control.
+        """
         for name, mutations in NEGATIVE_CONTROLS.items():
             with self.subTest(control=name):
                 for mutation in mutations:
-                    self.assertIn(mutation["old"], source)
+                    target = ROOT / mutation.get("file", "autoresearch/model.py")
+                    self.assertTrue(target.exists(), f"{name}: missing {target}")
+                    source = target.read_text(encoding="utf-8")
+                    self.assertIn(mutation["old"], source, f"{name} in {target.name}")
 
 
 if __name__ == "__main__":

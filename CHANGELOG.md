@@ -4,6 +4,33 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Trainer adapter** (`autoresearch/trainers/`): the original model moved, unchanged, into
+  `trainers/logistic.py`; a second, dependency-free `trainers/mlp.py` (two-layer tanh, deterministic
+  initialisation) proves the adapter is real, and `trainers/registry.py` selects by config key.
+  `autoresearch/model.py` is now a compatibility shim.
+- **Optimizer registry** (`autoresearch/optimizers.py`): every update rule in one place, written
+  against a plain parameter vector so both trainers share it. Adds `adamw` (decoupled weight decay)
+  and `ademamix`.
+- **Schedules** (`autoresearch/schedules.py`): constant (default, exactly 1.0 so existing arithmetic is
+  untouched), cosine, warmup+cosine, and AdEMAMix's α / β3 warmups.
+- **Data sources** (`autoresearch/datasets.py`): synthetic (default) plus local CSV/JSON; URLs are
+  refused before they are opened.
+- **AdEMAMix (arXiv:2409.03137) suite**: `examples/ademamix.json` + `examples/ademamix-sweep.json` +
+  `expected/expected_ademamix.json` + `docs/papers/ademamix-2024.md`. Result: the paper's
+  faster-than-AdamW claim **is not reproduced** at this scale (identical epochs-to-target in 10/10
+  seeds; the paper's own warmup scheme scaled to this budget is 4.5× slower).
+- Thirteen more unit tests (30 total), including an MLP gradient check against finite differences and
+  the α = 0 identity with AdamW.
+
+### Changed
+
+- `scripts/repro.py` runs **three** suites (71 asserted checks); `scripts/score_task.py` aggregates
+  over all suites and its negative controls now name the file they mutate.
+
 ## [0.2.0] — 2026-09-28
 
 The release that turns the paper's actual headline claim — *faster convergence* — into a measurable

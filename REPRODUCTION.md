@@ -7,9 +7,10 @@
 | Reproduction level | **mechanism-level** (algorithm re-implementation + controlled head-to-head), not benchmark-level |
 | Config revision | `examples/classification.json`, SHA-256 `cc85ba76ddcdff91f561bb0366fd3228c00e5b46541af8e4cdc04563926e040f` |
 | Second experiment | `examples/optimizers.json` — convergence speed (epochs to a tight target) against SGD, SGD+momentum, AdaGrad and RMSProp; SHA-256 `808b4c1692271929dd61293f66bf97c0682f9907e8724713d9570a1f94eaeddf` |
-| One command | `python scripts/repro.py` (runs both experiments, cross-platform) or `make repro` |
+| Third experiment | `examples/ademamix.json` — a **2024 paper** (AdEMAMix, arXiv:2409.03137) tested against AdamW on the same time-to-target metric; SHA-256 `c046217aa4a239a4db2c685c4162efc4ae5cda90fc9e69b03fe28d8417972962` |
+| One command | `python scripts/repro.py` (runs all three experiments, cross-platform) or `make repro` |
 | Verified on | 2026-09-28, CPython 3.12.5, Windows 11 (x64), no network, no third-party packages |
-| Expected numbers | `expected/expected_metrics.json` (17 assertions) and `expected/expected_optimizers.json` (28 assertions), both machine-checked |
+| Expected numbers | `expected/expected_metrics.json` (17 assertions), `expected/expected_optimizers.json` (28) and `expected/expected_ademamix.json` (26), all machine-checked |
 
 ## Verdict in one paragraph
 
@@ -248,6 +249,55 @@ Paired per-seed comparison (positive = fewer epochs than the reference):
    had the lowest test loss; measured by time-to-a-tight-target it is mid-pack. Quoting either number
    as "Adam vs SGD" without saying which question was asked would be misleading.
 
+### 5.5 A 2024 paper, same metric: AdEMAMix (negative result again)
+
+Section 5.4 measures convergence speed with methods older than the paper; this experiment points the
+same machinery at a **2024 paper**. AdEMAMix (arXiv:2409.03137, Apple) keeps a second, slower EMA of
+the gradient (β3 = 0.9999) and mixes it in with a coefficient α that grows over training, on top of
+Adam's bias-corrected second moment. Its claim is that this converges faster than AdamW on long runs.
+
+Setup, and the two decisions that keep it fair:
+
+* every arm — including the α/β3 warmup length, a hyper-parameter AdamW does not have — is tuned by
+  the same rule used everywhere in this repository (lowest final training loss inside the grid
+  `examples/ademamix-sweep.json`, 20 trials, ties to the smaller value);
+* **weight decay is 0**. The paper's default λ = 0.1 assumes lr ≈ 1e-3; this full-batch task runs at
+  lr ≈ 0.1–0.8, so the same λ would apply roughly 100× more decay per step and the comparison would
+  be about regularisation rather than about the update rule.
+
+Reference run (seed 7, target 0.148, just above the converged floor ~0.143):
+
+| arm | tuned lr | epochs to target | final test loss |
+|---|---:|---:|---:|
+| adamw (baseline) | 0.8 | **23** | 0.12255737 |
+| ademamix (tuned, no warmups) | 0.8 | **23** | 0.12202320 |
+| ademamix with α = 0 (ablation) | 0.8 | **23** | 0.12255737 |
+| sgd + momentum | 0.8 | 47 | 0.12345500 |
+| ademamix with the paper's warmups scaled to this budget (α/β3 ramp over 120 steps) | 0.2 | 105 | 0.12415636 |
+
+Ten seeds (`runs/ademamix-verified/seed-sweep-summary.md`): adamw, the tuned AdEMAMix and the α = 0
+ablation all average **13.7 ± 4.69** epochs (range 8–23) and the paired difference against AdamW is
+**exactly 0.0 in 10/10 seeds**; momentum averages 23.3, and the paper-warmup arm 66.5.
+
+**Findings.**
+
+1. **The 2024 claim is not reproduced either.** On this task AdEMAMix does not reach the target in
+   fewer epochs than AdamW — it reaches it in the *same* epoch in every one of ten seeds — and its
+   final loss improvement is 0.4% relative (0.0005 absolute) on the reference seed.
+2. **The slow EMA changes the floor, not the timing.** With α = 0 the arm reproduces AdamW's curve to
+   the printed precision, which is the implementation's correctness check: the only difference between
+   the two rules is the term that was switched off. (Equality is to within floating-point rounding,
+   not bit for bit — the two rules associate their arithmetic differently — and the test pins it at
+   1e-12 relative rather than claiming exactness.)
+3. **The paper's own warmup scheme is budget-sensitive.** Spreading the α/β3 ramps over the whole run
+   (as the paper does over its 256k steps) makes the arm **4.5× slower** here (105 epochs vs 23) and
+   worse at the floor. At a 120-epoch budget the ramps never finish, so the slow EMA mostly adds an
+   early-phase push to an already adaptive-normalised step.
+4. **This is a statement about scale, not about the method.** The slow EMA needs a long horizon to pay
+   off; a 120-epoch full-batch convex task that converges in ~20 steps has none. The card
+   (`docs/papers/ademamix-2024.md`) says exactly that, and testing the paper's regime would need the
+   paper's regime — long training, mini-batches, its own harness — which is out of scope here.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |
@@ -332,14 +382,15 @@ container run, and uploads `runs/demo` and `runs/seed-sweep` as artifacts.
 
 | Artifact | Path |
 |---|---|
-| Experiment configs (single source of truth) | `examples/classification.json`, `examples/optimizers.json` |
-| Learning-rate sweep used to tune §5.4 | `examples/optimizers-sweep.json` (24 trials) |
-| Expected numbers + tolerances | `expected/expected_metrics.json`, `expected/expected_optimizers.json` |
-| Verified single-seed results | `runs/demo-verified/`, `runs/optimizers-verified/` (`results.json`, `report.md`, `loss-curves.csv`) |
+| Experiment configs (single source of truth) | `examples/classification.json`, `examples/optimizers.json`, `examples/ademamix.json` |
+| Tuning sweeps used by §5.4 and §5.5 | `examples/optimizers-sweep.json` (24 trials), `examples/ademamix-sweep.json` (20 trials) |
+| Expected numbers + tolerances | `expected/expected_metrics.json`, `expected/expected_optimizers.json`, `expected/expected_ademamix.json` |
+| Verified single-seed results | `runs/demo-verified/`, `runs/optimizers-verified/`, `runs/ademamix-verified/` (`results.json`, `report.md`, `loss-curves.csv`) |
 | Verified 10-seed aggregates | `runs/*-verified/seed-sweep-summary.json`, `.md` |
-| Committed sweep curves (recompute any target) | `runs/optimizers-verified/lr-sweep/loss-curves.csv` |
-| Fresh runs (regenerated by the one command, not committed) | `runs/demo/`, `runs/optimizers/`, `runs/seed-sweep*/` |
-| Environment of a run | `runs/demo/environment.json`, `runs/optimizers/environment.json` |
+| Committed tuning curves (recompute any target) | `runs/optimizers-verified/lr-sweep/loss-curves.csv`, `runs/ademamix-verified/tuning-sweep/loss-curves.csv` |
+| Trainer / optimizer source | `autoresearch/trainers/`, `autoresearch/optimizers.py`, `autoresearch/schedules.py`, `autoresearch/datasets.py` |
+| Fresh runs (regenerated by the one command, not committed) | `runs/demo/`, `runs/optimizers/`, `runs/ademamix/`, `runs/seed-sweep*/` |
+| Environment of a run | `runs/<suite>/environment.json` |
 
 Everything in `runs/demo-verified/` is generated, not hand-written; the tests assert that the committed
 result still matches `expected/expected_metrics.json`, so a regeneration that changes a number fails CI.

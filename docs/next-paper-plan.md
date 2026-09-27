@@ -1,9 +1,17 @@
 # Plan: adapter refactor + the next paper (2024–2025)
 
-The repository claims that only `autoresearch/model.py` needs replacing to take on a real paper. That
-claim is not yet true: there is one trainer, its parameters are two scalars and a bias, and the
-optimizer set is hard-coded in one function. This document is the refactor that makes the claim true,
-plus the concrete plan for the first 2024–2025 paper to run through it.
+> **Status 2026-09-28: done for the first paper.** The adapter refactor shipped
+> (`autoresearch/trainers/`, `optimizers.py`, `schedules.py`, `datasets.py`; `model.py` is now a
+> compatibility shim), and **AdEMAMix** ran through it as `examples/ademamix.json` with a paper card,
+> a 20-trial tuning sweep, a 10-seed paired comparison and a negative control. Result: the paper's
+> faster-than-AdamW claim is **not** reproduced at this scale (identical epochs-to-target in 10/10
+> seeds) — see `docs/papers/ademamix-2024.md` and `REPRODUCTION.md` §5.5. Next: Schedule-Free AdamW
+> (section 4 below).
+
+The repository claimed that only `autoresearch/model.py` needed replacing to take on a real paper.
+That claim was not true while there was one trainer with two scalar weights, and the optimizer set was
+hard-coded in a single function. This document is the refactor that made the claim true (now done —
+see the status note above), plus the plan for the papers that run through it.
 
 ## 1. Why a refactor is needed before the next paper
 

@@ -6,8 +6,9 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List
 
-from .dataset import make_dataset, split_dataset
-from .model import epochs_to_target, evaluate, train
+from .datasets import load_rows, train_test_split
+from .metrics import epochs_to_target
+from .trainers.registry import get_trainer
 
 # Metrics where a smaller value is better. Defined once: duplicating this set
 # across the runner, the seed sweep and the one-command entry already produced a
@@ -57,32 +58,29 @@ def run(config_path: Path, output_dir: Path) -> Dict[str, Any]:
     config = _read_json(config_path)
     _validate(config)
     dataset_config = config["dataset"]
-    all_rows = make_dataset(
-        size=int(dataset_config.get("size", 800)),
-        seed=int(config.get("seed", 7)),
-        noise=float(dataset_config.get("noise", 0.18)),
-    )
-    train_rows, test_rows = split_dataset(all_rows, float(dataset_config.get("test_ratio", 0.25)))
+    all_rows = load_rows({"seed": config.get("seed", 7), **dataset_config})
+    train_rows, test_rows = train_test_split(all_rows, dataset_config)
+    trainer = get_trainer(str(config.get("trainer", "logistic")))
     trials = [{"name": "baseline", **config["baseline"]}, *config["experiments"]]
     target_loss = config.get("target_loss")
     results: List[Dict[str, Any]] = []
     for trial in trials:
         started = time.perf_counter()
-        weights, bias, epochs, train_loss, loss_curve = train(train_rows, trial)
-        train_metrics = evaluate(train_rows, weights, bias, float(trial.get("weight_decay", 0.0)))
-        test_metrics = evaluate(test_rows, weights, bias, float(trial.get("weight_decay", 0.0)))
+        fit = trainer.fit(train_rows, trial)
+        train_metrics = trainer.evaluate(train_rows, fit.params, trial)
+        test_metrics = trainer.evaluate(test_rows, fit.params, trial)
         results.append({
             "name": trial["name"],
             "config": trial,
             "train_accuracy": round(train_metrics["accuracy"], 6),
             "test_accuracy": round(test_metrics["accuracy"], 6),
-            "train_loss": round(train_loss, 8),
+            "train_loss": round(fit.final_loss, 8),
             "test_loss": round(test_metrics["loss"], 8),
-            "epochs": epochs,
+            "epochs": fit.epochs_run,
             "epochs_to_target": (
-                epochs_to_target(loss_curve, float(target_loss)) if target_loss is not None else None
+                epochs_to_target(fit.loss_curve, float(target_loss)) if target_loss is not None else None
             ),
-            "loss_curve": [round(value, 8) for value in loss_curve],
+            "loss_curve": [round(value, 8) for value in fit.loss_curve],
             "duration_ms": round((time.perf_counter() - started) * 1000, 3),
         })
     metric = str(config.get("metric", "test_accuracy"))
@@ -91,6 +89,7 @@ def run(config_path: Path, output_dir: Path) -> Dict[str, Any]:
     best = ranked[0]
     payload = {
         "task": config["task"],
+        "trainer": getattr(trainer, "name", "logistic"),
         "paper": config.get("paper", {}),
         "hypothesis": config.get("hypothesis", ""),
         "metric": config.get("metric", "test_accuracy"),

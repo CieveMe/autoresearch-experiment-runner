@@ -26,6 +26,15 @@ runs/*
 !runs/optimizers-verified/lr-sweep/
 !runs/optimizers-verified/lr-sweep/report.md
 !runs/optimizers-verified/lr-sweep/loss-curves.csv
+!runs/ademamix-verified/
+!runs/ademamix-verified/results.json
+!runs/ademamix-verified/report.md
+!runs/ademamix-verified/loss-curves.csv
+!runs/ademamix-verified/seed-sweep-summary.json
+!runs/ademamix-verified/seed-sweep-summary.md
+!runs/ademamix-verified/tuning-sweep/
+!runs/ademamix-verified/tuning-sweep/report.md
+!runs/ademamix-verified/tuning-sweep/loss-curves.csv
 
 # Local credentials and editor state
 .env
@@ -33,3 +42,6 @@ runs/*
 !.env.example
 .vscode/
 .idea/
+
+# Scratch configs from ad-hoc probing (never part of an experiment)
+runs_probe*.json

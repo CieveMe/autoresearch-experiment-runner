@@ -1,0 +1,71 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 c046217aa4a239a4db2c685c4162efc4ae5cda90fc9e69b03fe28d8417972962",
+  "config": "examples/ademamix.json",
+  "config_sha256": "c046217aa4a239a4db2c685c4162efc4ae5cda90fc9e69b03fe28d8417972962",
+  "metric": "epochs_to_target",
+  "best": "ademamix_tuned",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw": {
+      "optimizer": "adamw",
+      "learning_rate": 0.8,
+      "epochs": 72,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12255737,
+      "epochs_to_target": 23
+    },
+    "ademamix_tuned": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.8,
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "epochs": 97,
+      "test_accuracy": 0.935,
+      "test_loss": 0.1220232,
+      "epochs_to_target": 23
+    },
+    "ademamix_paper_warmups": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.2,
+      "alpha_warmup": 120,
+      "beta3_warmup": 120,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12415636,
+      "epochs_to_target": 105
+    },
+    "ademamix_no_slow_ema": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.8,
+      "alpha": 0.0,
+      "epochs": 72,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12255737,
+      "epochs_to_target": 23
+    },
+    "sgd_momentum": {
+      "optimizer": "sgd_momentum",
+      "learning_rate": 0.8,
+      "momentum": 0.9,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.123455,
+      "epochs_to_target": 47
+    }
+  },
+  "notes": [
+    "Target 0.148 sits close to the converged floor (~0.143) on purpose; a looser target mostly measures the first step.",
+    "Every arm, including AdEMAMix's extra warmup-length hyper-parameter, is tuned by the same rule inside examples/ademamix-sweep.json: lowest final training loss, ties to the smaller value.",
+    "ademamix_no_slow_ema (alpha = 0) is expected to reproduce adamw to the printed precision (the two rules agree algebraically; their arithmetic is associated differently, so equality is to within floating-point rounding). tests/test_ademamix.py pins it at 1e-12 relative.",
+    "The result is a negative one: the paper's 'faster convergence than AdamW' claim is not reproduced here, and the paper's own warmup scheme, scaled to a 120-epoch budget, is markedly slower. See docs/papers/ademamix-2024.md."
+  ]
+}

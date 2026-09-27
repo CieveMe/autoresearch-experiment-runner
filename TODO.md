@@ -10,6 +10,9 @@
 - [x] 增加学习率扫描，消除"各优化器只在手选学习率上比较"这一质疑（`examples/optimizers-sweep.json`，24 组）。
 - [ ] 把学习率网格向大值方向延伸并加密：当前每个自适应家族的最优都在网格边缘，说明网格未饱和。
 - [ ] 用同一套 `epochs_to_target` 跑多个目标阈值（如 0.30 / 0.20 / 0.16）并画成"达标轮数 vs 阈值"曲线。
+- [x] 按 Roadmap 接入第一篇 2024 年论文（AdEMAMix）：适配器重构（`trainers/` + `optimizers.py` + `schedules.py` + `datasets.py`）、20 组调参扫描、10 种子配对、论文卡与负向控制，结论为负（不更快）。见 `docs/papers/ademamix-2024.md`。
+- [ ] 第二篇论文：Schedule-Free AdamW（2024，arXiv:2405.15682），需要实现"无计划 vs 调过的 cosine 计划"对照。
+- [ ] 用 MLP trainer 复跑优化器套件与 AdEMAMix（检验结论是否只对 2 参数逻辑回归成立）。
 - [ ] 增加失败实验重试、断点恢复和超时控制。
 - [ ] 增加 PyTorch 适配器，同时保持标准库示例可离线运行。
 - [ ] 增加实验结果可视化和 HTML 报告导出。

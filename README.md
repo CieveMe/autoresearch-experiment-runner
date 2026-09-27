@@ -8,7 +8,9 @@
 
 一个离线、可复现的“论文想法 → 实验任务 → 多方案运行 → 指标评估 → 自动选优 → 报告生成”最小闭环。
 
-这个 MVP 用纯 Python 实现一个可替换的二分类训练器，并以 Adam 论文为例完成优化器机制复现；后续只需替换 `autoresearch/model.py`，即可接入其他论文代码、PyTorch 模型或 LLM 评测任务。
+这个 MVP 用纯 Python 实现**可替换的训练器**，并以 Adam 论文为例完成优化器机制复现。接入新论文时改的是
+`autoresearch/trainers/`（现有 `logistic` 与 `mlp` 两个实现）与 `autoresearch/optimizers.py`（更新规则集中在一处），
+`autoresearch/model.py` 只是保持旧导入路径可用的兼容层。实验配置、期望数值与判据都可复用。
 
 ## 工程能力
 
@@ -56,12 +58,13 @@ python scripts/score_task.py                  # 任务评分（0-100 部分得�
 数值来源、与论文的差异、以及"哪些结论不成立"的完整说明见 [`REPRODUCTION.md`](REPRODUCTION.md)；
 把复现转成"可反复尝试、可评分"的实验任务的规范见 [`TASK.md`](TASK.md)（中文版 [`TASK.zh.md`](TASK.zh.md)）。
 
-### 两个实验，两个不同的问题
+### 三个实验，三个不同的问题
 
 | 实验 | 问题 | 10 个种子的结果 |
 |---|---|---|
 | `examples/classification.json` | 固定 80 轮时，谁的测试损失更低 | Adam 最低（10/10 种子），配对提升 0.07670 ± 0.00554 |
 | `examples/optimizers.json` | 达到接近收敛下限的目标损失，谁用的轮数更少 | **AdaGrad 最快**：平均 **4.7 轮**（10/10 种子），带动量 SGD 16.7 轮，**Adam 22.6 轮**，RMSProp 42.0 轮，朴素 SGD **从未达标** |
+| `examples/ademamix.json` | **2024 年论文 AdEMAMix** 是否比 AdamW 更快达标 | **没有更快**：AdEMAMix 与 AdamW **同为 23 轮**（10/10 种子逐种子相同，配对差 0.0），最终测试损失仅好 0.4%；按论文自己的 warmup 缩放到 120 轮预算则慢 4.5 倍（105 轮）。实现正确性检查：把慢 EMA 关掉（α=0）会精确回到 AdamW |
 
 第二个实验给每个优化器家族（SGD / 带动量 SGD / AdaGrad / RMSProp / Adam）都用同一套学习率扫描
 （`examples/optimizers-sweep.json`，24 组）选出自己的学习率，避免"用手选学习率比较调参运气"；
@@ -87,7 +90,7 @@ docker run --rm -v "$PWD/runs:/app/runs" autoresearch-lite
 ## 下一步接入真实论文
 
 1. 将论文的研究问题写成 `hypothesis`，把评测指标写入 `metric`。
-2. 在 `model.py` 实现论文方法的训练或推理适配器。
+2. 在 `autoresearch/trainers/` 增加该论文方法的训练器（或在 `optimizers.py` 增加更新规则）。
 3. 在 JSON 中增加 baseline、ablation 和超参数变体。
 4. 为数据集、评测指标和失败案例补充测试。
 5. 把实验报告、配置和结果一起提交，保留配置哈希以支持复盘。
@@ -118,7 +121,7 @@ docker run --rm -v "$PWD/runs:/app/runs" autoresearch-lite
 当前只用 Adam (2014) 验证了"论文机制 → 可运行实现"这条链路。下一步是把它接到**更近期的论文**上，让复现本身成为可验证、可复用的实验任务：
 
 1. 把论文的研究问题写成 `hypothesis`，把评测指标写入 `metric`。
-2. 在 `model.py` 实现该论文方法的训练或推理适配器。
+2. 在 `autoresearch/trainers/` 增加该论文方法的训练器（或在 `optimizers.py` 增加更新规则）。
 3. 在 JSON 配置里补齐 baseline、ablation 与超参数变体。
 4. 为数据集、评测指标和失败案例补充测试。
 5. 把实验报告、配置与结构化结果一起提交，并保留配置哈希以支持复盘。

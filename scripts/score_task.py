@@ -30,6 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from scripts.repro import SUITES  # noqa: E402
 from scripts.verify_results import DEFAULT_EXPECTED, verify  # noqa: E402
 
 def _ignore(directory: str, names: List[str]) -> set[str]:
@@ -41,26 +42,38 @@ def _ignore(directory: str, names: List[str]) -> set[str]:
     """
     skip = {name for name in names if name in {".git", ".github", "__pycache__"} or name.endswith(".pyc")}
     if Path(directory).name == "runs":
-        skip.update(name for name in names if name != "demo-verified")
+        skip.update(name for name in names if not name.endswith("-verified"))
     return skip
 
-# Each control replaces a fragment of model.py. The expectation is that the
+# Each control replaces a fragment of the implementation. The expectation is that the
 # reproduction harness *fails* afterwards; if it passes, the task is unfalsifiable.
+# `file` is explicit because the update rules moved out of model.py into optimizers.py —
+# a control that silently stops matching real source is worse than no control at all.
 NEGATIVE_CONTROLS: Dict[str, List[Dict[str, str]]] = {
     "no-bias-correction": [
         {
+            "file": "autoresearch/optimizers.py",
             "old": "corrected_first = first_moment[index] / (1.0 - beta1**step) if bias_correction else first_moment[index]",
             "new": "corrected_first = first_moment[index]",
         },
         {
+            "file": "autoresearch/optimizers.py",
             "old": "corrected_second = second_moment[index] / (1.0 - beta2**step) if bias_correction else second_moment[index]",
             "new": "corrected_second = second_moment[index]",
         },
     ],
     "no-adaptive-scaling": [
         {
+            "file": "autoresearch/optimizers.py",
             "old": "weights[index] -= learning_rate * corrected_first / (math.sqrt(corrected_second) + epsilon)",
             "new": "weights[index] -= learning_rate * corrected_first",
+        },
+    ],
+    "ademamix-without-slow-ema": [
+        {
+            "file": "autoresearch/optimizers.py",
+            "old": "update = (exp_avg_fast[index] / bias_correction1 + alpha * exp_avg_slow[index]) / denom",
+            "new": "update = (exp_avg_fast[index] / bias_correction1) / denom",
         },
     ],
 }
@@ -79,14 +92,26 @@ def _run_repro(directory: Path) -> int:
     return result.returncode
 
 
-def _score_directory(directory: Path, expected_path: Path) -> Dict[str, Any]:
+def _score_directory(directory: Path, expected_path: Path = None) -> Dict[str, Any]:
+    """Run every suite in the copy and aggregate the verified-check count.
+
+    Aggregating over suites (not just the main one) is what lets a control that only
+    breaks a newer experiment still be detected.
+    """
     exit_code = _run_repro(directory)
-    results_path = directory / "runs" / "demo" / "results.json"
-    if not results_path.exists():
-        return {"exit_code": exit_code, "checks_passed": 0, "checks_total": 0, "score": 0.0, "failures": ["no results.json produced"]}
-    failures, checks = verify(results_path, expected_path)
-    total = len(checks)
-    passed = total - len(failures)
+    failures: List[str] = []
+    passed = 0
+    total = 0
+    for name, suite in SUITES.items():
+        results_path = directory / suite["output"] / "results.json"
+        suite_expected = directory / suite["expected"]
+        if not results_path.exists():
+            failures.append(f"{name}: no results.json produced")
+            continue
+        suite_failures, checks = verify(results_path, suite_expected)
+        total += len(checks)
+        passed += len(checks) - len(suite_failures)
+        failures.extend(f"{name}: {item}" for item in suite_failures)
     return {
         "exit_code": exit_code,
         "checks_passed": passed,
@@ -97,13 +122,12 @@ def _score_directory(directory: Path, expected_path: Path) -> Dict[str, Any]:
 
 
 def _mutate(directory: Path, mutations: List[Dict[str, str]]) -> None:
-    model = directory / "autoresearch" / "model.py"
-    text = model.read_text(encoding="utf-8")
     for mutation in mutations:
+        target = directory / mutation.get("file", "autoresearch/model.py")
+        text = target.read_text(encoding="utf-8")
         if mutation["old"] not in text:
-            raise SystemExit(f"control fragment not found in model.py: {mutation['old']}")
-        text = text.replace(mutation["old"], mutation["new"])
-    model.write_text(text, encoding="utf-8")
+            raise SystemExit(f"control fragment not found in {mutation.get('file', 'autoresearch/model.py')}: {mutation['old']}")
+        target.write_text(text.replace(mutation["old"], mutation["new"]), encoding="utf-8")
 
 
 def main(argv: List[str] | None = None) -> int:

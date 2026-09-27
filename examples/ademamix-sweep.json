@@ -1,0 +1,44 @@
+{
+  "task": "tuning sweep for the AdEMAMix comparison (learning rate x warmup length)",
+  "paper": {
+    "title": "AdEMAMix: A Smarter Learning Rate Schedule for Adam",
+    "authors": "Matteo Pagliardini, Pierre Ablin, David Grangier",
+    "year": 2024,
+    "identifier": "arXiv:2409.03137"
+  },
+  "hypothesis": "AdEMAMix adds a slow EMA mixed in with a growing coefficient, so it has one more hyper-parameter than AdamW (the length of the alpha/beta3 warmup) and its learning rate may need retuning. Giving every arm the same grid is what keeps the later comparison from measuring tuning luck.",
+  "metric": "test_loss",
+  "seed": 7,
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "optimizer": "adamw",
+    "learning_rate": 0.8,
+    "epochs": 120
+  },
+  "experiments": [
+    {"name": "adamw_lr0.1", "optimizer": "adamw", "learning_rate": 0.1, "epochs": 120},
+    {"name": "adamw_lr0.2", "optimizer": "adamw", "learning_rate": 0.2, "epochs": 120},
+    {"name": "adamw_lr0.4", "optimizer": "adamw", "learning_rate": 0.4, "epochs": 120},
+    {"name": "adamw_lr0.8", "optimizer": "adamw", "learning_rate": 0.8, "epochs": 120},
+    {"name": "ademamix_w0_lr0.1", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "learning_rate": 0.1, "epochs": 120},
+    {"name": "ademamix_w0_lr0.2", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "learning_rate": 0.2, "epochs": 120},
+    {"name": "ademamix_w0_lr0.4", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "learning_rate": 0.4, "epochs": 120},
+    {"name": "ademamix_w0_lr0.8", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "learning_rate": 0.8, "epochs": 120},
+    {"name": "ademamix_w45_lr0.1", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "alpha_warmup": 45, "beta3_warmup": 45, "learning_rate": 0.1, "epochs": 120},
+    {"name": "ademamix_w45_lr0.2", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "alpha_warmup": 45, "beta3_warmup": 45, "learning_rate": 0.2, "epochs": 120},
+    {"name": "ademamix_w45_lr0.4", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "alpha_warmup": 45, "beta3_warmup": 45, "learning_rate": 0.4, "epochs": 120},
+    {"name": "ademamix_w45_lr0.8", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "alpha_warmup": 45, "beta3_warmup": 45, "learning_rate": 0.8, "epochs": 120},
+    {"name": "ademamix_w120_lr0.1", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "alpha_warmup": 120, "beta3_warmup": 120, "learning_rate": 0.1, "epochs": 120},
+    {"name": "ademamix_w120_lr0.2", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "alpha_warmup": 120, "beta3_warmup": 120, "learning_rate": 0.2, "epochs": 120},
+    {"name": "ademamix_w120_lr0.4", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "alpha_warmup": 120, "beta3_warmup": 120, "learning_rate": 0.4, "epochs": 120},
+    {"name": "ademamix_w120_lr0.8", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "alpha_warmup": 120, "beta3_warmup": 120, "learning_rate": 0.8, "epochs": 120},
+    {"name": "sgd_momentum_lr0.1", "optimizer": "sgd_momentum", "learning_rate": 0.1, "momentum": 0.9, "epochs": 120},
+    {"name": "sgd_momentum_lr0.2", "optimizer": "sgd_momentum", "learning_rate": 0.2, "momentum": 0.9, "epochs": 120},
+    {"name": "sgd_momentum_lr0.4", "optimizer": "sgd_momentum", "learning_rate": 0.4, "momentum": 0.9, "epochs": 120},
+    {"name": "sgd_momentum_lr0.8", "optimizer": "sgd_momentum", "learning_rate": 0.8, "momentum": 0.9, "epochs": 120}
+  ]
+}

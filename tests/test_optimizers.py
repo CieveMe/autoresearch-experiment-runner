@@ -24,6 +24,8 @@ class OptimizerTests(unittest.TestCase):
             "adagrad": {"optimizer": "adagrad", "learning_rate": 0.5},
             "rmsprop": {"optimizer": "rmsprop", "learning_rate": 0.1, "decay": 0.9},
             "adam": {"optimizer": "adam", "learning_rate": 0.1},
+            "adamw": {"optimizer": "adamw", "learning_rate": 0.1, "weight_decay": 0.01},
+            "ademamix": {"optimizer": "ademamix", "learning_rate": 0.05, "alpha": 2.0, "beta3": 0.9999},
         }
         self.assertEqual(set(configs), set(SUPPORTED_OPTIMIZERS))
         for name, config in configs.items():

@@ -35,6 +35,9 @@ jobs:
       - name: Regenerate the learning-rate sweep curves
         if: matrix.python == '3.12'
         run: python -m autoresearch.cli run --config examples/optimizers-sweep.json --output runs/lr-sweep
+      - name: Regenerate the AdEMAMix tuning curves
+        if: matrix.python == '3.12'
+        run: python -m autoresearch.cli run --config examples/ademamix-sweep.json --output runs/ademamix-tuning
       - name: Upload reproduction artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -45,6 +48,9 @@ jobs:
             runs/seed-sweep
             runs/seed-sweep-optimizers
             runs/lr-sweep
+            runs/ademamix
+            runs/seed-sweep-ademamix
+            runs/ademamix-tuning
 
   docker:
     name: reproduce (docker)

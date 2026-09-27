@@ -49,6 +49,12 @@ SUITES: Dict[str, Dict[str, str]] = {
         "expected": "expected/expected_optimizers.json",
         "label": "optimizer convergence speed (tuned rates, tight target)",
     },
+    "ademamix": {
+        "config": "examples/ademamix.json",
+        "output": "runs/ademamix",
+        "expected": "expected/expected_ademamix.json",
+        "label": "AdEMAMix (2024) against AdamW on time-to-target",
+    },
 }
 
 
