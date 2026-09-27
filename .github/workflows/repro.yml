@@ -1,0 +1,54 @@
+name: repro
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repro:
+    name: reproduce (python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Reproduce and verify expected numbers
+        run: python scripts/repro.py
+      - name: Verify the Makefile entry point
+        if: matrix.python == '3.12'
+        run: make repro
+      - name: Verify the task scorer and negative controls
+        if: matrix.python == '3.12'
+        run: python scripts/score_task.py
+      - name: Regenerate the multi-seed aggregate
+        if: matrix.python == '3.12'
+        run: python scripts/seed_sweep.py --seeds 0-9
+      - name: Upload reproduction artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: repro-artifacts-${{ matrix.python }}
+          path: |
+            runs/demo
+            runs/seed-sweep
+
+  docker:
+    name: reproduce (docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reproduce inside the container image
+        run: docker compose up --build --exit-code-from repro
+      - name: Upload reproduction artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: repro-artifacts-docker
+          path: runs/demo

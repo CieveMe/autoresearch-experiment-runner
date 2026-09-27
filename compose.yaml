@@ -1,0 +1,9 @@
+services:
+  repro:
+    build: .
+    image: autoresearch-lite:local
+    command: ["python", "scripts/repro.py"]
+    environment:
+      PYTHONPATH: /app
+    volumes:
+      - ./runs:/app/runs

@@ -1,5 +1,9 @@
 # 飞书项目申请要求整理
 
+> ⚠️ **内部材料，不得随仓库公开**：本文件包含第三方平台内部文档链接与准入要求。
+> 若要把本仓库转为公开（例如为了 Zenodo DOI / 期刊投稿），必须先移除此文件。
+> 公开前的脱敏检查清单见 `README.md` 与 `SECURITY.md`。
+
 > 来源：[`RL env collection · 专家须知`](https://wcngz2jid6iw.feishu.cn/docx/DNPFdZDJWo6K8sx4N9JcvKdPnLh)  
 > 整理日期：2026-09-24  
 > 说明：本文是申请准备清单，不替代原文；提交前应以原文最新要求为准。

@@ -17,6 +17,18 @@ def _read_json(path: Path) -> Dict[str, Any]:
         raise ValueError(f"invalid JSON config: {exc}") from exc
 
 
+def config_sha256(path: Path) -> str:
+    """Hash a config file with newlines normalized to LF.
+
+    Hashing raw bytes makes the reported config hash depend on the checkout
+    platform: Git on Windows (``core.autocrlf=true``) rewrites LF to CRLF, so
+    the same revision produced two different hashes. Normalizing newlines keeps
+    the identity of a revision stable across Windows, Linux and Docker.
+    """
+    payload = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def _validate(config: Dict[str, Any]) -> None:
     required = {"task", "dataset", "baseline", "experiments"}
     missing = sorted(required - set(config))
@@ -68,7 +80,7 @@ def run(config_path: Path, output_dir: Path) -> Dict[str, Any]:
         "paper": config.get("paper", {}),
         "hypothesis": config.get("hypothesis", ""),
         "metric": config.get("metric", "test_accuracy"),
-        "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
+        "config_sha256": config_sha256(config_path),
         "dataset": {"train_size": len(train_rows), "test_size": len(test_rows), **dataset_config},
         "best": best,
         "results": results,
@@ -84,6 +96,7 @@ def _report(payload: Dict[str, Any]) -> str:
         f"# AutoResearch Lite 实验报告\n",
         f"- 任务：{payload['task']}",
         f"- 论文：{payload.get('paper', {}).get('title', '未指定')}",
+        f"- 论文标识：{payload.get('paper', {}).get('identifier', '未指定')}",
         f"- 假设：{payload['hypothesis']}",
         f"- 数据集：训练 {payload['dataset']['train_size']} 条，测试 {payload['dataset']['test_size']} 条",
         f"- 配置 SHA-256：`{payload['config_sha256']}`\n",
@@ -96,5 +109,17 @@ def _report(payload: Dict[str, Any]) -> str:
     lower_is_better = payload["metric"] in {"test_loss", "train_loss", "duration_ms", "epochs"}
     for item in sorted(payload["results"], key=lambda value: ((1 if lower_is_better else -1) * value[payload["metric"]], value["test_loss"])):
         lines.append(f"| {item['name']} | {item['test_accuracy']:.2%} | {item['test_loss']} | {item['epochs']} | {item['duration_ms']} |")
-    lines.extend(["", "## 复现命令", "", "```bash", "python -m autoresearch.cli run --config examples/classification.json --output runs/demo", "```", ""])
+    lines.extend([
+        "",
+        "## 复现命令",
+        "",
+        "```bash",
+        "python scripts/repro.py          # 校验配置 → 运行实验 → 对照期望值 → 跑单测",
+        "make repro                       # 同上（Linux/macOS）",
+        "```",
+        "",
+        "本报告由 `scripts/verify_results.py` 对照 `expected/expected_metrics.json` 逐项校验；",
+        "数值比对详见 `REPRODUCTION.md`。",
+        "",
+    ])
     return "\n".join(lines)

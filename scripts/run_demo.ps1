@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $env:PYTHONPATH = $root
-$config = Join-Path $root 'examples/classification.json'
-$output = Join-Path $root 'runs/demo'
-python -m autoresearch.cli validate-config --config $config
-python -m autoresearch.cli run --config $config --output $output
-Get-Content -LiteralPath (Join-Path $output 'report.md')
+
+# Thin wrapper kept for compatibility: scripts/repro.py is the real entry point,
+# it also verifies the expected numbers and runs the unit tests.
+python (Join-Path $root 'scripts/repro.py')
+exit $LASTEXITCODE

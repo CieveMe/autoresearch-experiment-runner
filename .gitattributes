@@ -1,0 +1,19 @@
+# Keep the repository platform-neutral.
+* text=auto
+
+# Shell entry points must keep LF endings, otherwise a Windows checkout cannot run them
+# (`#!/usr/bin/env bash\r` is a "bad interpreter" on Linux/Git Bash).
+*.sh text eol=lf
+Makefile text eol=lf
+Dockerfile text eol=lf
+compose.yaml text eol=lf
+*.yml text eol=lf
+
+# Windows-first scripts keep CRLF.
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+
+# Binary-ish artifacts
+*.png binary
+*.jpg binary
+*.pdf binary

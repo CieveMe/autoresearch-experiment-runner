@@ -15,6 +15,8 @@ runs/*
 !runs/demo-verified/
 !runs/demo-verified/results.json
 !runs/demo-verified/report.md
+!runs/demo-verified/seed-sweep-summary.json
+!runs/demo-verified/seed-sweep-summary.md
 
 # Local credentials and editor state
 .env

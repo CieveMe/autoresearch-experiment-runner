@@ -1,0 +1,149 @@
+{
+  "schema": "autoresearch-lite/seed-sweep@1",
+  "metric": "test_loss",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed_count": 10,
+  "base_config": "examples\\classification.json",
+  "base_config_sha256": "cc85ba76ddcdff91f561bb0366fd3228c00e5b46541af8e4cdc04563926e040f",
+  "seed_config_sha256": {
+    "seed-0": "2cbaead7e0eed186f52dd010b4ce1041a54a370d38d954536588e91ac7143b21",
+    "seed-1": "f8b0b46a7a620869d7faefbc771ba4a7952a6ed5c9f4b7430b01ff47809898b9",
+    "seed-2": "fe34bbeb3881da8f8c37e6e032b735202b7f237d1a277d8de292ed630b727748",
+    "seed-3": "6b30f32bbd83707cabcc5a65b5eb3486c140a03e3006c1ddb4dd17dd4a32d5a2",
+    "seed-4": "5aa54ce6a0d99640f8ef305e93d604a1aeca484d1e93f0890106dd353ecc22e6",
+    "seed-5": "72a75b5dec7de8cf29d2afe09aad309c36f60f71f9913adb54a0350884a71e9b",
+    "seed-6": "f942cba4ef3ae4ff19a592c0daad24fa225a5758d27e81c82e12b68b72c24675",
+    "seed-7": "15372c57955435a384fa377f75d9950198bed3fc612bd7a7532955a48eb46283",
+    "seed-8": "36dad03c0b389738be0aa5e80ce109532de6a9ad396bfdb53c52035b915ece91",
+    "seed-9": "7bfe308e676d457e8f2e729e4bf28ea792d25797af826dda819e2d9faf0ee0f8"
+  },
+  "paper": {
+    "title": "Adam: A Method for Stochastic Optimization",
+    "authors": "Diederik P. Kingma and Jimmy Ba",
+    "year": 2014,
+    "identifier": "arXiv:1412.6980"
+  },
+  "trials": {
+    "baseline": {
+      "optimizer": "sgd",
+      "learning_rate": 0.15,
+      "weight_decay": 0.0,
+      "epochs": 80,
+      "metric_mean": 0.38165322,
+      "metric_stdev": 0.01586304,
+      "metric_min": 0.35596295,
+      "metric_max": 0.40227566,
+      "test_accuracy_mean": 0.9405,
+      "test_accuracy_stdev": 0.010916,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adam_reproduction": {
+      "optimizer": "adam",
+      "learning_rate": 0.08,
+      "weight_decay": 0.0,
+      "epochs": 80,
+      "metric_mean": 0.20368012,
+      "metric_stdev": 0.01816425,
+      "metric_min": 0.16660726,
+      "metric_max": 0.22882864,
+      "test_accuracy_mean": 0.943,
+      "test_accuracy_stdev": 0.014944,
+      "wins": 10,
+      "win_rate": 1.0
+    },
+    "adam_regularized": {
+      "optimizer": "adam",
+      "learning_rate": 0.08,
+      "weight_decay": 0.01,
+      "epochs": 100,
+      "metric_mean": 0.31730997,
+      "metric_stdev": 0.01843015,
+      "metric_min": 0.28119885,
+      "metric_max": 0.34124891,
+      "test_accuracy_mean": 0.943,
+      "test_accuracy_stdev": 0.013375,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "sgd_control": {
+      "optimizer": "sgd",
+      "learning_rate": 0.35,
+      "weight_decay": 0.0,
+      "epochs": 80,
+      "metric_mean": 0.28037568,
+      "metric_stdev": 0.01838522,
+      "metric_min": 0.24736677,
+      "metric_max": 0.30370702,
+      "test_accuracy_mean": 0.9455,
+      "test_accuracy_stdev": 0.011414,
+      "wins": 0,
+      "win_rate": 0.0
+    }
+  },
+  "paired_improvement": {
+    "baseline": {
+      "adam_reproduction": {
+        "better_in": 10,
+        "worse_in": 0,
+        "mean_improvement": 0.1779731,
+        "stdev_improvement": 0.00771465,
+        "min_improvement": 0.16861319,
+        "max_improvement": 0.18948605999999998
+      },
+      "adam_regularized": {
+        "better_in": 10,
+        "worse_in": 0,
+        "mean_improvement": 0.06434325,
+        "stdev_improvement": 0.00637908,
+        "min_improvement": 0.057393609999999984,
+        "max_improvement": 0.0747641
+      },
+      "sgd_control": {
+        "better_in": 10,
+        "worse_in": 0,
+        "mean_improvement": 0.10127754,
+        "stdev_improvement": 0.00354625,
+        "min_improvement": 0.09701005000000001,
+        "max_improvement": 0.10859617999999999
+      }
+    },
+    "sgd_control": {
+      "baseline": {
+        "better_in": 0,
+        "worse_in": 10,
+        "mean_improvement": -0.10127754,
+        "stdev_improvement": 0.00354625,
+        "min_improvement": -0.10859617999999999,
+        "max_improvement": -0.09701005000000001
+      },
+      "adam_reproduction": {
+        "better_in": 10,
+        "worse_in": 0,
+        "mean_improvement": 0.07669556,
+        "stdev_improvement": 0.00553513,
+        "min_improvement": 0.06845980999999998,
+        "max_improvement": 0.08713679999999999
+      },
+      "adam_regularized": {
+        "better_in": 0,
+        "worse_in": 10,
+        "mean_improvement": -0.03693428,
+        "stdev_improvement": 0.00382122,
+        "min_improvement": -0.04275977000000003,
+        "max_improvement": -0.031017760000000005
+      }
+    }
+  }
+}

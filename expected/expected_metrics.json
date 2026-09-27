@@ -1,0 +1,54 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 cc85ba76ddcdff91f561bb0366fd3228c00e5b46541af8e4cdc04563926e040f",
+  "config": "examples/classification.json",
+  "config_sha256": "cc85ba76ddcdff91f561bb0366fd3228c00e5b46541af8e4cdc04563926e040f",
+  "metric": "test_loss",
+  "best": "adam_reproduction",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "baseline": {
+      "optimizer": "sgd",
+      "learning_rate": 0.15,
+      "epochs": 80,
+      "test_accuracy": 0.935,
+      "test_loss": 0.38416828
+    },
+    "adam_reproduction": {
+      "optimizer": "adam",
+      "learning_rate": 0.08,
+      "epochs": 80,
+      "test_accuracy": 0.94,
+      "test_loss": 0.20216034
+    },
+    "adam_regularized": {
+      "optimizer": "adam",
+      "learning_rate": 0.08,
+      "weight_decay": 0.01,
+      "epochs": 100,
+      "test_accuracy": 0.935,
+      "test_loss": 0.31407811
+    },
+    "sgd_control": {
+      "optimizer": "sgd",
+      "learning_rate": 0.35,
+      "epochs": 80,
+      "test_accuracy": 0.945,
+      "test_loss": 0.28128893
+    }
+  },
+  "notes": [
+    "Numbers were produced by scripts/repro.py on the config revision above and are checked by scripts/verify_results.py.",
+    "Pure-Python float arithmetic is deterministic across platforms for the same interpreter version; math.exp/math.sqrt may differ by a few ULP on exotic libm builds, hence the tolerances.",
+    "duration_ms is deliberately excluded from verification.",
+    "A test_accuracy mismatch larger than one test sample (0.005) means the decision boundary moved, which is a real regression, not noise."
+  ]
+}
