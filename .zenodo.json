@@ -27,5 +27,5 @@
       "resource_type": "publication-preprint"
     }
   ],
-  "notes": "Version 0.1.0 is the first public release. Add the DOI badge to README.md once Zenodo has minted it."
+  "notes": "Version 0.1.0 was the first public release (the Adam mechanism reproduction with the one-command verification harness). This record describes version 0.2.0, which adds the convergence-speed experiment and reports its negative result. Add the DOI badge to README.md once Zenodo has minted it."
 }

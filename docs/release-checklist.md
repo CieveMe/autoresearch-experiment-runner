@@ -1,7 +1,13 @@
-# Release checklist (v0.1.0) and DOI
+# Release checklist (v0.2.0) and DOI
 
 Everything that can be prepared in the repository is done. The steps below need the repository
 owner's accounts, so they are not automated.
+
+> **Sequencing note (2026-09-28).** Tag `v0.1.0` already exists on GitHub and points at `0dd90e3`,
+> which does **not** contain the convergence-speed experiment, `CHANGELOG.md` or `.zenodo.json`.
+> Do not publish a release from that tag expecting the archival to include the negative result: push
+> the pending commits and cut **v0.2.0** instead (below). Force-updating a published tag is possible
+> but it is the worse habit, and a fresh release is the reliable trigger for the archival.
 
 ## 1. Before tagging
 
@@ -13,14 +19,21 @@ git status --short               # must be clean
 ```
 
 Confirm the released metadata is consistent (`pyproject.toml`, `autoresearch/__init__.py`,
-`CITATION.cff` all say `0.1.0`, and `.zenodo.json` carries the same description as `CHANGELOG.md`).
+`CITATION.cff` all say `0.2.0`, and `.zenodo.json` carries the same description as `CHANGELOG.md`).
+
+Push the two pending commits first (`ed0be38` = convergence-speed experiment, defect fixes and release
+metadata; `77512b6` = milestone record):
+
+```bash
+git push github main
+```
 
 ## 2. Tag and push (owner action — needs GitHub credentials)
 
 ```bash
-git tag -a v0.1.0 -m "AutoResearch Lite v0.1.0: one-command verifiable reproduction, convergence-speed experiment, task contract"
+git tag -a v0.2.0 -m "AutoResearch Lite v0.2.0: convergence-speed experiment and its negative result"
 git push github main
-git push github v0.1.0
+git push github v0.2.0
 ```
 
 The tag must point at the commit whose CI run is green; check the Actions tab before announcing it.
@@ -30,14 +43,9 @@ The tag must point at the commit whose CI run is green; check the Actions tab be
 1. Sign in to Zenodo with GitHub, open **Settings → GitHub**, and toggle the switch for
    `CieveMe/autoresearch-experiment-runner` to `ON`. Zenodo needs permission to read the repository
    list and to create webhooks; it does not get write access to code.
-2. Create the GitHub release for the existing tag `v0.1.0`, for example:
-
-   ```bash
-   git push github v0.1.0   # if GitHub did not auto-create the release from the tag
-   ```
-
-   Either publish the release in the web UI ("Draft a new release" → choose the tag → publish) or
-   create it from the tag. A **published release** (not a draft) is what triggers the archive.
+2. Create the GitHub release for tag `v0.2.0`: "Draft a new release" → pick the tag → paste the body
+   from `docs/release-notes-v0.2.0.md` → publish. A **published release** (not a draft) is what
+   triggers the archive. The existing `v0.1.0` release can stay exactly as it is.
 3. Zenodo archives the release and mints a DOI within a few minutes. The record's metadata comes from
    `.zenodo.json` in the released commit.
 4. Copy the DOI and add the badge to `README.md`:
