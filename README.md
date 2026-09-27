@@ -48,27 +48,25 @@ docker run --rm -v "$PWD/runs:/app/runs" autoresearch-lite
 4. 为数据集、评测指标和失败案例补充测试。
 5. 把实验报告、配置和结果一起提交，保留配置哈希以支持复盘。
 
-## 项目申请材料
+## 这个 MVP 演示了什么
 
-申请准备清单见 `docs/feishu-expert-guide.md`，工程过程和复现约束分别见 `docs/process/initial-design.md`、`docs/reproducibility.md`、`MILESTONES.md` 和 `TODO.md`。这些文档只记录当前真实状态；提交外部申请前，应补充真实 Git commit 区间和对应验证证据。
+- **论文机制 → 可运行实现**：把 Adam 的一阶/二阶矩估计与偏差修正映射为纯 Python 训练器，并与固定学习率的 SGD baseline 做对照实验。
+- **实验可配置**：研究假设、数据规模、随机种子、基线与对照方案统一写在 JSON 里，并记录配置的 SHA-256 指纹以便复盘。
+- **自动评估与报告**：多方案训练 → 指标对比与排序 → 结构化 `results.json` + Markdown 报告。
+- **可验证**：配置校验、确定性运行、结果产物测试（`python -m unittest discover -s tests -v`）。
+- **环境可迁移**：Python 3.10+ 标准库实现，附 `Dockerfile` 与 Linux / Windows 运行脚本，可在离线环境从零构建。
 
-## 推送到 GitHub
+## 参考文档
 
-首次推送前，请确认本地 Git 已登录 GitHub，并执行：
+- 工程过程与设计取舍：`docs/process/initial-design.md`、`docs/engineering-plan.md`
+- 复现边界与可复现性约束：`docs/reproducibility.md`
+- 论文复现记录：`docs/papers/adam-2014.md`、`docs/papers/adam-2014-result.md`
+- 阶段记录与后续计划：`MILESTONES.md`、`TODO.md`
 
-```bash
-git remote add origin https://github.com/CieveMe/autoresearch-experiment-runner.git
-git branch -M main
-git push -u origin main
-```
+## 局限
 
-如果远程仓库已经有初始化提交，应先执行 `git pull --rebase origin main`，确认内容后再推送。
+当前示例是二分类任务上的标准库实现，用于演示"论文 → 实验任务 → 评估 → 报告"的闭环，**不构成对 Adam 原论文的完整复现**（数据规模、硬件与原始实验设置不同）。复现边界与差异说明见 `docs/reproducibility.md`。
 
-## 简历表述
+## License
 
-**AutoResearch Lite：Adam 论文机制复现与自动实验 MVP**｜Python / Git / Linux / Docker
-
-- 阅读并拆解 Adam 论文，将一阶/二阶矩估计与偏差修正转化为纯 Python 训练器，与固定学习率 SGD baseline 进行可复现实验对比。
-- 设计并实现实验运行器，将研究假设、基线、对照方案和评测指标统一配置化，自动完成多方案训练、指标排序和 Markdown 报告生成。
-- 通过固定随机种子、配置 SHA-256、结构化结果和 Docker 运行环境保证实验可复现，补齐从论文阅读到工程验证的闭环。
-- 内置配置校验、确定性运行和结果产物测试，后续可替换训练器接入真实论文、PyTorch 模型或 LLM 评测任务。
+MIT，见 `LICENSE`。
