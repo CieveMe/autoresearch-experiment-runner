@@ -101,7 +101,9 @@ beats schedule-free AdamW in 9/10 seeds** (mean +0.00703 ± 0.00571).
    faster at the suite's pinned threshold (0.148) **changes between seeds**. So the seed-7 sentence
    "schedule-free reaches the target in 11 epochs against the constant rate's 23" is a single-seed
    statement, and this card treats it as one; the *test-loss* result (schedule-free beats the tuned
-   cosine in 9/10 seeds, §5.8) is a different measurement and stands.
+   cosine in 9/10 seeds, §5.8) is a different measurement and stands. Both sentences are kept together
+   on purpose: what was demoted is one single-seed speed number, **not** the schedule-free result —
+   nothing in §5.8 has been retracted.
 1. **"At worst matches" holds; "out-performs" is not established.** The direction of the
    schedule-free-versus-tuned-cosine comparison **flips with the model**: on the logistic head the tuned
    cosine wins 10/10 (by a tiny 0.00032), on the MLP schedule-free wins 9/10 (by 0.00128). Neither is a

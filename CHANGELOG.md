@@ -91,6 +91,15 @@ All notable changes to this project are documented here. The format follows
   `(epoch, name)` tuples — alphabetically — in two places, which manufactured the "crossing" reported
   for `capacity-h32`. Ties are now reported as `tie: a, b`, the crossing detector skips tied thresholds,
   and tests pin both behaviours. Nine more tests (55 total).
+- **`REPRODUCTION.md` §5.12 — which metric ranks the methods**: both final-quality numbers are pinned, the
+  top-1 flips between training and test loss exactly at the two larger capacities, rank churn grows with
+  capacity (0 → 2 → 3 → 4 → 5 arms moving at least two places), and `epochs_to_target` is measured on the
+  training curve, so "faster" and "better" must stay separate claims.
+- **`docs/defect-family.md`** — the three defects of the "number came from the tooling" family as a named
+  section: the inverted metric direction, the seed that reached only the data split, and the tie resolved
+  alphabetically, each with the check that caught it and the test file that guards it.
+- **`docs/release-notes-v0.6.0.published.md`** corrects, in the open, the sentence v0.5.0 published about
+  the `[32]` suite's crossing at 0.1417.
 - **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
   the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
   lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).

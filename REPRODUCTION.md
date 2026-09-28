@@ -547,11 +547,14 @@ exist, and *is the winner at the pinned threshold the same every time*.
 
 | suite | pair | crossings found | mean position | spread across seeds | winner at the pinned threshold |
 |---|---|---:|---:|---:|---|
-| `optimizers` (logistic) | adam_no_bias_correction vs adagrad | **10/10** | 0.1370 | 0.0456 | **consistent: `adagrad`** |
-| `optimizers-mlp` | adam vs sgd_momentum | 7/10 | 0.1167 | 0.0530 | **inconsistent** |
-| `schedule-free-mlp` | adamw_constant vs schedule_free_adamw | **10/10** | 0.1192 | 0.0505 | **inconsistent** |
-| `capacity-h32` | ademamix vs adam | **0/10** | — | — | consistent: **`tie`** |
-| `capacity-h8x8` | ademamix vs adam | 5/10 | 0.0947 | 0.0528 | consistent: **`tie`** |
+| `optimizers` (logistic) | adam_no_bias_correction vs adagrad | **10/10** | 0.1370 | 0.0456 | **stable: `adagrad`** |
+| `optimizers-mlp` | adam vs sgd_momentum | 7/10 | 0.1167 | 0.0530 | **unstable** |
+| `schedule-free` (logistic) | schedule_free_adamw vs adamw_cosine | **0/10** | — | — | **stable: `adamw_cosine`** |
+| `schedule-free-mlp` | adamw_constant vs schedule_free_adamw | **10/10** | 0.1192 | 0.0505 | **unstable** |
+| `ademamix` (logistic) | ademamix_tuned vs adamw | 1/10 | 0.1296 | — | **stable: `tie`** |
+| `ademamix-mlp` | ademamix_warmup_45 vs adamw | 2/10 | 0.1329 | 0.0026 | **unstable** |
+| `capacity-h32` | ademamix vs adam | **0/10** | — | — | **stable: `tie`** |
+| `capacity-h8x8` | ademamix vs adam | 5/10 | 0.0947 | 0.0528 | **stable: `tie`** |
 
 Positions are located on each seed's own grid (`runs/threshold-curves/*-crossing-stability.md`), which
 is why the means sit below the converged floors: on curves that overfit, the tightest reachable point
@@ -563,17 +566,25 @@ is an early minimum, not the final loss.
    usable.** `optimizers` (logistic) has a crossing in every seed but its position moves across a
    0.0456 band — quoting "the crossing is at 0.137" would be a single-seed artefact. What *is* stable
    there is the practical statement: `adagrad` is faster at the pinned threshold in every seed.
-2. **`schedule-free-mlp` fails the stronger test.** The crossing exists in 10/10 seeds, but the arm
-   that is faster at the suite's pinned threshold (0.148) **changes between seeds**. The seed-7 line
-   "schedule-free reaches the target in 11 epochs against the constant rate's 23" is therefore a
-   single-seed statement and is now labelled as one; §5.8's *test-loss* result (schedule-free beats the
-   tuned cosine in 9/10 seeds) is a different measurement and stands.
-3. **Two of the five pairs never had a crossing at all.** On `capacity-h32` the three leading arms reach
+2. **The pattern across all eight pairs is sharper than expected: five have a seed-stable winner at
+   their pinned threshold and three do not — and all three unstable ones are the MLP suites**
+   (`optimizers-mlp`, `schedule-free-mlp`, `ademamix-mlp`). On the two-parameter logistic head the
+   fixed-threshold speed ranking reproduces across seeds (and in the two capacity suites it is a stable
+   tie); on the 8-unit MLP it does not reproduce at all. That is the same split that showed up in the
+   test-loss standard deviations, which are roughly twice as large on the MLP suites.
+3. **`schedule-free-mlp` therefore fails the stronger test.** The crossing exists in 10/10 seeds, but the
+   arm that is faster at the suite's pinned threshold (0.148) **changes between seeds**. The seed-7 line
+   "schedule-free reaches the target in 11 epochs against the constant rate's 23" is a single-seed
+   statement and is labelled as one; §5.8's *test-loss* result (schedule-free beats the tuned cosine in
+   9/10 seeds) is a different measurement and stands.
+4. **Three of the eight pairs never had a crossing at all** — `schedule-free` (logistic) loses to the
+   tuned cosine at every threshold in every seed, and the two capacity suites are ties rather than
+   crossings. On `capacity-h32` the three leading arms reach
    every loose threshold on exactly the same epoch, and the crossing this report previously quoted at
    0.1417 was an artefact of breaking ties alphabetically inside the analysis code (see below). The
    corrected reading is "`ademamix` is strictly faster below ~0.1417; above it the leading arms are
    tied", and on `capacity-h8x8` the loose region is a four-way tie.
-4. **The tool had to be fixed to say any of this.** `scripts/threshold_curve.py` resolved ties with
+5. **The tool had to be fixed to say any of this.** `scripts/threshold_curve.py` resolved ties with
    `min()` over `(epoch, name)` tuples, i.e. alphabetically, in two places. That manufactured a
    "crossing" for `capacity-h32` and would have let a sort order decide a published ranking. Ties are
    now reported as `tie: a, b, c`, the crossing detector skips tied thresholds instead of breaking
@@ -581,10 +592,44 @@ is an early minimum, not the final loss.
    This is the third defect of the same family in this repository — after a metric direction that
    inverted a ranking and a seed that reached only the data split — and the shared lesson is that a
    number can come from the tooling rather than from the experiment.
-5. **Where this leaves the speed claims.** Adam-mid-pack survives capacity and model changes; what it
+6. **Where this leaves the speed claims.** Adam-mid-pack survives capacity and model changes; what it
    does *not* survive is being stated as one number. The repository now reports speed as
    "arm A is faster than arm B at threshold T, in N/10 seeds", which is what the curves, the crossing
    tables and the per-seed tables together support.
+
+### 5.12 Which metric ranks the methods? (the two rankings diverge with capacity)
+
+Every suite pins two final-quality numbers — mean training loss and mean test loss — and ranks arms by
+the metric named in its config (`test_loss` everywhere except the optimizer suites' `epochs_to_target`).
+At seed 7 the two rankings agree at the top on six of eight suites and disagree on exactly the two
+larger capacities:
+
+| suite | top arm by training loss | top arm by test loss | arms | arms moving ≥2 places |
+|---|---|---|---:|---:|
+| `optimizers` (logistic) | adam_no_bias_correction | adam_no_bias_correction | 6 | 2 |
+| `optimizers-mlp` | adam | adam | 5 | 1 |
+| `schedule-free` (logistic) | adamw_constant | adamw_constant | 5 | 0 |
+| `schedule-free-mlp` | adamw_constant | adamw_constant | 5 | 2 |
+| `ademamix` (logistic) | ademamix_tuned | ademamix_tuned | 5 | 0 |
+| `ademamix-mlp` | ademamix_warmup_45 | ademamix_warmup_45 | 5 | 3 |
+| **`capacity-h32`** | **ademamix** | **adagrad** | 6 | 4 |
+| **`capacity-h8x8`** | **ademamix** | **schedule_free_adamw** | 6 | 5 |
+
+**Policy, and the reason it matters.**
+
+1. **Both numbers are pinned and reported, and a claim names the one it is about.** AdEMAMix has the
+   lowest training loss at both larger capacities and the worst test loss; a suite that reported only
+   the training loss would call AdEMAMix the winner, and one that reported only the test loss would
+   call it the loser. Neither is a mistake — they answer different questions.
+2. **`epochs_to_target` is measured on the *training* curve**, because that is what a trainer can see
+   while it runs. Reading it together with the test-loss ranking is what keeps "faster" from silently
+   becoming "better": at `[8,8]` the fastest-converging arms are also the worst generalisers.
+3. **Rank churn grows with capacity** (0 → 2 → 3 → 4 → 5 arms moving at least two places). Any
+   single-metric ranking therefore needs its capacity label, and the divergence is a property of the
+   task, not of any one optimizer.
+4. **Practical rule for a reproduction**: pin the metric that the claim is about, pin the other one as
+   a cross-check, and say which is which in the report — which is what `expected/expected_*.json` and
+   §5.10's table now do.
 
 ## 6. Deviations from the paper (and why)
 
@@ -622,6 +667,12 @@ is an early minimum, not the final loss.
   sample). `duration_ms` is excluded from verification.
 
 ## 8. Defect found and fixed while producing this report
+
+**The three defects of this kind are collected, with the check that caught each one, in
+[`docs/defect-family.md`](docs/defect-family.md)** — a metric direction that was inverted (found by
+declaring directions), a seed that reached only the data split (found by asserting the seed contract),
+and a tie resolved alphabetically (found by a tie negative control). Two of them are described below;
+the third is in §5.11.
 
 `config_sha256` was computed from raw file bytes. Because Git on Windows (`core.autocrlf=true`)
 rewrites LF to CRLF at checkout, the *same revision* produced two different hashes — the Windows
