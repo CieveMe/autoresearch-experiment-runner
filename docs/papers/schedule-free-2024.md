@@ -123,6 +123,15 @@ beats schedule-free AdamW in 9/10 seeds** (mean +0.00703 ± 0.00571).
    baseline got better (0.13587 → 0.13251). The statement this card now stands behind is therefore
    "schedule-free beats a tuned cosine for tanh+Xavier and for He initialisation at these capacities;
    unproven under batchnorm and plain init; and not reproduced under layernorm."
+   **And the paired tests in §5.16 say how much of the matrix is statistically established: one suite.**
+   Treated as one claim tested at ten suites, the family correction leaves exactly `capacity-h16x16`
+   (10/10 seeds, median difference −0.02692 [−0.04536, −0.01102], d_z = −1.20, adjusted p = 0.0195).
+   Two more have a raw p ≤ 0.05 and do not survive the family correction (`capacity-h64` 0.0098 → 0.1934,
+   `init-he` 0.0039 → 0.1934). Everything else is *no evidence of a difference at this budget*, with a
+   minimal detectable effect between 0.0013 and 0.0094. So the direction of the median difference is
+   what holds across the matrix; the statistically established effect is the large one at the deepest
+   capacity — which is what this card says rather than "the effect holds at five capacities and three
+   activations".
 1. **"At worst matches" holds; "out-performs" is not established.** The direction of the
    schedule-free-versus-tuned-cosine comparison **flips with the model**: on the logistic head the tuned
    cosine wins 10/10 (by a tiny 0.00032), on the MLP schedule-free wins 9/10 (by 0.00128). Neither is a

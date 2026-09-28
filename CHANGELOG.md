@@ -145,6 +145,20 @@ All notable changes to this project are documented here. The format follows
   **N4 is refuted on mechanism**: no variant lowered the best arm's σ below the reference's 0.0210, so
   "normalisation reduces the noise floor" is wrong — while the σ/reproducibility correlation of §5.11
   held again. §5.15 records that this is the **last experimental axis**; the scope table now has six.
+- **`scripts/paired_stats.py`**: exact paired tests over every committed sweep (sign test and Wilcoxon
+  signed-rank by enumeration), effect sizes (d_z, matched-pairs rank-biserial, probability of
+  superiority), a 95% t interval for the mean difference and a deterministic bootstrap interval for the
+  median, the minimal detectable effect at 80% power, and a Holm-Bonferroni adjustment within a
+  **declared family** rather than across everything printed. `make stats` regenerates
+  `runs/paired-tests/`. The wording rule is enforced in code and tested: a test that fails to reject is
+  reported as *no evidence of a difference at this budget*, never as "no difference".
+- **What the tests changed about the claims** (§5.16). Across all 78 comparisons nothing survives a
+  family correction (smallest adjusted p = 0.15); inside their declared families, the schedule-free
+  result is statistically established at exactly one suite (`capacity-h16x16`, 10/10 seeds, adjusted
+  p = 0.0195, 1/10) and the AdEMAMix family has none (0/11). The second negative result is therefore
+  restated as a **bound** — "no advantage detected, and here is the smallest effect this design could
+  have seen" — because a test that fails to reject cannot confirm a null. No pinned number moved and no
+  run was repeated.
 - **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
   the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
   lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).

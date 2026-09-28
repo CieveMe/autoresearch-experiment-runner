@@ -869,6 +869,73 @@ and this batch closes the last one:
 **The axis list is frozen here.** Further axes are added only if a reviewer asks for one; the marginal
 value of another one is lower than the value of writing up the six (see `TODO.md`).
 
+### 5.16 Paired tests over the whole corpus: what the ten seeds can and cannot establish
+
+Until now every paired comparison in this report was a mean difference, a standard deviation and a win
+count. That is a description of ten numbers, not a test, and §5.15 showed how far a win count alone can
+mislead: eight wins out of ten with a mean difference of 9 × 10⁻⁵. `scripts/paired_stats.py` now
+computes, for every comparison in every committed suite, from the committed per-seed files with **no
+re-run**:
+
+* the exact **sign test** and the exact **Wilcoxon signed-rank test** (both by enumeration — with ten
+  pairs there is no reason to use a normal approximation);
+* **effect sizes**: Cohen's d_z for paired data, the matched-pairs rank-biserial correlation, and the
+  probability of superiority;
+* **intervals**: a 95% t interval for the mean difference and a deterministic percentile bootstrap
+  interval for the median difference;
+* the **minimal detectable effect** at 80% power, which with ten pairs is ≈ 0.99 σ_d — the number that
+  makes a non-significant result readable;
+* a Holm-Bonferroni adjustment **within a declared family**, because a p-value is only adjusted inside
+  one: the two claims are each treated as a single claim tested repeatedly.
+
+**The conservative screen first.** Across all 78 comparisons, **not one** survives a family-wise
+correction (smallest adjusted p = 0.15). Correcting across every table printed answers a question nobody
+asked, but it is the right first number to report, because it is the one that stops a screen of
+p-values from being read as a set of results.
+
+| claim | suites in family | smallest raw p | smallest adjusted p | comparisons surviving |
+|---|---:|---:|---:|---:|
+| schedule-free beats a tuned cosine | 10 | 0.0020 | 0.0195 | **1/10** |
+| AdEMAMix shows no advantage over AdamW at matched settings | 11 | 0.0215 | 0.2363 | 0/11 |
+
+**1. The schedule-free result is established at exactly one suite, and it is the deepest one.**
+`capacity-h16x16` wins 10/10 seeds, median difference −0.02692 [−0.04536, −0.01102], d_z = −1.20,
+adjusted p = 0.0195 — the one comparison in the family that survives its own family correction. Two
+more have a raw p ≤ 0.05 and do not survive it (`capacity-h64`: 0.0098 → 0.1934; `init-he`: 0.0039 →
+0.1934). Everything else, including the four suites §5.14 and §5.15 leaned on, is **no evidence of a
+difference at this budget**, with MDE between 0.0013 and 0.0094. That is a sharper statement than "the
+effect holds at five capacities and three activations": what holds across the matrix is the *direction*
+of the median difference; what is statistically established is one large effect at the deepest
+capacity.
+
+**2. The AdEMAMix verdict is a bound, not an equality — and this applies to the repository's own
+wording.** No comparison in that family survives (smallest adjusted p = 0.2363, and that one,
+`init-he` with a raw p of 0.0215, has AdEMAMix *worse*). A null hypothesis cannot be confirmed by a
+test that fails to reject, so "AdEMAMix has no advantage" is not something these ten seeds can
+establish. What they can establish is a bound: across eleven suites the median difference per seed runs
+from −0.00005 to +0.00411 — i.e. AdEMAMix is either indistinguishable from AdamW at matched settings or
+slightly worse — and the design could have detected an advantage of roughly 0.0003 to 0.008 in the
+suites where the per-seed spread is smallest and largest respectively. The cards are worded that way
+now.
+
+**3. The rule that produced this section, in the two cases that motivated it.**
+
+* `norm-layernorm`, AdEMAMix vs AdamW at the same rate: **8 of 10 seeds better**, median difference
+  −0.00005, raw p = 0.1309. The win count was noise with a consistent sign; a test is what separates
+  that from an effect. This is the exact case §5.15 had to write up without one.
+* `activation-relu`, schedule-free vs the tuned cosine: the **median** interval excludes zero
+  (−0.00591, −0.00100) while the **mean** interval includes it (−0.01237, +0.00117), because two seeds
+  move the mean a long way. Both are reported; the script only calls a comparison established when the
+  exact tests agree *and* the mean interval excludes zero, which is the conservative reading. "The
+  median says better, the mean says not established" is a description, not a verdict.
+
+**4. What this changes nowhere.** No pinned number moved, no run was repeated, and no claim was
+retracted. What changed is the strength of the verbs: "holds" became "the direction of the median holds,
+and the effect is statistically established at the deepest capacity"; "no advantage" became "no
+advantage detected, bounded by the smallest effect this design can see". The full tables are in
+`runs/paired-tests/paired-tests.md`, the machine-readable version next to it, and `make stats`
+regenerates both.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |
@@ -898,8 +965,12 @@ value of another one is lower than the value of writing up the six (see `TODO.md
   (AdaGrad lr = 4 reaches it in 2 epochs) and the ranking flattens. Reporting a single
   `epochs_to_target` number without the target would be misleading; both regimes are committed.
 - **One dataset family.** Conclusions are specific to this synthetic linear-margin task.
-- **Ten seeds, no formal test.** Seeds are paired, so a paired test would be defensible; this report
-  reports mean/stdev/min/max and win counts instead of a p-value.
+- **Ten seeds, and now a formal test — which mostly bounds the design.** §5.16 computes exact paired
+  tests, effect sizes, intervals and minimal detectable effects over every comparison. The result is
+  that this design can only detect large effects (MDE ≈ 0.99 σ_d, i.e. roughly one per-seed standard
+  deviation), so most of the report's comparisons are "no evidence of a difference at this budget"
+  rather than established effects. Raising the seed count is the obvious next lever in a future
+  version; it is not one of the six scope axes and it re-runs nothing already published.
 - **Cross-platform tolerance.** `math.exp`/`math.sqrt` may differ by a few ULP across libm builds,
   hence explicit tolerances (`expected/expected_metrics.json`): loss 1e-6, accuracy 0.005 (one test
   sample). `duration_ms` is excluded from verification.

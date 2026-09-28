@@ -191,6 +191,26 @@ those apart. That is the third arrival of the same lesson (A2 in §5.14 and H5 i
 two), and it is now a reporting rule in the pre-registration file rather than a footnote: **a win count
 without a magnitude is not evidence.**
 
+### The paired tests (§5.16) — and why this card says "no advantage detected", not "no advantage"
+
+With a test in hand the case above resolves the way the win count alone could not: 8/10 seeds, median
+difference −0.00005, raw p = 0.1309 — a consistent sign and no effect. Across the eleven suites that
+test this claim at matched settings, **no comparison survives a family correction** (smallest adjusted
+p = 0.2363, and that one has AdEMAMix worse).
+
+A test that fails to reject cannot confirm a null, so the claim this card makes is now stated as a
+bound:
+
+> **No advantage over AdamW at matched settings was detected.** Across eleven suites (two model
+> families, five capacities, three activations, five normalisation/initialisation settings) the
+> per-seed median difference runs from −0.00005 to +0.00411 — indistinguishable or slightly worse —
+> and with ten seeds the design could have detected an advantage of about 0.0003 to 0.008 depending on
+> the suite's per-seed spread.
+
+That is a weaker verb than "has no advantage", and it is the one the evidence supports. It does not
+weaken the practical conclusion (there is nothing here to justify using AdEMAMix at this scale), and it
+does not touch the α = 0 identity, which is a correctness check rather than a comparison.
+
 The slow EMA is designed to pay off over a long horizon (the paper reports language-model training in
 the hundreds of thousands of steps at lr ≈ 1e-3). This task is a 120-epoch full-batch convex problem
 whose parameters converge in ~20–100 steps; there is simply no long horizon for a second, slower
