@@ -45,7 +45,9 @@ jobs:
           python -m autoresearch.cli run --config examples/ademamix-mlp-sweep.json --output runs/ademamix-mlp-tuning
       - name: Regenerate the schedule-free tuning curves
         if: matrix.python == '3.12'
-        run: python -m autoresearch.cli run --config examples/schedule-free-sweep.json --output runs/schedule-free-tuning
+        run: |
+          python -m autoresearch.cli run --config examples/schedule-free-sweep.json --output runs/schedule-free-tuning
+          python -m autoresearch.cli run --config examples/schedule-free-mlp-sweep.json --output runs/schedule-free-mlp-tuning
       - name: Upload reproduction artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -68,6 +70,9 @@ jobs:
             runs/schedule-free
             runs/seed-sweep-schedule-free
             runs/schedule-free-tuning
+            runs/schedule-free-mlp
+            runs/seed-sweep-schedule-free-mlp
+            runs/schedule-free-mlp-tuning
 
   docker:
     name: reproduce (docker)

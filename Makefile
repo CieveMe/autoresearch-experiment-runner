@@ -1,7 +1,7 @@
 # AutoResearch Lite - one-command reproduction.
 # `make repro` is the entry point quoted in REPRODUCTION.md and TASK.md.
 # On Windows without make, run: python scripts/repro.py
-.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free run verify test sweep score docker clean
+.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp run verify test sweep score docker clean
 
 PYTHON ?= python3
 
@@ -12,6 +12,7 @@ help:
 	@echo "make repro-ademamix   - only the AdEMAMix (2024) suite"
 	@echo "make repro-mlp        - the two MLP suites (does the ranking survive a bigger model?)"
 	@echo "make repro-schedule-free - the schedule-free suite (tuned cosine baseline)"
+	@echo "make repro-schedule-free-mlp - the same comparison on the MLP trainer"
 	@echo "make run      - run the experiments only"
 	@echo "make verify   - compare runs/demo/results.json with expected/expected_metrics.json"
 	@echo "make test     - run the unit tests"
@@ -39,6 +40,9 @@ repro-mlp:
 repro-schedule-free:
 	$(PYTHON) scripts/repro.py --suite schedule-free
 
+repro-schedule-free-mlp:
+	$(PYTHON) scripts/repro.py --suite schedule-free-mlp
+
 run:
 	$(PYTHON) -m autoresearch.cli run --config examples/classification.json --output runs/demo
 
@@ -49,6 +53,7 @@ verify:
 	$(PYTHON) scripts/verify_results.py --results runs/optimizers-mlp/results.json --expected expected/expected_optimizers_mlp.json
 	$(PYTHON) scripts/verify_results.py --results runs/ademamix-mlp/results.json --expected expected/expected_ademamix_mlp.json
 	$(PYTHON) scripts/verify_results.py --results runs/schedule-free/results.json --expected expected/expected_schedule_free.json
+	$(PYTHON) scripts/verify_results.py --results runs/schedule-free-mlp/results.json --expected expected/expected_schedule_free_mlp.json
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v
@@ -64,6 +69,8 @@ sweep:
 	$(PYTHON) -m autoresearch.cli run --config examples/ademamix-mlp-sweep.json --output runs/ademamix-mlp-tuning
 	$(PYTHON) scripts/seed_sweep.py --config examples/schedule-free.json --seeds 0-9 --output runs/seed-sweep-schedule-free --reference adamw_cosine,schedule_free_adamw
 	$(PYTHON) -m autoresearch.cli run --config examples/schedule-free-sweep.json --output runs/schedule-free-tuning
+	$(PYTHON) scripts/seed_sweep.py --config examples/schedule-free-mlp.json --seeds 0-9 --output runs/seed-sweep-schedule-free-mlp --reference adamw_cosine,schedule_free_adamw
+	$(PYTHON) -m autoresearch.cli run --config examples/schedule-free-mlp-sweep.json --output runs/schedule-free-mlp-tuning
 
 score:
 	$(PYTHON) scripts/score_task.py

@@ -57,6 +57,13 @@ runs/*
 !runs/schedule-free-verified/tuning-sweep/
 !runs/schedule-free-verified/tuning-sweep/report.md
 !runs/schedule-free-verified/tuning-sweep/loss-curves.csv
+!runs/schedule-free-verified/mlp/
+!runs/schedule-free-verified/mlp/results.json
+!runs/schedule-free-verified/mlp/report.md
+!runs/schedule-free-verified/mlp/seed-sweep-summary.json
+!runs/schedule-free-verified/mlp/seed-sweep-summary.md
+!runs/schedule-free-verified/mlp-tuning/
+!runs/schedule-free-verified/mlp-tuning/report.md
 
 # Local credentials and editor state
 .env

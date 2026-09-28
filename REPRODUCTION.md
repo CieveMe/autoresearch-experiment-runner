@@ -400,6 +400,36 @@ beats it 7/10 (+0.00194).
 4. **Schedule-free SGD is far behind schedule-free AdamW** (0.196 vs 0.126), so the averaging does not
    substitute for adaptive per-parameter scaling.
 
+### 5.8 The schedule-free comparison on the MLP: the direction flips
+
+The logistic-only schedule-free result was a single-model conclusion, which is the failure mode this
+report criticises elsewhere, so the suite was repeated on the two-layer MLP with every arm retuned for
+that model (`examples/schedule-free-mlp-sweep.json`, 15 trials), same 200-epoch budget and target.
+
+Seed 7: schedule-free AdamW reaches the target **first** (11 epochs, against 22–23 for the constant and
+cosine AdamW arms), and its test loss (0.12506323) is within 0.04% of the best arm. Ten seeds
+(`runs/schedule-free-verified/mlp/seed-sweep-summary.md`): mean test loss 0.12589 (schedule-free SGD),
+0.12603 (SGD + cosine), **0.13094 (schedule-free AdamW)**, 0.13222 (tuned cosine), 0.13796 (constant).
+Paired per seed, **schedule-free AdamW beats the tuned cosine in 9/10 seeds** (+0.00128 ± 0.00313) —
+the opposite direction from the logistic head — while **the constant rate beats schedule-free AdamW in
+9/10 seeds** (+0.00703 ± 0.00571).
+
+**What is stable across the two models, and what is not.**
+
+| statement | logistic head | two-layer MLP | stable? |
+|---|---|---|---|
+| schedule-free beats a tuned cosine | no (10/10 losses, by 0.00032) | yes (9/10 wins, by 0.00128) | **no — direction flips** |
+| a constant learning rate wins | yes (7/10 over schedule-free) | yes (9/10 over schedule-free) | **yes** |
+| schedule-free is faster to the target | no (154 vs 80 epochs) | yes (11 vs 23) | **no — depends on where the target sits** |
+| schedule-free SGD is competitive with schedule-free AdamW | no (0.196 vs 0.126) | yes (0.12589 vs 0.13094 on the mean, 3/10 per-seed wins) | **no** |
+
+The paper's weak claim ("no schedule needed; at worst matches a tuned schedule") therefore survives on
+both models. Its strong claim ("typically out-performs") does not: the comparison's sign depends on the
+model, and in the one model where schedule-free wins, a plain constant learning rate still wins by more.
+The honest summary is that at this budget a decay is not needed at all, so a method whose selling point
+is removing the need for one has nothing to gain — a statement about this regime, not about long
+non-convex training where the paper's argument lives.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |

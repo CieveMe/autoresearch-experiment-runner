@@ -132,13 +132,20 @@ def fit(rows: List[Point], config: Dict[str, Any]) -> FitResult:
     for epoch in range(1, max_epochs + 1):
         raw = gradients(rows, params)
         grad_weights, grad_biases = raw["weights"], raw["biases"]
+        # Track the evaluation point alongside the training parameters: for schedule-free
+        # rules the reported model is the averaged sequence x, not the point y where the
+        # gradients are taken. For every other rule the two coincide, so nothing changes.
+        eval_params: Dict[str, Any] = {
+            "weights": [[[0.0] * len(row) for row in matrix] for matrix in params["weights"]],
+            "biases": [[0.0] * len(bias) for bias in params["biases"]],
+        }
 
         for layer, matrix in enumerate(params["weights"]):
             for unit, row in enumerate(matrix):
                 unit_gradients = [
                     value * scale + weight_decay * row[index] for index, value in enumerate(grad_weights[layer][unit])
                 ]
-                params["biases"][layer][unit] = optimizers_module.apply_update(
+                updated_bias = optimizers_module.apply_update(
                     optimizer,
                     row,
                     params["biases"][layer][unit],
@@ -148,13 +155,41 @@ def fit(rows: List[Point], config: Dict[str, Any]) -> FitResult:
                     config,
                     epoch,
                 )
-        final_loss = loss(rows, params, weight_decay)
+                params["biases"][layer][unit] = updated_bias
+                row_eval, bias_eval = optimizers_module.eval_params(
+                    optimizer, row, updated_bias, states[layer][unit]
+                )
+                eval_params["weights"][layer][unit] = row_eval
+                eval_params["biases"][layer][unit] = bias_eval
+        final_loss = loss(rows, eval_params, weight_decay)
         loss_curve.append(final_loss)
         epochs_run = epoch
         if abs(previous_loss - final_loss) < tolerance:
             break
         previous_loss = final_loss
-    return FitResult(params=params, epochs_run=epochs_run, final_loss=final_loss, loss_curve=loss_curve)
+    eval_params = _eval_params(optimizer, params, states)
+    return FitResult(params=eval_params, epochs_run=epochs_run, final_loss=final_loss, loss_curve=loss_curve)
+
+
+def _eval_params(optimizer: str, params: Dict[str, Any], states: List[Any]) -> Dict[str, Any]:
+    """Assemble the evaluation-point parameters from the per-unit optimizer states.
+
+    For schedule-free rules this is the averaged sequence `x`; for every other rule it is the
+    training parameters themselves, so nothing about the existing results changes.
+    """
+    eval_params: Dict[str, Any] = {"weights": [], "biases": []}
+    for layer, matrix in enumerate(params["weights"]):
+        eval_rows = []
+        eval_biases = []
+        for unit, row in enumerate(matrix):
+            row_eval, bias_eval = optimizers_module.eval_params(
+                optimizer, row, params["biases"][layer][unit], states[layer][unit]
+            )
+            eval_rows.append(row_eval)
+            eval_biases.append(bias_eval)
+        eval_params["weights"].append(eval_rows)
+        eval_params["biases"].append(eval_biases)
+    return eval_params
 
 
 class MLPTrainer:

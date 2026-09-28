@@ -50,6 +50,11 @@ All notable changes to this project are documented here. The format follows
   re-implementation of the reference rule, plus warmup, determinism and eval-point checks (39 tests
   total).
 - `docs/papers/schedule-free-2024.md`.
+- **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
+  the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
+  lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).
+  The weak claim ("at worst matches") survives both runs; the strong claim does not. Seven suites /
+  171 asserted checks.
 
 ### Fixed
 

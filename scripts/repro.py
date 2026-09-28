@@ -73,6 +73,12 @@ SUITES: Dict[str, Dict[str, str]] = {
         "expected": "expected/expected_schedule_free.json",
         "label": "Schedule-Free AdamW against a tuned cosine schedule (2024)",
     },
+    "schedule-free-mlp": {
+        "config": "examples/schedule-free-mlp.json",
+        "output": "runs/schedule-free-mlp",
+        "expected": "expected/expected_schedule_free_mlp.json",
+        "label": "Schedule-Free AdamW against a tuned cosine schedule on the MLP",
+    },
 }
 
 

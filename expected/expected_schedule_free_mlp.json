@@ -1,0 +1,68 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 e420acd848306e2138a703ca937279b4abf79fb2e0c2868b2ccbf75ac59a233f",
+  "config": "examples/schedule-free-mlp.json",
+  "config_sha256": "e420acd848306e2138a703ca937279b4abf79fb2e0c2868b2ccbf75ac59a233f",
+  "metric": "test_loss",
+  "best": "adamw_constant",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "schedule": "cosine",
+      "min_lr_factor": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12699107,
+      "epochs_to_target": 23
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12501296,
+      "epochs_to_target": 22
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12506323,
+      "epochs_to_target": 11
+    },
+    "sgd_cosine": {
+      "optimizer": "sgd",
+      "learning_rate": 1.0,
+      "schedule": "cosine",
+      "min_lr_factor": 0.0,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12501563,
+      "epochs_to_target": 71
+    },
+    "schedule_free_sgd": {
+      "optimizer": "schedule_free_sgd",
+      "learning_rate": 1.0,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12530471,
+      "epochs_to_target": 79
+    }
+  },
+  "notes": [
+    "This suite exists because the logistic-only schedule-free result was a single-model conclusion.",
+    "Seed-7 numbers are a regression baseline. The verdict is in runs/schedule-free-verified/mlp/seed-sweep-summary.md.",
+    "The ten-seed result on this model REVERSES the logistic one: schedule-free AdamW beats the tuned cosine in 9/10 seeds here (logistic: it lost 10/10), while a constant learning rate still beats schedule-free in 9/10 seeds. So the direction of 'schedule-free vs tuned schedule' is model-dependent; what is stable across both models is that the constant rate wins."
+  ]
+}

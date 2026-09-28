@@ -64,20 +64,59 @@ beats it in 7/10 (+0.00194).
 
 ## Findings
 
-1. **"At worst matches" is roughly what happens, and only just.** Schedule-free is 0.3% behind the
-   tuned cosine on mean test loss and 0.00032 behind on every single seed. It is a consistent loss,
-   not noise, but it is small enough that calling it "matches" is defensible — while "out-performs" is
-   not supported here.
-2. **The speed metric is where it clearly loses at this budget**: 154 epochs to the target against the
-   tuned schedule's 80. The averaging sequence moves more slowly by construction, and over a short run
-   that delay is visible.
-3. **The premise is also weak at this scale**: a plain *constant* learning rate beats both scheduled
-   and schedule-free arms on final loss. If a decay is not needed for the task, removing the decay is
-   not a benefit — which is a statement about a 200-epoch convex problem, not about long non-convex
-   training where the paper's argument lives.
-4. **Schedule-free SGD is far behind schedule-free AdamW** (0.196 vs 0.126). The averaging does not
-   rescue a method whose per-parameter scaling is wrong for the problem; the paper's schedule-free
-   machinery is orthogonal to adaptivity.
+### The MLP re-run (same session, because a logistic-only answer is a single-model conclusion)
+
+The comparison was repeated with `trainer: "mlp"` (two-layer tanh, 8 hidden units), every arm retuned
+for that model (`examples/schedule-free-mlp-sweep.json`, 15 trials over learning rate × min-LR factor
+for the cosine arm), same 200-epoch budget and target. Seed 7:
+
+| arm (MLP) | test loss | epochs to target |
+|---|---:|---:|
+| adamw + tuned cosine (baseline) | 0.12699107 | 23 |
+| adamw, constant learning rate | **0.12501296** | 22 |
+| schedule-free AdamW | 0.12506323 | **11** |
+| sgd + cosine | 0.12501563 | 71 |
+| schedule-free SGD | 0.12530471 | 79 |
+
+Ten seeds (`runs/schedule-free-verified/mlp/seed-sweep-summary.md`): mean test loss 0.12589
+(schedule-free SGD), 0.12603 (SGD + cosine), **0.13094 (schedule-free AdamW)**, 0.13222 (tuned cosine),
+0.13796 (constant). Paired per seed: **schedule-free AdamW beats the tuned cosine in 9/10 seeds**
+(mean +0.00128 ± 0.00313) — the opposite direction from the logistic head — while **the constant rate
+beats schedule-free AdamW in 9/10 seeds** (mean +0.00703 ± 0.00571).
+
+### Findings across both models
+
+1. **"At worst matches" holds; "out-performs" is not established.** The direction of the
+   schedule-free-versus-tuned-cosine comparison **flips with the model**: on the logistic head the tuned
+   cosine wins 10/10 (by a tiny 0.00032), on the MLP schedule-free wins 9/10 (by 0.00128). Neither is a
+   large effect, and a claim of superiority would not survive the model change.
+2. **The stable finding on both models is that a constant learning rate wins.** 0.12448 on the
+   logistic head and 0.13796 on the MLP, and it beats schedule-free in 7/10 and 9/10 seeds
+   respectively. At a 200-epoch budget on these tasks a decay is not needed, so removing the need for
+   one has nothing to buy — a statement about this regime, not about long non-convex training.
+3. **The speed metric is also model-dependent, and therefore should not be quoted alone.** On the
+   logistic head schedule-free needs 154 epochs to the target against the tuned schedule's 80; on the
+   MLP it needs **11** against 23. The averaging sequence moves slowly, and whether that helps or hurts
+   depends on where the target sits relative to the floors.
+4. **Schedule-free SGD versus schedule-free AdamW is model-dependent too** (logistic: 0.196 vs 0.126,
+   SGD far behind; MLP: 0.12589 vs 0.13094, SGD ahead on the mean but only 3/10 per-seed wins). The
+   averaging does not substitute for adaptive scaling in general; it just is not the dominant effect
+   here.
+5. **What this means for the paper's claim.** The weak form — "no schedule needed, and the method at
+   worst matches a tuned schedule" — is consistent with both runs. The strong form — "typically
+   out-performs" — is not supported by either, and in the one model where schedule-free wins, a plain
+   constant learning rate still wins by more. Reporting only one of the two models would have produced
+   a confident and wrong headline in either direction.
+
+The bullets that follow are the logistic-head-only reading of the same data, kept for the record; the
+five findings above supersede them where the two models disagree.
+
+1. *(logistic only)* Schedule-free was 0.3% behind the tuned cosine on mean test loss and behind in
+   every seed — a consistent but small loss.
+2. *(logistic only)* It needed 154 epochs to the target against the tuned schedule's 80.
+3. *(logistic only)* A constant learning rate beat both, which is the premise-level observation.
+4. *(logistic only)* Schedule-free SGD was far behind schedule-free AdamW (0.196 vs 0.126); on the MLP
+   that ordering reverses, so it is not a property of the method.
 
 ## Deviations and limitations
 
