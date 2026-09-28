@@ -1,0 +1,65 @@
+{
+  "task": "normalisation/initialisation robustness check, hidden [32], plain fixed-0.05 initialisation (no normalisation): the two negative results",
+  "paper": {
+    "title": "Normalisation/initialisation robustness (AdEMAMix 2024, Schedule-Free 2024)",
+    "authors": "see docs/papers/",
+    "year": 2026,
+    "identifier": "internal-normalization-expansion"
+  },
+  "hypothesis": "Pre-registered N1-N4 in docs/normalization-init-preregistration.md: the schedule-free architecture effect, AdEMAMix's no-advantage verdict and the metric trap should not depend on this modelling choice (plain fixed-0.05 initialisation (no normalisation)). Every arm is retuned for it with the same grid as the [32] reference.",
+  "metric": "test_loss",
+  "target_loss": 0.147,
+  "seed": 7,
+  "trainer": "mlp",
+  "hidden_sizes": [
+    32
+  ],
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw_cosine",
+    "optimizer": "adamw",
+    "learning_rate": 0.1,
+    "schedule": "cosine",
+    "min_lr_factor": 0.1,
+    "epochs": 200
+  },
+  "experiments": [
+    {
+      "name": "adamw_constant",
+      "optimizer": "adamw",
+      "learning_rate": 0.03,
+      "epochs": 200
+    },
+    {
+      "name": "adam",
+      "optimizer": "adam",
+      "learning_rate": 0.03,
+      "epochs": 200
+    },
+    {
+      "name": "adagrad",
+      "optimizer": "adagrad",
+      "learning_rate": 0.1,
+      "epochs": 200
+    },
+    {
+      "name": "ademamix",
+      "optimizer": "ademamix",
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "learning_rate": 0.03,
+      "epochs": 200
+    },
+    {
+      "name": "schedule_free_adamw",
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.03,
+      "epochs": 200
+    }
+  ],
+  "init_scheme": "plain"
+}
