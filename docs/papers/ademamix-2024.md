@@ -5,7 +5,7 @@
 | Paper | *AdEMAMix: A Smarter Learning Rate Schedule for Adam* — Matteo Pagliardini, Pierre Ablin, David Grangier (Apple), 2024 |
 | Reference implementation | `apple/ml-ademamix` (MIT), cloned and read on 2026-09-28; it contains the optimizer only — no data, no experiment scripts |
 | Reproduction level | **mechanism-level** (algorithm re-implementation + matched-budget comparison). No number from the paper's tables is claimed |
-| Trainers tested | **Two model families**: the logistic head (2 weights + bias) and a two-layer tanh MLP (8 hidden units). Both point the same way — see "Two model families, one direction" below |
+| Trainers tested | **Two model families and five capacities**: the logistic head (2 weights + bias) and tanh MLPs at `[8]`, `[32]`, `[8,8]`, `[64]` and `[16,16]`. All point the same way — see "Two model families, one direction" below and `REPRODUCTION.md` §5.13 |
 | Config | `examples/ademamix.json` (SHA-256 `c046217aa4a239a4db2c685c4162efc4ae5cda90fc9e69b03fe28d8417972962`) |
 | Tuning sweep | `examples/ademamix-sweep.json` (20 trials: learning rate × warmup length, plus AdamW and momentum) |
 | One command | `python scripts/repro.py --suite ademamix` |
@@ -143,6 +143,13 @@ than pooled:
 So the strongest available objection to this card — "a two-parameter model cannot show an effect of a
 second moving average" — is answered on an MLP as well, with the caveat that both models are still
 small, full-batch and short-horizon compared with the paper's regime.
+
+**Five capacities now agree.** The pre-registered expansion in `REPRODUCTION.md` §5.13 added `[64]` and a
+two-layer `[16,16]`, and the no-advantage verdict held at both: AdEMAMix beat the AdamW baseline in 1/10
+seeds at `[64]` and 0/10 at `[16,16]`, and was worse on mean test loss in both (0.14568 vs 0.14480;
+0.22439 vs 0.22111). The `[16,16]` run is also the sharpest illustration of the metric trap in §5.12 —
+AdEMAMix reaches the lowest **training** loss of any arm there (0.0944) and the worst **test** loss. This
+is the repository's most robust negative result: five capacities, both model families, ten seeds each.
 
 The slow EMA is designed to pay off over a long horizon (the paper reports language-model training in
 the hundreds of thousands of steps at lr ≈ 1e-3). This task is a 120-epoch full-batch convex problem

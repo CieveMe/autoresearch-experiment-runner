@@ -104,6 +104,11 @@ beats schedule-free AdamW in 9/10 seeds** (mean +0.00703 ± 0.00571).
    cosine in 9/10 seeds, §5.8) is a different measurement and stands. Both sentences are kept together
    on purpose: what was demoted is one single-seed speed number, **not** the schedule-free result —
    nothing in §5.8 has been retracted.
+   **Two capacities were added afterwards, and the architecture effect held at both**: §5.13's
+   pre-registered `[64]` and `[16,16]` runs have schedule-free beating the tuned cosine on mean test loss
+   by 9/10 and 10/10 seeds respectively, so the effect now holds at five MLP capacities and neither
+   refutes it. The same section also restates the ranking-reproducibility rule this card depends on:
+   a fixed-threshold ranking reproduced only in the suites whose noise floor is lowest (§5.11 finding 7).
 1. **"At worst matches" holds; "out-performs" is not established.** The direction of the
    schedule-free-versus-tuned-cosine comparison **flips with the model**: on the logistic head the tuned
    cosine wins 10/10 (by a tiny 0.00032), on the MLP schedule-free wins 9/10 (by 0.00128). Neither is a

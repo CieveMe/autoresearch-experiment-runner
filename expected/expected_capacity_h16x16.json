@@ -1,0 +1,76 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 c1fa52ce7ab0acb6e47343c4657974452af36a4fdb4a0a7af036964411720644",
+  "config": "examples/capacity-h16x16.json",
+  "config_sha256": "c1fa52ce7ab0acb6e47343c4657974452af36a4fdb4a0a7af036964411720644",
+  "metric": "test_loss",
+  "best": "schedule_free_adamw",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "schedule": "cosine",
+      "min_lr_factor": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.94,
+      "test_loss": 0.14315398,
+      "epochs_to_target": 34
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.94,
+      "test_loss": 0.17496292,
+      "epochs_to_target": 34
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.94,
+      "test_loss": 0.17496292,
+      "epochs_to_target": 34
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 1.0,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.14288459,
+      "epochs_to_target": 60
+    },
+    "ademamix": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.18106628,
+      "epochs_to_target": 34
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.94,
+      "test_loss": 0.11777748,
+      "epochs_to_target": 20
+    }
+  },
+  "notes": [
+    "Capacity expansion to two 16-unit hidden layers; every arm retuned (examples/capacity-h16x16-sweep.json, 17 trials).",
+    "Overfitting dominates: ademamix reaches the lowest training loss (0.09444) and the worst test loss (0.18107), while schedule-free reaches the best test loss (0.11778) and the fastest target arrival (20 epochs).",
+    "This is the capacity where the train-versus-test divergence predicted by H4 is largest; verdicts come from runs/capacity-expansion-verified/h16x16/seed-sweep-summary.md."
+  ]
+}

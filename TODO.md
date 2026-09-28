@@ -22,7 +22,8 @@
 - [x] 交叉稳定性补齐到 8 对（含 schedule-free logistic、ademamix logistic、ademamix-mlp）：**5 对在固定阈值下逐种子稳定、3 对不稳定，且 3 对不稳定的全是 MLP 套件**。
 - [x] 指标口径成节（`REPRODUCTION.md` 5.12）：训练/测试损失的 top-1 只在两个更大容量上分家，排名扰动随容量增长（0→2→3→4→5 个 arm 移动 ≥2 位）；`epochs_to_target` 基于训练曲线，故"更快"与"更好"必须分开陈述。
 - [x] 具名小节材料：`docs/defect-family.md`（三例同族缺陷 + 每例的检查名与测试文件）。
-- [ ] 容量再扩（`[64]`、更深网络或换激活）留给 v0.7.0：检验"AdaGrad 随容量变强"的边界。
+- [x] 容量再扩到 `[64]` 与 `[16,16]`（假设先写入 `docs/capacity-expansion-preregistration.md` 再跑）：逐条判定见 `REPRODUCTION.md` §5.13；`[16,16]` 上过拟合主导（最低训练损失的 AdEMAMix 同时是测试损失最差的）。
+- [ ] 换激活函数（tanh → ReLU/GELU）复跑，检验"慢 EMA 无优势""SF 架构效应"是否依赖激活选择（留给 v0.8.0）。
 - [ ] 增加失败实验重试、断点恢复和超时控制。
 - [ ] 增加 PyTorch 适配器，同时保持标准库示例可离线运行。
 - [ ] 增加实验结果可视化和 HTML 报告导出。

@@ -1,0 +1,225 @@
+{
+  "schema": "autoresearch-lite/seed-sweep@1",
+  "metric": "test_loss",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed_count": 10,
+  "base_config": "examples\\capacity-h16x16.json",
+  "base_config_sha256": "c1fa52ce7ab0acb6e47343c4657974452af36a4fdb4a0a7af036964411720644",
+  "seed_config_sha256": {
+    "seed-0": "5a836fe026f1fd76f2e0f50fe1802c5a61f06c51bdd887507fe06ff10671f231",
+    "seed-1": "f7e895a451eb54e0bbb99fc07efe2cc826e2fcb494ae90d220a5148b3fb4dfa8",
+    "seed-2": "ba14e6aabfbeff99c7049d3dfe5af8555e3c4dd72bf9c52f5a307d2a49b8faf9",
+    "seed-3": "6a7d7c250c830b074966cd91a615dc3f4b5577181a52260e1fde3426885eaf23",
+    "seed-4": "285656ca5f35909258822078f8430bb4f90e5bfe813739d1678b5100dc3bf382",
+    "seed-5": "a9406ecabfbd74a9ee149ea8ee7c761e8136f9ec3d3aa4ed8b91dd98ec97ec41",
+    "seed-6": "6aa63ebd9fe47b754d1d0d215efd0103cd5bf7beaed10200a892cfd1a514ccf4",
+    "seed-7": "f3b53a15b0ff20a5818924d74fdcb3e4202e02a554ad98615e6f46ba1418a485",
+    "seed-8": "d8060cfd6ce6eddf26fdd47532176b84fd28e1cc695a92e0b32650927dec9556",
+    "seed-9": "8c0a5ba5fcdd5e95728cb2f4d419505781a954ae970ae4ca4eb276b8398ee270"
+  },
+  "paper": {
+    "title": "Cross-paper capacity expansion (Adam 2014, AdEMAMix 2024, Schedule-Free 2024)",
+    "authors": "see docs/papers/",
+    "year": 2026,
+    "identifier": "internal-capacity-expansion"
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.17611076,
+      "metric_stdev": 0.05244028,
+      "metric_min": 0.1103921,
+      "metric_max": 0.27527534,
+      "test_accuracy_mean": 0.9385,
+      "test_accuracy_stdev": 0.014347,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.22110983,
+      "metric_stdev": 0.06965675,
+      "metric_min": 0.1248198,
+      "metric_max": 0.36680311,
+      "test_accuracy_mean": 0.9325,
+      "test_accuracy_stdev": 0.015501,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.22110983,
+      "metric_stdev": 0.06965675,
+      "metric_min": 0.1248198,
+      "metric_max": 0.36680311,
+      "test_accuracy_mean": 0.9325,
+      "test_accuracy_stdev": 0.015501,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 1.0,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.15047676,
+      "metric_stdev": 0.03812327,
+      "metric_min": 0.10185254,
+      "metric_max": 0.21957264,
+      "test_accuracy_mean": 0.94,
+      "test_accuracy_stdev": 0.015635,
+      "wins": 4,
+      "win_rate": 0.4
+    },
+    "ademamix": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.22438617,
+      "metric_stdev": 0.06519932,
+      "metric_min": 0.12027642,
+      "metric_max": 0.34175118,
+      "test_accuracy_mean": 0.9295,
+      "test_accuracy_stdev": 0.01589,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.14634485,
+      "metric_stdev": 0.03697037,
+      "metric_min": 0.08261873,
+      "metric_max": 0.21663818,
+      "test_accuracy_mean": 0.9385,
+      "test_accuracy_stdev": 0.017803,
+      "wins": 6,
+      "win_rate": 0.6
+    }
+  },
+  "paired_improvement": {
+    "adamw_cosine": {
+      "adamw_constant": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.04499906,
+        "stdev_improvement": 0.02459832,
+        "min_improvement": -0.09152777000000001,
+        "max_improvement": -0.013745659999999993
+      },
+      "adam": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.04499906,
+        "stdev_improvement": 0.02459832,
+        "min_improvement": -0.09152777000000001,
+        "max_improvement": -0.013745659999999993
+      },
+      "adagrad": {
+        "better_in": 9,
+        "worse_in": 1,
+        "incomparable": 0,
+        "mean_improvement": 0.025634,
+        "stdev_improvement": 0.03183189,
+        "min_improvement": -0.02068210000000001,
+        "max_improvement": 0.08855278
+      },
+      "ademamix": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.04827541,
+        "stdev_improvement": 0.0247288,
+        "min_improvement": -0.09593926,
+        "max_improvement": -0.009202279999999993
+      },
+      "schedule_free_adamw": {
+        "better_in": 10,
+        "worse_in": 0,
+        "incomparable": 0,
+        "mean_improvement": 0.02976592,
+        "stdev_improvement": 0.02473422,
+        "min_improvement": 0.0010623900000000103,
+        "max_improvement": 0.08101301
+      }
+    },
+    "schedule_free_adamw": {
+      "adamw_cosine": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.02976592,
+        "stdev_improvement": 0.02473422,
+        "min_improvement": -0.08101301,
+        "max_improvement": -0.0010623900000000103
+      },
+      "adamw_constant": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.07476498,
+        "stdev_improvement": 0.03797809,
+        "min_improvement": -0.15016492999999997,
+        "max_improvement": -0.028931509999999994
+      },
+      "adam": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.07476498,
+        "stdev_improvement": 0.03797809,
+        "min_improvement": -0.15016492999999997,
+        "max_improvement": -0.028931509999999994
+      },
+      "adagrad": {
+        "better_in": 4,
+        "worse_in": 6,
+        "incomparable": 0,
+        "mean_improvement": -0.00413192,
+        "stdev_improvement": 0.01720813,
+        "min_improvement": -0.025107110000000002,
+        "max_improvement": 0.03294807000000001
+      },
+      "ademamix": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.07804132,
+        "stdev_improvement": 0.03424513,
+        "min_improvement": -0.12694970000000003,
+        "max_improvement": -0.03104309999999999
+      }
+    }
+  }
+}

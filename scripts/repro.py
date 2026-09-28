@@ -93,6 +93,20 @@ SUITES: Dict[str, Dict[str, str]] = {
         "label": "capacity check: do they survive a second hidden layer?",
         "tier": "capacity",
     },
+    "capacity-h64": {
+        "config": "examples/capacity-h64.json",
+        "output": "runs/capacity-h64",
+        "expected": "expected/expected_capacity_h64.json",
+        "label": "capacity expansion: 64 hidden units (pre-registered hypotheses)",
+        "tier": "capacity",
+    },
+    "capacity-h16x16": {
+        "config": "examples/capacity-h16x16.json",
+        "output": "runs/capacity-h16x16",
+        "expected": "expected/expected_capacity_h16x16.json",
+        "label": "capacity expansion: two 16-unit hidden layers (pre-registered hypotheses)",
+        "tier": "capacity",
+    },
 }
 
 # Tiers exist to save local iteration time, never to hide coverage. Every report line that

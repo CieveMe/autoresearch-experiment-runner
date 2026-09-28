@@ -596,6 +596,14 @@ is an early minimum, not the final loss.
    does *not* survive is being stated as one number. The repository now reports speed as
    "arm A is faster than arm B at threshold T, in N/10 seeds", which is what the curves, the crossing
    tables and the per-seed tables together support.
+7. **The reproducibility of a ranking tracks the model family's noise level, and the noise is
+   measurable.** Across the ten suites, the only fixed-threshold rankings that reproduced in every seed
+   are the two whose per-seed test-loss standard deviation is lowest (σ ≈ 0.020), while every suite at
+   σ ≥ 0.021 produced two to four different winners across ten seeds. §5.13 then tested this claim by
+   pre-registering it for two new capacities: the direction held and the boundary guessed for it (σ ≈
+   0.03) was refuted, which is the useful outcome — the measurable prerequisite for quoting a
+   fixed-threshold ranking is "run the sweep, check σ, and only then decide whether a winner is stable",
+   not a threshold picked in advance.
 
 ### 5.12 Which metric ranks the methods? (the two rankings diverge with capacity)
 
@@ -630,6 +638,64 @@ larger capacities:
 4. **Practical rule for a reproduction**: pin the metric that the claim is about, pin the other one as
    a cross-check, and say which is which in the report — which is what `expected/expected_*.json` and
    §5.10's table now do.
+5. **The concrete trap, stated once more because it is easy to miss**: `epochs_to_target` is computed on
+   the **training** curve, while the quality claim is about the **test** curve. At `[16,16]` the arm that
+   converges fastest and lowest on training loss (AdEMAMix, 0.0944) is the worst arm on test loss
+   (0.2211 mean), and the best test arm (schedule-free, 0.1463) is third on training loss. "Faster to
+   converge" and "better in the end" are two different claims and must never be substituted for one
+   another — a suite that reported only the training curve would call this capacity's winner wrongly.
+
+### 5.13 Capacity expansion, pre-registered: which predictions survived?
+
+Six hypotheses were written into `docs/capacity-expansion-preregistration.md` and committed **before** the
+`[64]` and `[16,16]` runs existed, together with the protocol (200 epochs, 17-trial tuning sweep per
+capacity, ten seeds, threshold curves) and the rule that a refutation is reported as a scope correction
+rather than a retraction.
+
+Ten-seed test-loss means, paired against the tuned-cosine baseline:
+
+| arm | `[64]` | `[16,16]` |
+|---|---:|---:|
+| adagrad | **0.12570 ± 0.02109** (8/10 wins, +0.01238 vs cosine, 9/10 better) | 0.15048 ± 0.03812 (4/10, +0.02563, 9/10 better) |
+| schedule-free AdamW | 0.12904 ± 0.02323 (1/10, +0.00904, 9/10 better) | **0.14634 ± 0.03697** (6/10, +0.02977, **10/10 better**) |
+| adamw + tuned cosine (baseline) | 0.13808 | 0.17611 |
+| adamw constant / adam (identical, no weight decay) | 0.14480 (−0.00672, 1/10 better) | 0.22111 (−0.04500, 0/10 better) |
+| ademamix | 0.14568 (−0.00663, 1/10 better) | 0.22439 (−0.04828, 0/10 better) |
+
+**Verdicts.**
+
+| # | hypothesis | verdict | evidence |
+|---|---|---|---|
+| H1 | AdaGrad keeps strengthening | **boundary** | best arm and 8/10 wins at `[64]`; at `[16,16]` schedule-free overtakes it and its wins fall to 4/10 — "strengthens with capacity" holds up to `[64]`, not beyond |
+| H2 | the schedule-free architecture effect continues | **confirmed** | beats the tuned cosine at both new capacities (9/10 and 10/10 seeds); it now holds at five MLP capacities |
+| H3 | AdEMAMix still has no advantage | **confirmed** | 1/10 and 0/10 seeds better than the AdamW baseline, worse on mean test loss; five capacities and both model families now agree |
+| H4 | train/test divergence keeps growing | **confirmed** | the top-1 differs between the two metrics at both capacities (ademamix → adagrad; ademamix → schedule-free) and five of six arms move at least two places in both |
+| H5 | reproducibility tracks the suite's noise level, with the boundary at σ ≈ 0.03 | **partially refuted** | the direction holds — the three highest-σ suites (0.035, 0.038, 0.065) are all unstable, and the only two suites with a single winner across seeds sit at the bottom of the range — but the pre-registered boundary was too generous: instability appears by σ ≈ 0.021, so the usable statement is "a fixed-threshold ranking reproduced only at the very bottom of the observed noise range (σ ≤ 0.021)", not "below 0.03" |
+| H6 | Adam is still not the fastest | **confirmed** | at the pinned threshold Adam needs 39 epochs at `[64]` (adaGrad 6, schedule-free 14) and 34 at `[16,16]` (schedule-free 20) |
+
+The per-suite view behind H5 (winner at the suite's pinned threshold, per seed; ten seeds):
+
+| suite | test-loss σ of the best arm | distinct winners at the pinned threshold |
+|---|---:|---:|
+| `optimizers` (logistic) | 0.0199 | **1** (`adagrad` ×10) |
+| `ademamix` (logistic) | 0.0206 | **1** (a three-way tie ×10) |
+| `schedule-free` (logistic) | 0.0200 | 2 |
+| `capacity-h32` | 0.0210 | 3 |
+| `capacity-h64` | 0.0211 | 3 |
+| `optimizers-mlp` | 0.0225 | 4 |
+| `schedule-free-mlp` | 0.0257 | 3 |
+| `ademamix-mlp` | 0.0348 | 3 |
+| `capacity-h16x16` | 0.0381 | 3 |
+| `capacity-h8x8` | 0.0646 | 3 |
+
+**What this changes.** H1 and H5 are scope corrections, not retractions. AdaGrad's strengthening is now
+labelled as holding up to `[64]`; §5.11's noise claim keeps its direction but loses the number that was
+guessed for it, and is restated as "reproduced only where the noise floor is lowest (σ ≈ 0.02), which is
+measurable before running the sweep". H2 and H3 come out of the expansion *stronger* than before: five
+capacities now agree that schedule-free beats a tuned cosine on this task and that AdEMAMix does not beat
+AdamW. H4 and H6 were confirmed, and the `[16,16]` run is the clearest illustration of the metric trap in
+§5.12: AdEMAMix reaches the lowest training loss of any arm there (0.0944) and the worst test loss
+(0.2211 mean over ten seeds).
 
 ## 6. Deviations from the paper (and why)
 

@@ -81,6 +81,8 @@ jobs:
             runs/schedule-free-mlp
             runs/seed-sweep-schedule-free-mlp
             runs/schedule-free-mlp-tuning
+            runs/capacity-h64
+            runs/capacity-h16x16
             runs/threshold-curves
 
   docker:

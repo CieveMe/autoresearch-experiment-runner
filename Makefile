@@ -48,6 +48,8 @@ repro-schedule-free-mlp:
 repro-capacity:
 	$(PYTHON) scripts/repro.py --suite capacity-h32
 	$(PYTHON) scripts/repro.py --suite capacity-h8x8
+	$(PYTHON) scripts/repro.py --suite capacity-h64
+	$(PYTHON) scripts/repro.py --suite capacity-h16x16
 
 run:
 	$(PYTHON) -m autoresearch.cli run --config examples/classification.json --output runs/demo
@@ -62,6 +64,8 @@ verify:
 	$(PYTHON) scripts/verify_results.py --results runs/schedule-free-mlp/results.json --expected expected/expected_schedule_free_mlp.json
 	$(PYTHON) scripts/verify_results.py --results runs/capacity-h32/results.json --expected expected/expected_capacity_h32.json
 	$(PYTHON) scripts/verify_results.py --results runs/capacity-h8x8/results.json --expected expected/expected_capacity_h8x8.json
+	$(PYTHON) scripts/verify_results.py --results runs/capacity-h64/results.json --expected expected/expected_capacity_h64.json
+	$(PYTHON) scripts/verify_results.py --results runs/capacity-h16x16/results.json --expected expected/expected_capacity_h16x16.json
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v
@@ -81,7 +85,7 @@ sweep:
 	$(PYTHON) -m autoresearch.cli run --config examples/schedule-free-mlp-sweep.json --output runs/schedule-free-mlp-tuning
 
 thresholds:
-	$(PYTHON) scripts/threshold_curve.py --suite optimizers --suite optimizers-mlp --suite schedule-free --suite schedule-free-mlp --suite ademamix --suite ademamix-mlp --suite capacity-h32 --suite capacity-h8x8
+	$(PYTHON) scripts/threshold_curve.py --suite optimizers --suite optimizers-mlp --suite schedule-free --suite schedule-free-mlp --suite ademamix --suite ademamix-mlp --suite capacity-h32 --suite capacity-h8x8 --suite capacity-h64 --suite capacity-h16x16
 
 score:
 	$(PYTHON) scripts/score_task.py

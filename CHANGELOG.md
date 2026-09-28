@@ -100,6 +100,17 @@ All notable changes to this project are documented here. The format follows
   alphabetically, each with the check that caught it and the test file that guards it.
 - **`docs/release-notes-v0.6.0.published.md`** corrects, in the open, the sentence v0.5.0 published about
   the `[32]` suite's crossing at 0.1417.
+
+### Added (capacity expansion, next release)
+
+- **Pre-registered capacity expansion** (`docs/capacity-expansion-preregistration.md`, committed before the
+  runs): six falsifiable hypotheses with the protocol, the decision rules and what would refute each,
+  covering AdaGrad's strengthening, the schedule-free architecture effect, AdEMAMix's no-advantage
+  verdict, the train/test divergence, the §5.11 noise-correlation claim and Adam's speed standing.
+- **Two more capacities**, `[64]` and a two-layer `[16,16]`, with 17-trial tuning sweeps per capacity
+  committed before the headline runs, ten seeds each, and threshold curves as standard. Overfitting
+  becomes dominant at `[16,16]`: the arm with the lowest training loss (AdEMAMix, 0.09444) has the worst
+  test loss (0.18107), while schedule-free reaches the best test loss (0.11778).
 - **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
   the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
   lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).

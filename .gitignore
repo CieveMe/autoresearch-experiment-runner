@@ -83,6 +83,20 @@ runs/*
 !runs/capacity-verified/sweeps/
 !runs/capacity-verified/sweeps/h32-report.md
 !runs/capacity-verified/sweeps/h8x8-report.md
+!runs/capacity-expansion-verified/
+!runs/capacity-expansion-verified/h64/
+!runs/capacity-expansion-verified/h64/results.json
+!runs/capacity-expansion-verified/h64/report.md
+!runs/capacity-expansion-verified/h64/seed-sweep-summary.json
+!runs/capacity-expansion-verified/h64/seed-sweep-summary.md
+!runs/capacity-expansion-verified/h16x16/
+!runs/capacity-expansion-verified/h16x16/results.json
+!runs/capacity-expansion-verified/h16x16/report.md
+!runs/capacity-expansion-verified/h16x16/seed-sweep-summary.json
+!runs/capacity-expansion-verified/h16x16/seed-sweep-summary.md
+!runs/capacity-expansion-verified/sweeps/
+!runs/capacity-expansion-verified/sweeps/h64-sweep-report.md
+!runs/capacity-expansion-verified/sweeps/h16x16-sweep-report.md
 
 # Local credentials and editor state
 .env

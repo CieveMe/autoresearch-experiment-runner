@@ -1,0 +1,76 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 c4b4f81e427096bab98207f52a970e6fac2e95e02701a7b995be3df8ecb2fcaa",
+  "config": "examples/capacity-h64.json",
+  "config_sha256": "c4b4f81e427096bab98207f52a970e6fac2e95e02701a7b995be3df8ecb2fcaa",
+  "metric": "test_loss",
+  "best": "adagrad",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "schedule": "cosine",
+      "min_lr_factor": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12726768,
+      "epochs_to_target": 40
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.925,
+      "test_loss": 0.12845077,
+      "epochs_to_target": 39
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.925,
+      "test_loss": 0.12845077,
+      "epochs_to_target": 39
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12268389,
+      "epochs_to_target": 6
+    },
+    "ademamix": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "epochs": 200,
+      "test_accuracy": 0.925,
+      "test_loss": 0.12832685,
+      "epochs_to_target": 39
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12391022,
+      "epochs_to_target": 14
+    }
+  },
+  "notes": [
+    "Capacity expansion to 64 hidden units; every arm retuned for it (examples/capacity-h64-sweep.json, 17 trials), hypotheses pre-registered in docs/capacity-expansion-preregistration.md.",
+    "Seed 7: adagrad is best on test loss (0.12268) and fastest to the target (6 epochs); schedule-free is second on both; ademamix has the lowest training loss (0.13579) and one of the worst test losses (0.12833).",
+    "Verdicts for H1-H6 come from runs/capacity-expansion-verified/h64/seed-sweep-summary.md, not from this single seed."
+  ]
+}
