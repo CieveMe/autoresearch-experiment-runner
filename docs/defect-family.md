@@ -239,6 +239,15 @@ caught by running the task end to end. Cases 4–6 required nobody to have antic
 is why the pinned numbers, the plots and an actual run of the harness are a safety net and not just
 regression tests.
 
+**A corollary, and the smallest member of the family.** Case 5's disease is "the same fact maintained in
+two places", and it does not need a table to show itself: the release checklist told the releaser to
+confirm that `pyproject.toml`, `autoresearch/__init__.py` and `CITATION.cff` all said `0.2.0` — a sentence
+that became false at the instant those files were bumped, in a document nobody re-reads. It is the same
+shape as §5.16's "78 comparisons", which stayed in the prose (and in the v0.10.0 body) after the corpus
+grew to 79 when the T-ADAM-01C ablation was registered. Neither is a case of its own; both are the family
+note in miniature, and the repair is the same: **name the artifact that owns the number, and let the
+prose quote it.** A duplicated fact does not rot slowly, it rots on the next edit.
+
 ## How to apply it to a new experiment
 
 1. Name the metric and declare its direction in one place.

@@ -1,0 +1,93 @@
+# A3 data pack: the two things the methods paper asks this repository for
+
+Prepared on request (`§5.16`'s headline wording, and the six-defect appendix table). Everything here is
+quoted or computed from committed artifacts; nothing new was run to produce it, and every row says how to
+check it. If a number below disagrees with the artifact, **the artifact is right and this file is stale**
+— which is the rule the family in `docs/defect-family.md` exists to enforce.
+
+Regenerate the two sources:
+
+```bash
+make stats      # runs/paired-tests/paired-tests.{md,json}
+make figures    # runs/figures/*.svg + runs/figures/stability.csv
+```
+
+## 1. §5.16 headline wording (verbatim, `REPRODUCTION.md` §5.16)
+
+> **The conservative screen first.** Across all 79 comparisons, **not one** survives a family-wise
+> correction (smallest adjusted p = 0.1543).
+
+> **1. The schedule-free result is established at exactly one suite, and it is the deepest one.**
+> `capacity-h16x16` wins 10/10 seeds, median difference −0.02692 [−0.04536, −0.01102], d_z = −1.20,
+> adjusted p = 0.0195 — the one comparison in the family that survives its own family correction. Two
+> more have a raw p ≤ 0.05 and do not survive it (`capacity-h64`: 0.0098 → 0.1934; `init-he`: 0.0039 →
+> 0.1934). Everything else … is **no evidence of a difference at this budget**, with MDE between 0.0013
+> and 0.0094.
+
+> **2. The AdEMAMix verdict is a bound, not an equality — and this applies to the repository's own
+> wording.** No comparison in that family survives (smallest adjusted p = 0.2363, and that one,
+> `init-he` with a raw p of 0.0215, has AdEMAMix *worse*). A null hypothesis cannot be confirmed by a
+> test that fails to reject, so "AdEMAMix has no advantage" is not something these ten seeds can
+> establish.
+
+**Numbers behind the headline** (`runs/paired-tests/paired-tests.json`, field paths given so a reviewer
+can check rather than trust):
+
+| quantity | value | where |
+|---|---:|---|
+| comparisons in the corpus | 79 | `comparisons_tested` |
+| surviving Holm within the declared family, schedule-free | 1 of 10 | `claim_families[0].survivors` / `.members` |
+| surviving Holm within the declared family, AdEMAMix | 0 of 11 | `claim_families[1].survivors` / `.members` |
+| smallest raw / adjusted p, schedule-free family | 0.0020 / 0.0195 | `claim_families[0].smallest_*_p` |
+| smallest raw / adjusted p, AdEMAMix family | 0.0215 / 0.2363 | `claim_families[1].smallest_*_p` |
+| comparisons surviving the all-79 screen | 0 | computed: `holm_p <= 0.05` over `comparisons` |
+
+**Known drift, already corrected in the prose:** §5.16 and the v0.10.0 release body said "78"; the
+corpus became 79 when the T-ADAM-01C ablation suite was registered. The claim is unchanged, the smallest
+adjusted p is 0.1543 (rounded to 0.15 in that body). `make stats` owns the number.
+
+**The wording rule, if the draft quotes it:** a test that fails to reject is reported as *no evidence of a
+difference at this budget*, **never** as "no difference", and the closed set of allowed verdicts is
+enforced in code and tested
+(`tests/test_paired_stats.py::test_every_verdict_comes_from_the_closed_set_of_phrasings`).
+
+## 2. The defect family: six cases, each with the check that caught it
+
+One row per case, `docs/defect-family.md` is the prose, and every check name below was verified against
+the tree (`rg -n "def <name>" tests`).
+
+| # | what the number/verdict was | what it should have been | check that catches it | test file |
+|---|---|---|---|---|
+| 1 | a ranking in the wrong direction | a ranking in the declared direction | `test_every_metric_the_runner_can_rank_has_a_known_direction` | `tests/test_metric_direction.py:12` |
+| 2 | ten runs, one initialisation | ten runs, ten seeds | `test_a_multi_seed_sweep_produces_distinct_seeds_not_a_fixed_value` | `tests/test_seed_contract.py:41` |
+| 3 | a leader produced by alphabetical order | a tie | `test_identical_curves_have_no_crossing` | `tests/test_threshold_curve.py:97` |
+| 4 | gradients of a deep network doubled by a refactor | gradients of the same network as before | `test_gradients_match_numerical_differences` (two depths) | `tests/test_ademamix.py:78` |
+| 5 | a table column assembled by hand, not reproducible under its own heading | every statistic produced by a function with its definition named | `test_the_noise_statistics_are_reproducible_and_disagree_with_the_old_table` | `tests/test_figures.py:80` |
+| 6a | four "detected" verdicts produced by fragments that had moved into dead code | a control that demonstrably changes the code that runs | `test_every_control_fragment_changes_the_numbers_it_mutates` | `tests/test_harness.py:117` |
+| 6b | "exit 1, two controls missed" produced by a copier that dropped the inputs | a scored copy isomorphic to the repository it claims to score | `test_the_scored_copy_can_run_the_repositorys_own_tests` | `tests/test_harness.py:128` |
+
+**How each case was found** (the column a reviewer will like, because it is where the cases differ):
+
+| # | found by |
+|---|---|
+| 1, 3 | a purpose-built check |
+| 2 | re-reading a contract |
+| 4 | a pinned expectation of an *unrelated* suite failing on a fresh run |
+| 5 | drawing a figure that disagreed with a published column |
+| 6a | running the T-ADAM-01B variant and seeing 100/100 next to two missed controls |
+| 6b | the same tree scoring `exit 0` with `--skip-controls` and `exit 1` with them |
+
+**The one-sentence form of each generalisation** (from `docs/defect-family.md`):
+
+1. every metric declares its direction, in one place;
+2. a sweep that claims N seeds must show that N distinct seeds reached the model;
+3. a tie is a result, and a tie-break is a choice that has to be visible;
+4. a check that covers one shape covers one shape;
+5. a number typed into a table has no generator;
+6. **a check that can be satisfied without changing what runs is not a check** (6a), and a copy is not
+   the thing it claims to score (6b).
+
+**The family note in miniature** (worth one sentence in §5, not a case): the release checklist's own
+line telling the releaser to confirm three files "all say `0.2.0`" became false the moment those files
+were bumped; §5.16's "78 comparisons" outlived the corpus reaching 79. Same disease — one fact maintained
+in two places — and the same repair: name the artifact that owns the number and quote it from there.

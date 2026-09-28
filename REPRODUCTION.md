@@ -930,10 +930,13 @@ re-run**:
 * a Holm-Bonferroni adjustment **within a declared family**, because a p-value is only adjusted inside
   one: the two claims are each treated as a single claim tested repeatedly.
 
-**The conservative screen first.** Across all 78 comparisons, **not one** survives a family-wise
-correction (smallest adjusted p = 0.15). Correcting across every table printed answers a question nobody
-asked, but it is the right first number to report, because it is the one that stops a screen of
-p-values from being read as a set of results.
+**The conservative screen first.** Across all 79 comparisons, **not one** survives a family-wise
+correction (smallest adjusted p = 0.1543). Correcting across every table printed answers a question
+nobody asked, but it is the right first number to report, because it is the one that stops a screen of
+p-values from being read as a set of results. *(The count was 78 when this section was first written and
+in the v0.10.0 release body; it became 79 when the T-ADAM-01C ablation suite was registered. The claim
+does not change — nothing survives either way — and `make stats` is the authority for the number, which
+is why the prose now quotes it from the artifact instead of from memory.)*
 
 | claim | suites in family | smallest raw p | smallest adjusted p | comparisons surviving |
 |---|---:|---:|---:|---:|

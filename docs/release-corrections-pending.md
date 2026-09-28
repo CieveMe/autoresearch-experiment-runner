@@ -89,6 +89,21 @@ correction.
 * **Not touched:** the `v0.10.0` tag. The change is a commit on `main` after that tag, and the tagged
   snapshot keeps the file as it was.
 
+### §5.16's comparison count: 78 in the prose, 79 in the artifact
+
+* **What was wrong:** §5.16 and the v0.10.0 release body both say "across all 78 comparisons". The
+  committed artifact `runs/paired-tests/paired-tests.json` says 79, because the corpus grew by one when
+  the T-ADAM-01C ablation suite was registered after that prose was written. The claim is unaffected
+  (nothing survives a family correction either way) and the smallest adjusted p is 0.1543, which the body
+  rounded to 0.15 — but the count is a number, and it was quoted from memory rather than from the file.
+* **When it was fixed:** in the tree now, with the note in §5.16 recording both numbers and why they
+  differ.
+* **What the next release body must say:** one line — the count is 79, the v0.10.0 body's "78" and
+  "smallest adjusted p = 0.15" are superseded by "79" and "0.1543", and `make stats` is the authority.
+* **Also to state, under the case 5/6 family note:** that the release checklist's own metadata line
+  ("confirm the three files all say `0.2.0`") was already false the moment those files were bumped — the
+  smallest example of the same disease, worth one sentence rather than a case of its own.
+
 ## Rules for the person writing the next body
 
 1. Every item above gets an explicit line in the release body, with the section it corrects.
