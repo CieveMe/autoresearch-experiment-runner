@@ -1,7 +1,7 @@
 # AutoResearch Lite - one-command reproduction.
 # `make repro` is the entry point quoted in REPRODUCTION.md and TASK.md.
 # On Windows without make, run: python scripts/repro.py
-.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp run verify test sweep score docker clean
+.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp run verify test sweep thresholds score docker clean
 
 PYTHON ?= python3
 
@@ -17,6 +17,7 @@ help:
 	@echo "make verify   - compare runs/demo/results.json with expected/expected_metrics.json"
 	@echo "make test     - run the unit tests"
 	@echo "make sweep    - 10-seed sweep for the main suite and the optimizer suite"
+	@echo "make thresholds - epochs-to-target curves over the threshold grid (Markdown + CSV + SVG)"
 	@echo "make score    - task score + negative controls"
 	@echo "make docker   - the same reproduction inside Docker"
 	@echo "make clean    - remove generated runs and caches"
@@ -71,6 +72,9 @@ sweep:
 	$(PYTHON) -m autoresearch.cli run --config examples/schedule-free-sweep.json --output runs/schedule-free-tuning
 	$(PYTHON) scripts/seed_sweep.py --config examples/schedule-free-mlp.json --seeds 0-9 --output runs/seed-sweep-schedule-free-mlp --reference adamw_cosine,schedule_free_adamw
 	$(PYTHON) -m autoresearch.cli run --config examples/schedule-free-mlp-sweep.json --output runs/schedule-free-mlp-tuning
+
+thresholds:
+	$(PYTHON) scripts/threshold_curve.py --suite optimizers --suite optimizers-mlp --suite schedule-free --suite schedule-free-mlp --suite ademamix --suite ademamix-mlp
 
 score:
 	$(PYTHON) scripts/score_task.py

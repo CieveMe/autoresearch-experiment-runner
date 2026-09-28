@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" font-family="system-ui, sans-serif" font-size="12">
+<rect width="900" height="420" fill="white"/>
+<text x="150" y="22" font-size="14">optimizer convergence speed on a fixed synthetic task — epochs to reach each threshold</text>
+<line x1="150" y1="370" x2="870" y2="370" stroke="#333"/>
+<line x1="150" y1="40" x2="150" y2="370" stroke="#333"/>
+<line x1="150" y1="370.0" x2="870" y2="370.0" stroke="#eee"/>
+<text x="142" y="374.0" text-anchor="end">0.143</text>
+<line x1="150" y1="304.0" x2="870" y2="304.0" stroke="#eee"/>
+<text x="142" y="308.0" text-anchor="end">0.159</text>
+<line x1="150" y1="238.0" x2="870" y2="238.0" stroke="#eee"/>
+<text x="142" y="242.0" text-anchor="end">0.176</text>
+<line x1="150" y1="172.0" x2="870" y2="172.0" stroke="#eee"/>
+<text x="142" y="176.0" text-anchor="end">0.192</text>
+<line x1="150" y1="106.0" x2="870" y2="106.0" stroke="#eee"/>
+<text x="142" y="110.0" text-anchor="end">0.208</text>
+<line x1="150" y1="40.0" x2="870" y2="40.0" stroke="#eee"/>
+<text x="142" y="44.0" text-anchor="end">0.225</text>
+<line x1="150.0" y1="370" x2="150.0" y2="375" stroke="#333"/>
+<text x="150.0" y="390" text-anchor="middle">0</text>
+<line x1="294.0" y1="370" x2="294.0" y2="375" stroke="#333"/>
+<text x="294.0" y="390" text-anchor="middle">24</text>
+<line x1="438.0" y1="370" x2="438.0" y2="375" stroke="#333"/>
+<text x="438.0" y="390" text-anchor="middle">48</text>
+<line x1="582.0" y1="370" x2="582.0" y2="375" stroke="#333"/>
+<text x="582.0" y="390" text-anchor="middle">72</text>
+<line x1="726.0" y1="370" x2="726.0" y2="375" stroke="#333"/>
+<text x="726.0" y="390" text-anchor="middle">96</text>
+<line x1="870.0" y1="370" x2="870.0" y2="375" stroke="#333"/>
+<text x="870.0" y="390" text-anchor="middle">120</text>
+<text x="510" y="412" text-anchor="middle">epochs to reach the threshold</text>
+<line x1="150" y1="301.4" x2="870" y2="301.4" stroke="#999" stroke-dasharray="6 4"/>
+<text x="866" y="297.4" text-anchor="end" fill="#666">pinned target 0.16</text>
+<circle cx="870.0" cy="40.0" r="2" fill="#1f77b4"/>
+<line x1="14" y1="46" x2="34" y2="46" stroke="#1f77b4" stroke-width="3"/>
+<text x="40" y="50">baseline</text>
+<polyline points="378.0,342.5 306.0,315.0 276.0,287.5 258.0,260.0 252.0,232.5 240.0,205.0 234.0,177.5 228.0,150.0 222.0,122.5 222.0,95.0 216.0,67.5 216.0,40.0" fill="none" stroke="#d62728" stroke-width="2"/>
+<circle cx="378.0" cy="342.5" r="2" fill="#d62728"/>
+<circle cx="306.0" cy="315.0" r="2" fill="#d62728"/>
+<circle cx="276.0" cy="287.5" r="2" fill="#d62728"/>
+<circle cx="258.0" cy="260.0" r="2" fill="#d62728"/>
+<circle cx="252.0" cy="232.5" r="2" fill="#d62728"/>
+<circle cx="240.0" cy="205.0" r="2" fill="#d62728"/>
+<circle cx="234.0" cy="177.5" r="2" fill="#d62728"/>
+<circle cx="228.0" cy="150.0" r="2" fill="#d62728"/>
+<circle cx="222.0" cy="122.5" r="2" fill="#d62728"/>
+<circle cx="222.0" cy="95.0" r="2" fill="#d62728"/>
+<circle cx="216.0" cy="67.5" r="2" fill="#d62728"/>
+<circle cx="216.0" cy="40.0" r="2" fill="#d62728"/>
+<line x1="14" y1="64" x2="34" y2="64" stroke="#d62728" stroke-width="3"/>
+<text x="40" y="68">sgd_momentum</text>
+<polyline points="330.0,342.5 240.0,315.0 204.0,287.5 180.0,260.0 174.0,232.5 168.0,205.0 168.0,177.5 162.0,150.0 162.0,122.5 162.0,95.0 162.0,67.5 162.0,40.0" fill="none" stroke="#2ca02c" stroke-width="2"/>
+<circle cx="330.0" cy="342.5" r="2" fill="#2ca02c"/>
+<circle cx="240.0" cy="315.0" r="2" fill="#2ca02c"/>
+<circle cx="204.0" cy="287.5" r="2" fill="#2ca02c"/>
+<circle cx="180.0" cy="260.0" r="2" fill="#2ca02c"/>
+<circle cx="174.0" cy="232.5" r="2" fill="#2ca02c"/>
+<circle cx="168.0" cy="205.0" r="2" fill="#2ca02c"/>
+<circle cx="168.0" cy="177.5" r="2" fill="#2ca02c"/>
+<circle cx="162.0" cy="150.0" r="2" fill="#2ca02c"/>
+<circle cx="162.0" cy="122.5" r="2" fill="#2ca02c"/>
+<circle cx="162.0" cy="95.0" r="2" fill="#2ca02c"/>
+<circle cx="162.0" cy="67.5" r="2" fill="#2ca02c"/>
+<circle cx="162.0" cy="40.0" r="2" fill="#2ca02c"/>
+<line x1="14" y1="82" x2="34" y2="82" stroke="#2ca02c" stroke-width="3"/>
+<text x="40" y="86">adagrad</text>
+<polyline points="582.0,342.5 510.0,315.0 462.0,287.5 426.0,260.0 402.0,232.5 378.0,205.0 354.0,177.5 336.0,150.0 318.0,122.5 306.0,95.0 294.0,67.5 282.0,40.0" fill="none" stroke="#9467bd" stroke-width="2"/>
+<circle cx="582.0" cy="342.5" r="2" fill="#9467bd"/>
+<circle cx="510.0" cy="315.0" r="2" fill="#9467bd"/>
+<circle cx="462.0" cy="287.5" r="2" fill="#9467bd"/>
+<circle cx="426.0" cy="260.0" r="2" fill="#9467bd"/>
+<circle cx="402.0" cy="232.5" r="2" fill="#9467bd"/>
+<circle cx="378.0" cy="205.0" r="2" fill="#9467bd"/>
+<circle cx="354.0" cy="177.5" r="2" fill="#9467bd"/>
+<circle cx="336.0" cy="150.0" r="2" fill="#9467bd"/>
+<circle cx="318.0" cy="122.5" r="2" fill="#9467bd"/>
+<circle cx="306.0" cy="95.0" r="2" fill="#9467bd"/>
+<circle cx="294.0" cy="67.5" r="2" fill="#9467bd"/>
+<circle cx="282.0" cy="40.0" r="2" fill="#9467bd"/>
+<line x1="14" y1="100" x2="34" y2="100" stroke="#9467bd" stroke-width="3"/>
+<text x="40" y="104">rmsprop</text>
+<polyline points="498.0,342.5 378.0,315.0 330.0,287.5 300.0,260.0 282.0,232.5 270.0,205.0 258.0,177.5 246.0,150.0 240.0,122.5 234.0,95.0 228.0,67.5 222.0,40.0" fill="none" stroke="#ff7f0e" stroke-width="2"/>
+<circle cx="498.0" cy="342.5" r="2" fill="#ff7f0e"/>
+<circle cx="378.0" cy="315.0" r="2" fill="#ff7f0e"/>
+<circle cx="330.0" cy="287.5" r="2" fill="#ff7f0e"/>
+<circle cx="300.0" cy="260.0" r="2" fill="#ff7f0e"/>
+<circle cx="282.0" cy="232.5" r="2" fill="#ff7f0e"/>
+<circle cx="270.0" cy="205.0" r="2" fill="#ff7f0e"/>
+<circle cx="258.0" cy="177.5" r="2" fill="#ff7f0e"/>
+<circle cx="246.0" cy="150.0" r="2" fill="#ff7f0e"/>
+<circle cx="240.0" cy="122.5" r="2" fill="#ff7f0e"/>
+<circle cx="234.0" cy="95.0" r="2" fill="#ff7f0e"/>
+<circle cx="228.0" cy="67.5" r="2" fill="#ff7f0e"/>
+<circle cx="222.0" cy="40.0" r="2" fill="#ff7f0e"/>
+<line x1="14" y1="118" x2="34" y2="118" stroke="#ff7f0e" stroke-width="3"/>
+<text x="40" y="122">adam</text>
+<polyline points="510.0,370.0 246.0,342.5 234.0,315.0 222.0,287.5 216.0,260.0 210.0,232.5 204.0,205.0 204.0,177.5 198.0,150.0 198.0,122.5 192.0,95.0 192.0,67.5 186.0,40.0" fill="none" stroke="#8c564b" stroke-width="2"/>
+<circle cx="510.0" cy="370.0" r="2" fill="#8c564b"/>
+<circle cx="246.0" cy="342.5" r="2" fill="#8c564b"/>
+<circle cx="234.0" cy="315.0" r="2" fill="#8c564b"/>
+<circle cx="222.0" cy="287.5" r="2" fill="#8c564b"/>
+<circle cx="216.0" cy="260.0" r="2" fill="#8c564b"/>
+<circle cx="210.0" cy="232.5" r="2" fill="#8c564b"/>
+<circle cx="204.0" cy="205.0" r="2" fill="#8c564b"/>
+<circle cx="204.0" cy="177.5" r="2" fill="#8c564b"/>
+<circle cx="198.0" cy="150.0" r="2" fill="#8c564b"/>
+<circle cx="198.0" cy="122.5" r="2" fill="#8c564b"/>
+<circle cx="192.0" cy="95.0" r="2" fill="#8c564b"/>
+<circle cx="192.0" cy="67.5" r="2" fill="#8c564b"/>
+<circle cx="186.0" cy="40.0" r="2" fill="#8c564b"/>
+<line x1="14" y1="136" x2="34" y2="136" stroke="#8c564b" stroke-width="3"/>
+<text x="40" y="140">adam_no_bias_correction</text>
+</svg>

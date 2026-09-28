@@ -64,6 +64,11 @@ runs/*
 !runs/schedule-free-verified/mlp/seed-sweep-summary.md
 !runs/schedule-free-verified/mlp-tuning/
 !runs/schedule-free-verified/mlp-tuning/report.md
+!runs/threshold-curves/
+!runs/threshold-curves/SUMMARY.md
+!runs/threshold-curves/*-thresholds.md
+!runs/threshold-curves/*-thresholds.csv
+!runs/threshold-curves/*-curves.svg
 
 # Local credentials and editor state
 .env

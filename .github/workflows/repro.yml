@@ -48,6 +48,9 @@ jobs:
         run: |
           python -m autoresearch.cli run --config examples/schedule-free-sweep.json --output runs/schedule-free-tuning
           python -m autoresearch.cli run --config examples/schedule-free-mlp-sweep.json --output runs/schedule-free-mlp-tuning
+      - name: Regenerate the threshold curves
+        if: matrix.python == '3.12'
+        run: make thresholds
       - name: Upload reproduction artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -73,6 +76,7 @@ jobs:
             runs/schedule-free-mlp
             runs/seed-sweep-schedule-free-mlp
             runs/schedule-free-mlp-tuning
+            runs/threshold-curves
 
   docker:
     name: reproduce (docker)

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" font-family="system-ui, sans-serif" font-size="12">
+<rect width="900" height="420" fill="white"/>
+<text x="150" y="22" font-size="14">AdEMAMix on the two-layer MLP: speed versus final quality — epochs to reach each threshold</text>
+<line x1="150" y1="370" x2="870" y2="370" stroke="#333"/>
+<line x1="150" y1="40" x2="150" y2="370" stroke="#333"/>
+<line x1="150" y1="370.0" x2="870" y2="370.0" stroke="#eee"/>
+<text x="142" y="374.0" text-anchor="end">0.138</text>
+<line x1="150" y1="304.0" x2="870" y2="304.0" stroke="#eee"/>
+<text x="142" y="308.0" text-anchor="end">0.139</text>
+<line x1="150" y1="238.0" x2="870" y2="238.0" stroke="#eee"/>
+<text x="142" y="242.0" text-anchor="end">0.139</text>
+<line x1="150" y1="172.0" x2="870" y2="172.0" stroke="#eee"/>
+<text x="142" y="176.0" text-anchor="end">0.140</text>
+<line x1="150" y1="106.0" x2="870" y2="106.0" stroke="#eee"/>
+<text x="142" y="110.0" text-anchor="end">0.140</text>
+<line x1="150" y1="40.0" x2="870" y2="40.0" stroke="#eee"/>
+<text x="142" y="44.0" text-anchor="end">0.141</text>
+<line x1="150.0" y1="370" x2="150.0" y2="375" stroke="#333"/>
+<text x="150.0" y="390" text-anchor="middle">0</text>
+<line x1="294.0" y1="370" x2="294.0" y2="375" stroke="#333"/>
+<text x="294.0" y="390" text-anchor="middle">24</text>
+<line x1="438.0" y1="370" x2="438.0" y2="375" stroke="#333"/>
+<text x="438.0" y="390" text-anchor="middle">48</text>
+<line x1="582.0" y1="370" x2="582.0" y2="375" stroke="#333"/>
+<text x="582.0" y="390" text-anchor="middle">72</text>
+<line x1="726.0" y1="370" x2="726.0" y2="375" stroke="#333"/>
+<text x="726.0" y="390" text-anchor="middle">96</text>
+<line x1="870.0" y1="370" x2="870.0" y2="375" stroke="#333"/>
+<text x="870.0" y="390" text-anchor="middle">120</text>
+<text x="510" y="412" text-anchor="middle">epochs to reach the threshold</text>
+<polyline points="858.0,150.0 810.0,122.5 768.0,95.0 732.0,67.5 702.0,40.0" fill="none" stroke="#1f77b4" stroke-width="2"/>
+<circle cx="858.0" cy="150.0" r="2" fill="#1f77b4"/>
+<circle cx="810.0" cy="122.5" r="2" fill="#1f77b4"/>
+<circle cx="768.0" cy="95.0" r="2" fill="#1f77b4"/>
+<circle cx="732.0" cy="67.5" r="2" fill="#1f77b4"/>
+<circle cx="702.0" cy="40.0" r="2" fill="#1f77b4"/>
+<line x1="14" y1="46" x2="34" y2="46" stroke="#1f77b4" stroke-width="3"/>
+<text x="40" y="50">adamw</text>
+<polyline points="834.0,150.0 792.0,122.5 756.0,95.0 726.0,67.5 696.0,40.0" fill="none" stroke="#d62728" stroke-width="2"/>
+<circle cx="834.0" cy="150.0" r="2" fill="#d62728"/>
+<circle cx="792.0" cy="122.5" r="2" fill="#d62728"/>
+<circle cx="756.0" cy="95.0" r="2" fill="#d62728"/>
+<circle cx="726.0" cy="67.5" r="2" fill="#d62728"/>
+<circle cx="696.0" cy="40.0" r="2" fill="#d62728"/>
+<line x1="14" y1="64" x2="34" y2="64" stroke="#d62728" stroke-width="3"/>
+<text x="40" y="68">ademamix_no_warmups</text>
+<polyline points="870.0,370.0 840.0,342.5 816.0,315.0 798.0,287.5 780.0,260.0 762.0,232.5 750.0,205.0 738.0,177.5 726.0,150.0 714.0,122.5 702.0,95.0 690.0,67.5 678.0,40.0" fill="none" stroke="#2ca02c" stroke-width="2"/>
+<circle cx="870.0" cy="370.0" r="2" fill="#2ca02c"/>
+<circle cx="840.0" cy="342.5" r="2" fill="#2ca02c"/>
+<circle cx="816.0" cy="315.0" r="2" fill="#2ca02c"/>
+<circle cx="798.0" cy="287.5" r="2" fill="#2ca02c"/>
+<circle cx="780.0" cy="260.0" r="2" fill="#2ca02c"/>
+<circle cx="762.0" cy="232.5" r="2" fill="#2ca02c"/>
+<circle cx="750.0" cy="205.0" r="2" fill="#2ca02c"/>
+<circle cx="738.0" cy="177.5" r="2" fill="#2ca02c"/>
+<circle cx="726.0" cy="150.0" r="2" fill="#2ca02c"/>
+<circle cx="714.0" cy="122.5" r="2" fill="#2ca02c"/>
+<circle cx="702.0" cy="95.0" r="2" fill="#2ca02c"/>
+<circle cx="690.0" cy="67.5" r="2" fill="#2ca02c"/>
+<circle cx="678.0" cy="40.0" r="2" fill="#2ca02c"/>
+<line x1="14" y1="82" x2="34" y2="82" stroke="#2ca02c" stroke-width="3"/>
+<text x="40" y="86">ademamix_warmup_45</text>
+<polyline points="774.0,95.0 756.0,67.5 738.0,40.0" fill="none" stroke="#9467bd" stroke-width="2"/>
+<circle cx="774.0" cy="95.0" r="2" fill="#9467bd"/>
+<circle cx="756.0" cy="67.5" r="2" fill="#9467bd"/>
+<circle cx="738.0" cy="40.0" r="2" fill="#9467bd"/>
+<line x1="14" y1="100" x2="34" y2="100" stroke="#9467bd" stroke-width="3"/>
+<text x="40" y="104">ademamix_warmup_120</text>
+<circle cx="852.0" cy="40.0" r="2" fill="#ff7f0e"/>
+<line x1="14" y1="118" x2="34" y2="118" stroke="#ff7f0e" stroke-width="3"/>
+<text x="40" y="122">sgd_momentum</text>
+</svg>

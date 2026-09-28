@@ -430,6 +430,45 @@ The honest summary is that at this budget a decay is not needed at all, so a met
 is removing the need for one has nothing to gain — a statement about this regime, not about long
 non-convex training where the paper's argument lives.
 
+### 5.9 The speed metric is a function of the threshold, so here are the curves
+
+Every "who is fastest" statement in §5.4–5.8 is an `epochs_to_target` number, and that number is a
+function of the threshold it is measured at. The two models already disagreed at one threshold (§5.8),
+which is a warning that the metric, not the method, may be deciding the answer. `scripts/threshold_curve.py`
+therefore reads the committed loss curves and reports, for a 13-point grid of thresholds from the best
+converged floor to the worst arm's own floor, which arm arrives first, which never arrives, and where the
+ranking changes. Outputs are committed in `runs/threshold-curves/` (Markdown table, CSV and an SVG with
+the suite's pinned threshold drawn as a dashed line).
+
+| suite | ranking changes on the grid | crossing | is the *pinned* threshold on the stable side? |
+|---|---:|---|---|
+| `optimizers` (logistic) | 1 | 0.1634: `adam_no_bias_correction` → `adagrad` | **no** — pinned 0.16 names the loser of the looser region |
+| `optimizers-mlp` | 1 | 0.1422: `adam` → `sgd_momentum` | **no** — pinned 0.147 sits in the momentum region |
+| `schedule-free` (logistic) | 0 | — | yes: `adamw_constant` wins at every threshold |
+| `schedule-free-mlp` | 1 | 0.1434: `adamw_constant` → `schedule_free_adamw` | **no** — pinned 0.148 sits in the loose region where schedule-free wins |
+| `ademamix` (logistic) | 5 | oscillates between 0.1435 and 0.1449 | not applicable: the two arms are tied inside noise there |
+| `ademamix-mlp` | 0 | — | yes, on its (narrow) grid: `ademamix_warmup_45` wins throughout |
+
+**Findings.**
+
+1. **Four of the six suites have a threshold-dependent winner.** "Fastest optimizer" without a threshold
+   is not a claim this repository can make; it can make "fastest optimizer *at threshold X*, with the
+   crossing at Y" — which the committed tables and SVGs now support.
+2. **Three suites' pinned thresholds sit on the fragile side of a crossing.** The head-line numbers in
+   §5.4 and §5.8 were correct *for their pinned threshold* and are now also bounded: e.g. in
+   `schedule-free-mlp` the schedule-free arm wins at 0.148 only because the constant-rate arm, which
+   converges deeper, has not yet been separated by the threshold.
+3. **Two suites are stable, and the tool says so** — that distinction is the point. `schedule-free`
+   (logistic) has the constant rate winning at all thirteen thresholds, which is a much stronger
+   statement than the single number it replaces; `ademamix-mlp` is stable across its own floor range.
+4. **In `ademamix` (logistic) the winner oscillates five times inside a 0.0014-wide band.** That is not
+   a ranking at all; it means the two arms are tied in that region, and the §5.5 verdict for that suite
+   rests on final loss and on the 10-seed comparison, not on speed.
+5. **This does not change any conclusion, it changes their scope.** AdEMAMix is still not faster in a
+   stable sense, schedule-free's strong claim is still unsupported, and Adam is still mid-pack on both
+   models — but each of those is now attached to a threshold rather than to a single number that happened
+   to be picked in advance.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |

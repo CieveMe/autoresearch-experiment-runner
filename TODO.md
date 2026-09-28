@@ -13,7 +13,7 @@
 - [x] 按 Roadmap 接入第一篇 2024 年论文（AdEMAMix）：适配器重构（`trainers/` + `optimizers.py` + `schedules.py` + `datasets.py`）、20 组调参扫描、10 种子配对、论文卡与负向控制，结论为负（不更快）。见 `docs/papers/ademamix-2024.md`。
 - [x] 第二篇论文：Schedule-Free AdamW（2024，arXiv:2405.15682）。已按 reference 实现移植并做"**无计划 vs 调过的 cosine 计划**"对照（21 组扫描同时调 lr 与 min_lr_factor，另加常数学习率基线）：**"打平"勉强成立、"超过"不成立**（10/10 种子败给调过的 cosine；常数学习率最好）。见 `docs/papers/schedule-free-2024.md`。
 - [x] 把 Schedule-Free 套件也在 MLP trainer 上跑一遍（15 组扫描 + 10 种子）：**方向翻转** —— Schedule-Free 赢调过的 cosine 9/10，但常数学习率仍 9/10 赢 Schedule-Free ⇒ 弱形式两模型成立、强形式不成立。见 `REPRODUCTION.md` 5.8 与 `docs/papers/schedule-free-2024.md`。
-- [ ] 用"多阈值"复跑 Schedule-Free 的速度指标（当前达标轮数在两个模型上给出相反结论，说明它对阈值位置敏感——应画"达标轮数 vs 阈值"曲线）。
+- [x] 用"多阈值"把速度指标从单点升级为曲线：`scripts/threshold_curve.py` + `runs/threshold-curves/`（13 点网格、交叉阈值、SVG 标注固定阈值）。结论：**6 个套件里 4 个的"最快者"依赖阈值**，其中 3 个的固定阈值正好落在交叉点的脆弱一侧；`schedule-free`（logistic）在全部 13 个阈值上稳定，`ademamix`（logistic）在 0.0014 宽区间内翻转 5 次（那两个 arm 在该区间本质持平）。见 `REPRODUCTION.md` 5.9。
 - [x] 用 MLP trainer 复跑优化器套件与 AdEMAMix（含"每个家族为 MLP 重新调参"和"初始化随种子变化"两处修正）：**结论没有被推翻** —— Adam 在两套模型上速度都居中（MLP：20.3 轮 vs AdaGrad 6.2 / 动量 7.0），论文 warmup 在两套模型上都更差，无 warmup 的 AdEMAMix 与 AdamW 无差别。见 `REPRODUCTION.md` 5.6 与 `runs/mlp-verified/`。
 - [ ] 多隐藏层尺寸（如 [8] vs [32] vs [8,8]）复跑同一问题：检查"慢 EMA 无优势"是否也随容量变化（当前只有一种容量）。
 - [ ] 增加失败实验重试、断点恢复和超时控制。

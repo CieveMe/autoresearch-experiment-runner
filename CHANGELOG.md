@@ -50,6 +50,19 @@ All notable changes to this project are documented here. The format follows
   re-implementation of the reference rule, plus warmup, determinism and eval-point checks (39 tests
   total).
 - `docs/papers/schedule-free-2024.md`.
+
+### Added (threshold curves, same release)
+
+- **`scripts/threshold_curve.py`** turns every single-point `epochs_to_target` number into a curve:
+  a 13-point threshold grid per suite, with the fastest arm, the arms that never arrive, and the
+  threshold where the ranking changes, plus an SVG that marks the suite's pinned threshold. Outputs are
+  committed under `runs/threshold-curves/` and read from the committed loss curves, so no experiment is
+  re-run to produce them.
+- The result is a scope correction rather than a new claim: **four of six suites have a
+  threshold-dependent winner**, three of them at their pinned threshold, while `schedule-free` (logistic)
+  is stable at all thirteen thresholds and `ademamix` (logistic) oscillates five times inside a
+  0.0014-wide band (i.e. its two arms are tied there and "fastest" is noise). Six more unit tests (45
+  total).
 - **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
   the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
   lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).
