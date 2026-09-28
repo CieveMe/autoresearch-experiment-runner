@@ -114,10 +114,15 @@ All notable changes to this project are documented here. The format follows
 
 ### Added (activation expansion, same release)
 
-- **ReLU and GELU hidden activations** in the MLP trainer (`hidden_activation` config key; exact erf GELU
-  with its derivative verified by the finite-difference check, which caught a variable-shadowing bug on
-  the first attempt). `tanh` remains the default and its arithmetic is unchanged: every existing MLP
-  suite still verifies bit for bit.
+- **ReLU and GELU hidden activations** in the MLP trainer (`hidden_activation` config key; exact erf GELU,
+  its derivative checked against finite differences like the other two). `tanh` remains the default and
+  its arithmetic is unchanged: every existing MLP suite still verifies bit for bit.
+- **A fourth defect of the "the number came from the tooling" family, found while adding the activations.**
+  The patch re-indented the gradient-accumulation block into the delta loop, which doubled every gradient
+  for a network with two hidden layers and left one hidden layer correct; the finite-difference check only
+  covered one hidden layer, so it passed. What caught it was a deep suite's pinned expectations failing on
+  a fresh run (max |numerical − analytic| = 0.245 before the fix, 9.2 × 10⁻¹¹ after). The check now runs
+  `[3]` and `[3, 3]` for tanh, ReLU and GELU. Recorded as case 4 in `docs/defect-family.md`.
 - **The `[32]` capacity re-run with ReLU and with GELU**, every arm retuned (18-trial sweeps), ten seeds,
   threshold curves, against three pre-registered predictions. A1 confirmed (schedule-free beats the tuned
   cosine under both activations, 8/10 seeds each), A3 confirmed (the training/test ranking trap appears

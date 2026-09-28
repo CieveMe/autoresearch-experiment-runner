@@ -1,7 +1,7 @@
-# The defect family: three ways a number came from the tooling instead of the experiment
+# The defect family: four ways a number came from the tooling instead of the experiment
 
 This is a named section, not an appendix: it is the part of this repository a reviewer should read
-first, because every empirical claim elsewhere depends on it. Three defects were found here, all of the
+first, because every empirical claim elsewhere depends on it. Four defects were found here, all of the
 same kind — **a reported number was produced by the harness rather than by the experiment** — and each
 one was caught by a *different* mechanical check. That is the argument for building those checks before
 trusting any result.
@@ -77,8 +77,6 @@ records `tie` rather than picking a winner.
 **Generalisation.** Any ranking computed from a key that includes an identifier can be decided by that
 identifier. Ties are a result; a tie-break is a choice, and a choice has to be visible in the output.
 
-## What the three cases have in common
-
 ## Case 4 — a refactor doubled the gradients of deep networks
 
 **Symptom.** After adding configurable hidden activations, the pinned numbers of the two-hidden-layer
@@ -117,12 +115,19 @@ kind of change that is invisible in a diff review but visible in a number.
 | 3 | a leader produced by alphabetical order | a tie | `test_identical_curves_have_no_crossing` | `tests/test_threshold_curve.py` |
 | 4 | gradients of a deep network doubled by a refactor | gradients of the same network as before | `test_gradients_match_numerical_differences` (two depths) | `tests/test_ademamix.py` |
 
-None of the three would have been caught by looking harder at the *results*: all three produced tables
-that looked reasonable. What caught them was a check on the *machinery* — a declaration of direction, a
-contract on the seed, and a negative control for the tie. That is the pattern this repository
-recommends: for every derived number, assert the property that makes it a number about the experiment
-rather than about the code, and prefer a check that fails loudly when a new input arrives without a
-declaration.
+## What the four cases have in common
+
+None of the four would have been caught by looking harder at the *results*: all four produced tables that
+looked reasonable. What caught them was a check on the *machinery* — a declaration of direction, a
+contract on the seed, a negative control for the tie, and a gradient check that varies with the shape of
+the model. That is the pattern this repository recommends: for every derived number, assert the property
+that makes it a number about the experiment rather than about the code, and prefer a check that fails
+loudly when a new input arrives without a declaration.
+
+The four also differ in *how* they were found, which is the more useful observation. Cases 1 and 3 were
+caught by a purpose-built check; case 2 was caught by re-reading a contract; case 4 was caught by a
+pinned expectation of an *unrelated* suite failing. Only the last of those required nobody to have
+anticipated the bug, which is why the pinned numbers are a safety net and not just a regression test.
 
 ## How to apply it to a new experiment
 
