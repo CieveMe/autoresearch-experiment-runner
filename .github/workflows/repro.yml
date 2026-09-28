@@ -2,6 +2,8 @@ name: repro
 
 on:
   push:
+    branches: [main]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -21,14 +23,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - name: Choose the tier (pull requests may run `core`; main and tags always run `full`)
+        id: tier
+        run: echo "tier=${{ github.event_name == 'pull_request' && 'core' || 'full' }}" >> "$GITHUB_OUTPUT"
       - name: Reproduce and verify expected numbers
-        run: python scripts/repro.py
+        run: python scripts/repro.py --tier ${{ steps.tier.outputs.tier }}
       - name: Verify the Makefile entry point
         if: matrix.python == '3.12'
         run: make repro
       - name: Verify the task scorer and negative controls
         if: matrix.python == '3.12'
-        run: python scripts/score_task.py
+        run: python scripts/score_task.py --tier ${{ steps.tier.outputs.tier }}
       - name: Regenerate the multi-seed aggregate
         if: matrix.python == '3.12'
         run: make sweep

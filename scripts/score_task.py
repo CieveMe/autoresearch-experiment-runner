@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.repro import SUITES  # noqa: E402
+from scripts.repro import SUITES, suites_for_tier, tier_label  # noqa: E402
 from scripts.verify_results import DEFAULT_EXPECTED, verify  # noqa: E402
 
 def _ignore(directory: str, names: List[str]) -> set[str]:
@@ -91,9 +91,9 @@ NEGATIVE_CONTROLS: Dict[str, List[Dict[str, str]]] = {
 }
 
 
-def _run_repro(directory: Path) -> int:
+def _run_repro(directory: Path, tier: str = "full") -> int:
     result = subprocess.run(
-        [sys.executable, "scripts/repro.py"],
+        [sys.executable, "scripts/repro.py", "--tier", tier],
         cwd=str(directory),
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -104,17 +104,18 @@ def _run_repro(directory: Path) -> int:
     return result.returncode
 
 
-def _score_directory(directory: Path, expected_path: Path = None) -> Dict[str, Any]:
+def _score_directory(directory: Path, expected_path: Path = None, tier: str = "full") -> Dict[str, Any]:
     """Run every suite in the copy and aggregate the verified-check count.
 
     Aggregating over suites (not just the main one) is what lets a control that only
     breaks a newer experiment still be detected.
     """
-    exit_code = _run_repro(directory)
+    exit_code = _run_repro(directory, tier)
     failures: List[str] = []
     passed = 0
     total = 0
-    for name, suite in SUITES.items():
+    for name in suites_for_tier(tier):
+        suite = SUITES[name]
         results_path = directory / suite["output"] / "results.json"
         suite_expected = directory / suite["expected"]
         if not results_path.exists():
@@ -126,6 +127,8 @@ def _score_directory(directory: Path, expected_path: Path = None) -> Dict[str, A
         failures.extend(f"{name}: {item}" for item in suite_failures)
     return {
         "exit_code": exit_code,
+        "tier": tier,
+        "tier_label": tier_label(tier, suites_for_tier(tier)),
         "checks_passed": passed,
         "checks_total": total,
         "score": round(100.0 * passed / total, 1) if total else 0.0,
@@ -146,6 +149,9 @@ def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Score a submission and check harness sensitivity")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--skip-controls", action="store_true", help="only score the current tree")
+    parser.add_argument("--tier", choices=["core", "full"], default="full",
+                        help="`core` scores the non-capacity suites for fast iteration; the score "
+                             "line always says which tier produced it")
     args = parser.parse_args(argv)
 
     report: Dict[str, Any] = {"schema": "autoresearch-lite/task-score@1", "submission": {}, "controls": {}}
@@ -153,14 +159,14 @@ def main(argv: List[str] | None = None) -> int:
     with tempfile.TemporaryDirectory() as tmp:
         submission = Path(tmp) / "submission"
         shutil.copytree(ROOT, submission, ignore=_ignore)
-        report["submission"] = _score_directory(submission, DEFAULT_EXPECTED)
+        report["submission"] = _score_directory(submission, DEFAULT_EXPECTED, args.tier)
 
         if not args.skip_controls:
             for name, mutations in NEGATIVE_CONTROLS.items():
                 target = Path(tmp) / name
                 shutil.copytree(ROOT, target, ignore=_ignore)
                 _mutate(target, mutations)
-                outcome = _score_directory(target, DEFAULT_EXPECTED)
+                outcome = _score_directory(target, DEFAULT_EXPECTED, args.tier)
                 outcome["detected"] = outcome["exit_code"] != 0 and outcome["score"] < 100.0
                 report["controls"][name] = outcome
 
@@ -177,7 +183,10 @@ def main(argv: List[str] | None = None) -> int:
         print(json.dumps(report, indent=2))
     else:
         sub = report["submission"]
-        print(f"submission score: {sub['score']}/100 ({sub['checks_passed']}/{sub['checks_total']} checks, exit {sub['exit_code']})")
+        print(
+            f"submission score: {sub['score']}/100 ({sub['tier_label']}) "
+            f"({sub['checks_passed']}/{sub['checks_total']} checks, exit {sub['exit_code']})"
+        )
         for failure in sub["failures"]:
             print(f"  FAIL {failure}")
         for name, item in report["controls"].items():

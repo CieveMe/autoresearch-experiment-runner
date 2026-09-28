@@ -14,7 +14,7 @@ Trainer: `mlp` · metric: epochs until the training loss reaches the row's thres
 | 0.1412 | 99 | 86 | never | never | never | adamw_constant |
 | 0.1417 | 85 | 77 | 157 | never | never | adamw_constant |
 | 0.1423 | 75 | 69 | 101 | never | never | adamw_constant |
-| 0.1428 | 66 | 63 | 63 | never | never | adamw_constant |
+| 0.1428 | 66 | 63 | 63 | never | never | tie: adamw_constant, schedule_free_adamw |
 | 0.1434 | 58 | 56 | 40 | never | never | schedule_free_adamw |
 | 0.1440 | 54 | 53 | 14 | never | 116 | schedule_free_adamw |
 | 0.1445 | 44 | 44 | 13 | 198 | 105 | schedule_free_adamw |
@@ -23,6 +23,7 @@ Trainer: `mlp` · metric: epochs until the training loss reaches the row's thres
 
 The fastest arm changes with the threshold:
 
-- near **0.1434**: `adamw_constant` gives way to `schedule_free_adamw`
+- near **0.1428**: `adamw_constant` gives way to `tie: adamw_constant, schedule_free_adamw`
+- near **0.1434**: `tie: adamw_constant, schedule_free_adamw` gives way to `schedule_free_adamw`
 
 The suite's pinned threshold is **0.148** — read its row above, not just the headline number.

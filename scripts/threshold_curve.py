@@ -77,7 +77,7 @@ def markdown(payload: Dict[str, Any], thresholds: Sequence[float], curves: Dict[
     for index, value in enumerate(thresholds):
         row = [curves[name][index] for name in names]
         reached = [(epoch, name) for epoch, name in zip(row, names) if epoch is not None]
-        fastest = min(reached)[1] if reached else "never reached"
+        fastest = _winner_label(reached)
         cells = " | ".join("never" if epoch is None else str(epoch) for epoch in row)
         lines.append(f"| {value:.4f} | {cells} | {fastest} |")
     lines.append("")
@@ -87,7 +87,7 @@ def markdown(payload: Dict[str, Any], thresholds: Sequence[float], curves: Dict[
         reached = [
             (curves[name][index], name) for name in names if curves[name][index] is not None
         ]
-        winners.append(min(reached)[1] if reached else "none")
+        winners.append(_winner_label(reached))
     changes = [
         (thresholds[index], winners[index - 1], winners[index])
         for index in range(1, len(winners))
@@ -108,6 +108,30 @@ def markdown(payload: Dict[str, Any], thresholds: Sequence[float], curves: Dict[
         lines.append(f"The suite's pinned threshold is **{nominal}** — read its row above, not just the headline number.")
     lines.append("")
     return "\n".join(lines)
+
+
+def _strict_winner(reached: Sequence) -> Optional[str]:
+    """The single fastest arm, or None when the fastest epoch is shared.
+
+    Ties are common here (two arms can reach a threshold on exactly the same epoch), and
+    resolving them alphabetically would invent a ranking out of a sort order. Callers must
+    treat None as "tied", not as "unknown".
+    """
+    if not reached:
+        return None
+    best = min(epoch for epoch, _ in reached)
+    tied = [name for epoch, name in reached if epoch == best]
+    return tied[0] if len(tied) == 1 else None
+
+
+def _winner_label(reached: Sequence) -> str:
+    if not reached:
+        return "never reached"
+    best = min(epoch for epoch, _ in reached)
+    tied = sorted(name for epoch, name in reached if epoch == best)
+    if len(tied) == 1:
+        return tied[0]
+    return "tie: " + ", ".join(tied)
 
 
 def svg(payload: Dict[str, Any], thresholds: Sequence[float], curves: Dict[str, List[Optional[int]]]) -> str:
@@ -184,6 +208,148 @@ def write_suite(payload: Dict[str, Any], name: str, output: Path, steps: int) ->
     return {"suite": name, "thresholds": thresholds, "curves": curves, "task": payload["task"]}
 
 
+def crossing_threshold(
+    payload: Dict[str, Any], first: str, second: str, steps: int = 40
+) -> Optional[float]:
+    """The threshold where the *strict* winner between two arms flips (None if it never does).
+
+    Found on a fine grid over the region that is informative for this seed, so that "there is a
+    crossing" becomes "the crossing is at T", which is the statement a conclusion can carry.
+    Thresholds where the two arms tie are skipped rather than broken by name: a tied band is not
+    evidence of a crossing, and letting a sort order decide it is how a fake ranking gets made.
+    """
+    curves = {row["name"]: row.get("loss_curve") or [] for row in payload["results"]}
+    if first not in curves or second not in curves or not curves[first] or not curves[second]:
+        return None
+    grid = threshold_grid(payload, steps)
+    last_strict_winner = None
+    last_strict_threshold = None
+    for index, value in enumerate(grid):
+        first_epoch = epochs_to_target(curves[first], value)
+        second_epoch = epochs_to_target(curves[second], value)
+        if first_epoch is None and second_epoch is None:
+            continue
+        if first_epoch is None:
+            winner = second
+        elif second_epoch is None:
+            winner = first
+        else:
+            winner = first if first_epoch < second_epoch else (second if second_epoch < first_epoch else None)
+        if winner is None:
+            continue
+        if last_strict_winner is not None and winner != last_strict_winner:
+            return round((value + last_strict_threshold) / 2.0, 6)
+        last_strict_winner = winner
+        last_strict_threshold = value
+    return None
+
+
+def tied_band(
+    payload: Dict[str, Any], first: str, second: str, steps: int = 40
+) -> Optional[float]:
+    """Width of the threshold band where the two arms reach the target on the same epoch."""
+    curves = {row["name"]: row.get("loss_curve") or [] for row in payload["results"]}
+    if first not in curves or second not in curves:
+        return None
+    grid = threshold_grid(payload, steps)
+    tied = 0
+    for value in grid:
+        first_epoch = epochs_to_target(curves[first], value)
+        second_epoch = epochs_to_target(curves[second], value)
+        if first_epoch is None or second_epoch is None:
+            continue
+        if first_epoch == second_epoch:
+            tied += 1
+    if not grid:
+        return None
+    return round((grid[-1] - grid[0]) * tied / len(grid), 6)
+
+
+def crossing_stability(
+    seed_payloads: Sequence[Dict[str, Any]],
+    first: str,
+    second: str,
+    pinned: Optional[float],
+    steps: int = 40,
+) -> Dict[str, Any]:
+    """How stable is the crossing, and is the pinned threshold on the same side every time?"""
+    crossings = [crossing_threshold(payload, first, second, steps) for payload in seed_payloads]
+    found = [value for value in crossings if value is not None]
+    pinned_winner: List[str] = []
+    if pinned is not None:
+        for payload in seed_payloads:
+            curves = {row["name"]: row.get("loss_curve") or [] for row in payload["results"]}
+            first_epoch = epochs_to_target(curves[first], pinned)
+            second_epoch = epochs_to_target(curves[second], pinned)
+            if first_epoch is None and second_epoch is None:
+                pinned_winner.append("neither")
+            elif first_epoch is None:
+                pinned_winner.append(second)
+            elif second_epoch is None:
+                pinned_winner.append(first)
+            elif first_epoch == second_epoch:
+                pinned_winner.append("tie")
+            else:
+                pinned_winner.append(first if first_epoch <= second_epoch else second)
+    return {
+        "pair": [first, second],
+        "seeds": len(seed_payloads),
+        "crossings_found": len(found),
+        "crossing_mean": round(sum(found) / len(found), 6) if found else None,
+        "crossing_min": min(found) if found else None,
+        "crossing_max": max(found) if found else None,
+        "crossing_spread": round(max(found) - min(found), 6) if found else None,
+        "crossing_values": crossings,
+        "pinned_threshold": pinned,
+        "pinned_winners": pinned_winner,
+        "pinned_consistent": len(set(pinned_winner)) == 1 if pinned_winner else None,
+        "pinned_winner": pinned_winner[0] if pinned_winner and len(set(pinned_winner)) == 1 else None,
+    }
+
+
+def stability_markdown(suite: str, result: Dict[str, Any]) -> str:
+    first, second = result["pair"]
+    lines = [
+        f"# Crossing stability — `{suite}` ({first} vs {second})",
+        "",
+        f"Crossings located in **{result['crossings_found']} of {result['seeds']} seeds**"
+        + (
+            f", at {result['crossing_mean']} on average "
+            f"(min {result['crossing_min']}, max {result['crossing_max']}, spread {result['crossing_spread']})."
+            if result["crossings_found"]
+            else " — no seed showed the two arms swapping the lead on this grid."
+        ),
+        "",
+    ]
+    if result["pinned_threshold"] is not None:
+        lines += [
+            f"At the suite's pinned threshold ({result['pinned_threshold']}), the faster arm per seed was:",
+            "",
+            "| seed | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |",
+            "|---|---|---|---|---|---|---|---|---|---|---|",
+            "| faster | " + " | ".join(result["pinned_winners"]) + " |",
+            "",
+            f"**{'Consistent' if result['pinned_consistent'] else 'Not consistent'}**: "
+            + (
+                f"`{result['pinned_winner']}` is faster at the pinned threshold in every seed."
+                if result["pinned_consistent"]
+                else "the winner at the pinned threshold changes between seeds, so a single-seed "
+                "statement about that threshold would not survive the sweep."
+            ),
+            "",
+        ]
+    lines += [
+        "Per-seed crossing values:",
+        "",
+        "| seed | crossing |",
+        "|---:|---|",
+    ]
+    for seed, value in enumerate(result["crossing_values"]):
+        lines.append(f"| {seed} | {'none' if value is None else value} |")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def summary(results: List[Dict[str, Any]]) -> str:
     lines = [
         "# Threshold curves — where does the speed ranking hold?",
@@ -191,18 +357,21 @@ def summary(results: List[Dict[str, Any]]) -> str:
         "Each suite is read from its committed loss curves; no experiment was re-run to produce this.",
         "`epochs_to_target` is a function of the threshold, so a single number is a slice, not a fact.",
         "",
-        "| suite | fastest arm at the tight end | fastest at the loose end | ranking changes |",
-        "|---|---|---|---|",
+        "| suite | fastest arm at the tight end | fastest at the loose end | ranking changes (strict) | tied thresholds |",
+        "|---|---|---|---:|---:|",
     ]
     for item in results:
         curves, thresholds = item["curves"], item["thresholds"]
         winners: List[str] = []
         for index in range(len(thresholds)):
             reached = [(row[index], name) for name, row in curves.items() if row[index] is not None]
-            winners.append(min(reached)[1] if reached else "none")
-        changes = sum(1 for index in range(1, len(winners)) if winners[index] != winners[index - 1])
+            winners.append(_winner_label(reached))
+        # Count only changes between *strict* winners; a tie is neither a winner nor a change.
+        strict = [winner for winner in winners if winner not in ("never reached",) and not winner.startswith("tie:")]
+        changes = sum(1 for index in range(1, len(strict)) if strict[index] != strict[index - 1])
+        ties = sum(1 for winner in winners if winner.startswith("tie:"))
         lines.append(
-            f"| `{item['suite']}` | `{winners[0]}` | `{winners[-1]}` | {changes} |"
+            f"| `{item['suite']}` | `{winners[0]}` | `{winners[-1]}` | {changes} | {ties} |"
         )
     lines.append("")
     return "\n".join(lines)
@@ -214,17 +383,55 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--results", action="append", default=[], type=Path, help="explicit results.json")
     parser.add_argument("--output", type=Path, default=ROOT / "runs" / "threshold-curves")
     parser.add_argument("--steps", type=int, default=13, help="number of thresholds on the grid")
+    parser.add_argument("--seeds-dir", action="append", default=[], type=Path,
+                        help="a seed-sweep directory (runs/seed-sweep-<suite>): also report how stable "
+                             "the crossing between two arms is across those seeds. Repeat once per "
+                             "--suite, in the same order.")
+    parser.add_argument("--compare", action="append", default=[],
+                        help="two arm names, colon separated (e.g. adamw_constant:schedule_free_adamw), "
+                             "once per --suite in the same order")
+    parser.add_argument("--pinned", type=float, default=None,
+                        help="threshold to test for consistency across seeds (default: the suite's target_loss)")
     args = parser.parse_args(argv)
 
     output = args.output if args.output.is_absolute() else (ROOT / args.output)
+    if args.seeds_dir and len(args.seeds_dir) != len(args.suite):
+        raise SystemExit("--seeds-dir must be given once per --suite, in the same order")
+    if args.compare and len(args.compare) != len(args.suite):
+        raise SystemExit("--compare must be given once per --suite, in the same order")
     items: List[Dict[str, Any]] = []
-    for name in args.suite:
+    stability: List[Dict[str, Any]] = []
+    for position, name in enumerate(args.suite):
         if name not in SUITES:
             raise SystemExit(f"unknown suite: {name} (available: {', '.join(SUITES)})")
         path = ROOT / SUITES[name]["output"] / "results.json"
         if not path.exists():
             raise SystemExit(f"missing {path}; run `python scripts/repro.py --suite {name}` first")
-        items.append(write_suite(load_results(path), name, output, args.steps))
+        payload = load_results(path)
+        items.append(write_suite(payload, name, output, args.steps))
+        if args.seeds_dir and args.compare:
+            raw_dir = args.seeds_dir[position]
+            seeds_dir = raw_dir if raw_dir.is_absolute() else (ROOT / raw_dir)
+            seed_payloads = [
+                load_results(seed_dir / "results.json")
+                for seed_dir in sorted(seeds_dir.glob("seed-*"), key=lambda item: int(item.name.split("-")[1]))
+            ]
+            first, _, second = args.compare[position].partition(":")
+            if not first or not second:
+                raise SystemExit("--compare expects two names separated by ':'")
+            result = crossing_stability(
+                seed_payloads, first, second,
+                args.pinned if args.pinned is not None else payload.get("target_loss"),
+                steps=40,
+            )
+            (output / f"{name}-crossing-stability.md").write_text(
+                stability_markdown(name, result), encoding="utf-8"
+            )
+            stability.append({"suite": name, **result})
+            print(
+                f"{name:<22} crossings in {result['crossings_found']}/{result['seeds']} seeds, "
+                f"mean {result['crossing_mean']}, pinned winner consistent: {result['pinned_consistent']}"
+            )
     for path in args.results:
         resolved = path if path.is_absolute() else (ROOT / path)
         items.append(write_suite(load_results(resolved), resolved.parent.name, output, args.steps))
@@ -235,6 +442,20 @@ def main(argv: Optional[List[str]] = None) -> int:
     for item in items:
         print(f"{item['suite']:<22} thresholds {item['thresholds'][0]:.4f}..{item['thresholds'][-1]:.4f}")
     print(f"summary: {output / 'SUMMARY.md'}")
+    if stability:
+        (output / "CROSSINGS.md").write_text(
+            "# Crossing stability across seeds\n\n"
+            + "\n".join(
+                f"- `{item['suite']}` ({item['pair'][0]} vs {item['pair'][1]}): crossing in "
+                f"{item['crossings_found']}/{item['seeds']} seeds, mean {item['crossing_mean']}, "
+                f"spread {item['crossing_spread']}; pinned-threshold winner consistent: "
+                f"{item['pinned_consistent']} ({item['pinned_winner']})"
+                for item in stability
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        print(f"crossings: {output / 'CROSSINGS.md'}")
     return 0
 
 

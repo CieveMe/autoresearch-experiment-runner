@@ -464,6 +464,9 @@ the suite's pinned threshold drawn as a dashed line).
 4. **In `ademamix` (logistic) the winner oscillates five times inside a 0.0014-wide band.** That is not
    a ranking at all; it means the two arms are tied in that region, and the §5.5 verdict for that suite
    rests on final loss and on the 10-seed comparison, not on speed.
+   **§5.11 answers the obvious follow-up**: whether those crossings are stable across seeds, and whether
+   the winner at each pinned threshold is the same every time. Two of the five pairs tested there turn
+   out never to have had a crossing at all.
 5. **This does not change any conclusion, it changes their scope.** AdEMAMix is still not faster in a
    stable sense, schedule-free's strong claim is still unsupported, and Adam is still mid-pack on both
    models — but each of those is now attached to a threshold rather than to a single number that happened
@@ -512,9 +515,13 @@ ademamix 37, cosine 38, adagrad 44; `[8,8]` schedule-free 20, everything else 26
 5. **The consistency check reproduces at every capacity**: `adam` and `adamw` with weight decay 0 are
    bit-identical (0.14425/0.14425 at `[32]`, 0.19479/0.19479 at `[8,8]`), the same way AdEMAMix with
    α = 0 reduced to AdamW in §5.5.
-6. **Threshold crossings exist at every capacity.** On the new grids the tightest thresholds are won by
-   `ademamix` — its floor is the lowest — and the lead passes to `adam` at 0.1417 (`[32]`) and 0.1374
-   (`[8,8]`). "Fastest optimizer" therefore always needs its threshold attached, at any model size.
+6. **Threshold structure exists at every capacity, but it is a tie band, not a crossing.** On both new
+   grids the tightest thresholds are won strictly by `ademamix` (its floor is the lowest); above ~0.1417
+   on `[32]` and above ~0.1374 on `[8,8]` the leading arms reach the same threshold on **the same epoch**,
+   so the region is a tie rather than a change of leader. §5.11 shows why the earlier phrasing ("the lead
+   passes to `adam`") was wrong: ties were being resolved alphabetically in the analysis code. The
+   conclusion that survives is the weaker, correct one — "fastest optimizer" always needs its threshold
+   attached, and a tie is not a ranking.
 
 **Which statements survive which change of facet** (✓ = direction held, ✗ = it flipped, — = not tested):
 
@@ -530,6 +537,54 @@ The point of the table is the middle column set: the repository reports four mod
 families and a threshold grid, and a claim is only stated at the scope where it was measured. Nothing
 in §5.1–5.9 was retracted by the capacity runs; two claims (constant-rate dominance, AdaGrad) turned out
 to be capacity-scoped and are now labelled that way.
+
+### 5.11 Is the crossing itself stable? (ten seeds, and a bug in the analysis)
+
+§5.9 located crossings on the seed-7 curves. A crossing that exists in one seed and moves, or
+disappears, in the others is not a statement a conclusion can carry — so the crossing detector was
+applied to all ten per-seed result files, and it is worth separating two questions: *does* a crossing
+exist, and *is the winner at the pinned threshold the same every time*.
+
+| suite | pair | crossings found | mean position | spread across seeds | winner at the pinned threshold |
+|---|---|---:|---:|---:|---|
+| `optimizers` (logistic) | adam_no_bias_correction vs adagrad | **10/10** | 0.1370 | 0.0456 | **consistent: `adagrad`** |
+| `optimizers-mlp` | adam vs sgd_momentum | 7/10 | 0.1167 | 0.0530 | **inconsistent** |
+| `schedule-free-mlp` | adamw_constant vs schedule_free_adamw | **10/10** | 0.1192 | 0.0505 | **inconsistent** |
+| `capacity-h32` | ademamix vs adam | **0/10** | — | — | consistent: **`tie`** |
+| `capacity-h8x8` | ademamix vs adam | 5/10 | 0.0947 | 0.0528 | consistent: **`tie`** |
+
+Positions are located on each seed's own grid (`runs/threshold-curves/*-crossing-stability.md`), which
+is why the means sit below the converged floors: on curves that overfit, the tightest reachable point
+is an early minimum, not the final loss.
+
+**Findings.**
+
+1. **"A crossing exists" and "the crossing is stable" are different claims, and only the second one is
+   usable.** `optimizers` (logistic) has a crossing in every seed but its position moves across a
+   0.0456 band — quoting "the crossing is at 0.137" would be a single-seed artefact. What *is* stable
+   there is the practical statement: `adagrad` is faster at the pinned threshold in every seed.
+2. **`schedule-free-mlp` fails the stronger test.** The crossing exists in 10/10 seeds, but the arm
+   that is faster at the suite's pinned threshold (0.148) **changes between seeds**. The seed-7 line
+   "schedule-free reaches the target in 11 epochs against the constant rate's 23" is therefore a
+   single-seed statement and is now labelled as one; §5.8's *test-loss* result (schedule-free beats the
+   tuned cosine in 9/10 seeds) is a different measurement and stands.
+3. **Two of the five pairs never had a crossing at all.** On `capacity-h32` the three leading arms reach
+   every loose threshold on exactly the same epoch, and the crossing this report previously quoted at
+   0.1417 was an artefact of breaking ties alphabetically inside the analysis code (see below). The
+   corrected reading is "`ademamix` is strictly faster below ~0.1417; above it the leading arms are
+   tied", and on `capacity-h8x8` the loose region is a four-way tie.
+4. **The tool had to be fixed to say any of this.** `scripts/threshold_curve.py` resolved ties with
+   `min()` over `(epoch, name)` tuples, i.e. alphabetically, in two places. That manufactured a
+   "crossing" for `capacity-h32` and would have let a sort order decide a published ranking. Ties are
+   now reported as `tie: a, b, c`, the crossing detector skips tied thresholds instead of breaking
+   them, and `tests/test_threshold_curve.py` pins both behaviours (`test_identical_curves_have_no_crossing`).
+   This is the third defect of the same family in this repository — after a metric direction that
+   inverted a ranking and a seed that reached only the data split — and the shared lesson is that a
+   number can come from the tooling rather than from the experiment.
+5. **Where this leaves the speed claims.** Adam-mid-pack survives capacity and model changes; what it
+   does *not* survive is being stated as one number. The repository now reports speed as
+   "arm A is faster than arm B at threshold T, in N/10 seeds", which is what the curves, the crossing
+   tables and the per-seed tables together support.
 
 ## 6. Deviations from the paper (and why)
 

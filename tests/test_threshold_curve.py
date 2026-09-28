@@ -8,7 +8,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from scripts.threshold_curve import markdown, svg, table, threshold_grid
+from scripts.threshold_curve import (
+    _winner_label,
+    crossing_stability,
+    crossing_threshold,
+    markdown,
+    svg,
+    table,
+    threshold_grid,
+    tied_band,
+)
 
 
 def payload():
@@ -74,6 +83,63 @@ class ThresholdGridTests(unittest.TestCase):
         first = svg(payload(), grid, table(payload(), grid))
         second = svg(payload(), grid, table(payload(), grid))
         self.assertEqual(first, second)
+
+
+class TieHandlingTests(unittest.TestCase):
+    """A tie is not a ranking. Resolving one alphabetically invents a conclusion, which is
+    exactly the bug this class was written after."""
+
+    def test_identical_arms_are_reported_as_a_tie_not_a_winner(self):
+        self.assertEqual(_winner_label([(5, "adam"), (5, "ademamix")]), "tie: adam, ademamix")
+        self.assertEqual(_winner_label([(4, "adam"), (5, "ademamix")]), "adam")
+        self.assertEqual(_winner_label([]), "never reached")
+
+    def test_identical_curves_have_no_crossing(self):
+        payload = {
+            "task": "tie",
+            "results": [
+                {"name": "a", "loss_curve": [0.6, 0.3, 0.2, 0.1]},
+                {"name": "b", "loss_curve": [0.6, 0.3, 0.2, 0.1]},
+            ],
+        }
+        self.assertIsNone(crossing_threshold(payload, "a", "b"))
+        self.assertGreater(tied_band(payload, "a", "b"), 0.0)
+
+    def test_a_real_crossing_is_still_found(self):
+        """The shape that matters in practice: an arm that converges deepest but slowly, and an
+        arm that arrives early at a higher threshold and then overfits (its curve rises again).
+        The grid spans [best floor, worst final loss], so the crossing sits inside it."""
+        payload = {
+            "task": "cross",
+            "results": [
+                {"name": "deeper_but_slow", "loss_curve": [0.6, 0.5, 0.4, 0.3, 0.2]},
+                {"name": "early_then_overfits", "loss_curve": [0.6, 0.25, 0.4, 0.45, 0.5]},
+            ],
+        }
+        crossing = crossing_threshold(payload, "deeper_but_slow", "early_then_overfits")
+        self.assertIsNotNone(crossing)
+        self.assertGreater(crossing, 0.24)
+        self.assertLess(crossing, 0.26)
+
+    def test_crossing_stability_counts_seeds_with_and_without_a_crossing(self):
+        identical = {
+            "task": "tie",
+            "results": [
+                {"name": "a", "loss_curve": [0.6, 0.3, 0.2, 0.1]},
+                {"name": "b", "loss_curve": [0.6, 0.3, 0.2, 0.1]},
+            ],
+        }
+        crossing = {
+            "task": "cross",
+            "results": [
+                {"name": "a", "loss_curve": [0.6, 0.5, 0.4, 0.3, 0.2]},
+                {"name": "b", "loss_curve": [0.6, 0.25, 0.4, 0.45, 0.5]},
+            ],
+        }
+        result = crossing_stability([identical, crossing], "a", "b", pinned=0.2, steps=20)
+        self.assertEqual(result["seeds"], 2)
+        self.assertEqual(result["crossings_found"], 1)
+        self.assertEqual(len(result["crossing_values"]), 2)
 
 
 if __name__ == "__main__":

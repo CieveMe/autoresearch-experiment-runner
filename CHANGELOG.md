@@ -74,6 +74,23 @@ All notable changes to this project are documented here. The format follows
   the logistic head); **AdaGrad wins on final test loss once the model has room to overfit** (9/10 and
   10/10 seeds better than the cosine baseline); and train-loss versus test-loss rankings diverge as
   capacity grows, so both are pinned. Nine suites / 229 asserted checks.
+
+### Added (crossing stability, same release)
+
+- **Per-seed crossing analysis** (`scripts/threshold_curve.py --seeds-dir ... --compare A:B`): locates the
+  threshold where the strict winner between two arms flips, in every seed of a seed sweep, and reports
+  whether the arm that is faster at the suite's pinned threshold is the same every time. Outputs in
+  `runs/threshold-curves/*-crossing-stability.md` and `CROSSINGS.md`.
+- **Result, and it is a scope correction again**: "a crossing exists" is not "the crossing is stable".
+  The logistic `optimizers` pair crosses in 10/10 seeds but the position moves across a 0.0456 band —
+  while `adagrad` is faster at the pinned threshold in every seed, which is the usable statement. The
+  `schedule-free-mlp` pair crosses in 10/10 seeds but **the winner at the pinned threshold changes
+  between seeds**, so that card's seed-7 speed sentence is now labelled single-seed. Two pairs
+  (`capacity-h32`, `capacity-h8x8`) turn out to have **tie bands rather than crossings**.
+- **Fixed, third defect of the same family**: the analysis resolved ties with `min()` over
+  `(epoch, name)` tuples — alphabetically — in two places, which manufactured the "crossing" reported
+  for `capacity-h32`. Ties are now reported as `tie: a, b`, the crossing detector skips tied thresholds,
+  and tests pin both behaviours. Nine more tests (55 total).
 - **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
   the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
   lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).

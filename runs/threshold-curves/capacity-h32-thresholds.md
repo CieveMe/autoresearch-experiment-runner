@@ -14,15 +14,15 @@ Trainer: `mlp` · metric: epochs until the training loss reaches the row's thres
 | 0.1403 | never | 124 | 124 | never | 122 | never | ademamix |
 | 0.1408 | 165 | 111 | 111 | never | 109 | never | ademamix |
 | 0.1412 | 123 | 98 | 98 | never | 97 | never | ademamix |
-| 0.1417 | 99 | 87 | 87 | never | 87 | never | adam |
-| 0.1421 | 83 | 76 | 76 | never | 76 | 173 | adam |
-| 0.1426 | 71 | 68 | 68 | never | 68 | 147 | adam |
-| 0.1430 | 63 | 61 | 61 | 200 | 61 | 102 | adam |
+| 0.1417 | 99 | 87 | 87 | never | 87 | never | tie: adam, adamw_constant, ademamix |
+| 0.1421 | 83 | 76 | 76 | never | 76 | 173 | tie: adam, adamw_constant, ademamix |
+| 0.1426 | 71 | 68 | 68 | never | 68 | 147 | tie: adam, adamw_constant, ademamix |
+| 0.1430 | 63 | 61 | 61 | 200 | 61 | 102 | tie: adam, adamw_constant, ademamix |
 
 ## Reading
 
 The fastest arm changes with the threshold:
 
-- near **0.1417**: `ademamix` gives way to `adam`
+- near **0.1417**: `ademamix` gives way to `tie: adam, adamw_constant, ademamix`
 
 The suite's pinned threshold is **0.147** — read its row above, not just the headline number.

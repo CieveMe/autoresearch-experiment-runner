@@ -11,6 +11,14 @@ owner's accounts, so they are not automated.
 > suffix marks "what was actually posted" as distinct from `docs/release-notes-vX.Y.Z.md`
 > ("what we prepared").
 
+> **Hard rule 2: a release body must quote a `full`-tier run.** Before publishing, run
+> `python scripts/repro.py --tier full` and `python scripts/score_task.py --tier full`, and paste
+> their output (the suite count, the assertion count and the four negative controls) into the
+> release body. The `core` tier exists only to save local iteration time: it skips the capacity
+> suites, it always says so in its own output, and its numbers must never be presented as full
+> coverage. CI enforces the same split - pull requests may run `core`, `main` and tags always run
+> `full`.
+
 > **Sequencing note (2026-09-28).** Tag `v0.1.0` already exists on GitHub and points at `0dd90e3`,
 > which does **not** contain the convergence-speed experiment, `CHANGELOG.md` or `.zenodo.json`.
 > Do not publish a release from that tag expecting the archival to include the negative result: push

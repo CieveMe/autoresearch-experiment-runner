@@ -26,7 +26,7 @@ import platform
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -84,14 +84,37 @@ SUITES: Dict[str, Dict[str, str]] = {
         "output": "runs/capacity-h32",
         "expected": "expected/expected_capacity_h32.json",
         "label": "capacity check: do the three claim families survive 32 hidden units?",
+        "tier": "capacity",
     },
     "capacity-h8x8": {
         "config": "examples/capacity-h8x8.json",
         "output": "runs/capacity-h8x8",
         "expected": "expected/expected_capacity_h8x8.json",
         "label": "capacity check: do they survive a second hidden layer?",
+        "tier": "capacity",
     },
 }
+
+# Tiers exist to save local iteration time, never to hide coverage. Every report line that
+# shows a score carries the tier and the suites it skipped, and CI runs the full tier on
+# main and on tags (see .github/workflows/repro.yml and docs/release-checklist.md).
+TIERS = ("core", "full")
+
+
+def suites_for_tier(tier: str) -> List[str]:
+    if tier == "full":
+        return list(SUITES)
+    if tier == "core":
+        return [name for name, suite in SUITES.items() if suite.get("tier", "core") == "core"]
+    raise ValueError(f"unknown tier: {tier} (available: {', '.join(TIERS)})")
+
+
+def tier_label(tier: str, names: Sequence[str]) -> str:
+    """A label that can never be mistaken for full coverage."""
+    skipped = [name for name in SUITES if name not in names]
+    if not skipped:
+        return "tier=full (all suites)"
+    return f"tier={tier}; NOT run: {', '.join(skipped)}"
 
 
 def _header(title: str) -> None:
@@ -160,6 +183,10 @@ def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Reproduce the AutoResearch Lite experiments")
     parser.add_argument("--suite", choices=["all", *SUITES.keys()], default="all",
                         help="which experiment suite(s) to run (default: all)")
+    parser.add_argument("--tier", choices=list(TIERS), default="full",
+                        help="`full` runs every suite; `core` skips the capacity suites to save "
+                             "local iteration time. The summary always names the tier and what "
+                             "was skipped, and CI runs full on main and tags.")
     parser.add_argument("--config", type=Path, default=None,
                         help="run a single ad-hoc config instead of the named suites")
     parser.add_argument("--output", type=Path, default=ROOT / "runs" / "ad-hoc")
@@ -176,7 +203,10 @@ def main(argv: List[str] | None = None) -> int:
         suites = [("ad-hoc", {"config": str(config_path), "output": str(output_dir),
                               "expected": str(expected_path), "label": "ad-hoc config"})]
     else:
-        names = list(SUITES) if args.suite == "all" else [args.suite]
+        if args.suite == "all":
+            names = suites_for_tier(args.tier)
+        else:
+            names = [args.suite]
         suites = [(name, SUITES[name]) for name in names]
 
     exit_code = 0
@@ -231,6 +261,7 @@ def main(argv: List[str] | None = None) -> int:
         _header("unit tests (skipped)")
 
     _header("summary")
+    print(tier_label(args.tier, [name for name, _ in suites]))
     for name, suite in suites:
         print(f"artifacts[{name}]: {suite['output']}")
     print(f"verified:  {verified_total} checks, {len(failures_total)} failures")
