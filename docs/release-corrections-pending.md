@@ -68,6 +68,26 @@ correction.
 * **Still stale, and left alone on purpose:** `.zenodo.json`'s `notes` text still describes version
   `0.2.0` (it is read by Zenodo on deposit, and the Zenodo side is the project owner's half), and
   `docs/release-checklist.md`'s title still says "(v0.2.0)" while its body is version-agnostic.
+  **Both were fixed in the follow-up commit below, version-agnostically rather than by bumping the
+  numbers — see the next entry.**
+
+### Metadata hygiene, second pass: remove the duplicated version numbers instead of updating them
+
+* **What was wrong:** `.zenodo.json`'s `notes` still described version `0.2.0`, `docs/release-checklist.md`
+  put `(v0.2.0)` in its title, and the checklist's own concrete steps hard-coded `v0.2.0` — including the
+  line that tells the releaser to check that `pyproject.toml`, `autoresearch/__init__.py` and
+  `CITATION.cff` all say `0.2.0`, which became wrong the moment those were bumped. That is the same
+  shape as cases 5 and 6: one fact maintained in several places, so every copy rots on its own.
+* **How it was fixed:** by deleting the duplication rather than refreshing it. `.zenodo.json` now says the
+  record describes "the version tagged in the repository" and points at the concept DOI; the checklist
+  title has no version; the steps use `vX.Y.Z`; and the metadata check says "the version you are about
+  to tag", with a note that no test reads those fields, which is exactly why they have to be checked by
+  hand every release. A dated note in the Zenodo section states that the archive is the **tag snapshot**,
+  so a later edit to `.zenodo.json` cannot change a release that is already queued.
+* **What the next release body must say:** one "also carried" line naming this commit and the files
+  (`.zenodo.json`, `docs/release-checklist.md`).
+* **Not touched:** the `v0.10.0` tag. The change is a commit on `main` after that tag, and the tagged
+  snapshot keeps the file as it was.
 
 ## Rules for the person writing the next body
 
