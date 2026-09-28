@@ -5,6 +5,7 @@
 | Paper | *AdEMAMix: A Smarter Learning Rate Schedule for Adam* — Matteo Pagliardini, Pierre Ablin, David Grangier (Apple), 2024 |
 | Reference implementation | `apple/ml-ademamix` (MIT), cloned and read on 2026-09-28; it contains the optimizer only — no data, no experiment scripts |
 | Reproduction level | **mechanism-level** (algorithm re-implementation + matched-budget comparison). No number from the paper's tables is claimed |
+| Trainers tested | **Two model families**: the logistic head (2 weights + bias) and a two-layer tanh MLP (8 hidden units). Both point the same way — see "Two model families, one direction" below |
 | Config | `examples/ademamix.json` (SHA-256 `c046217aa4a239a4db2c685c4162efc4ae5cda90fc9e69b03fe28d8417972962`) |
 | Tuning sweep | `examples/ademamix-sweep.json` (20 trials: learning rate × warmup length, plus AdamW and momentum) |
 | One command | `python scripts/repro.py --suite ademamix` |
@@ -116,6 +117,23 @@ which is the second-worst arm over ten seeds. Anyone quoting the pinned single-s
 whoever wrote it — would have reported the opposite of the 10-seed result. The pinned file keeps a
 warning pointing at `runs/mlp-verified/ademamix/seed-sweep-summary.md` for exactly that reason, and this
 is the clearest illustration in the repository of why a single run is not evidence.
+
+### Two model families, one direction
+
+The two trainers differ in capacity and curvature, so the honest summary is stated per family rather
+than pooled:
+
+| claim | logistic head | two-layer MLP | agreement |
+|---|---|---|---|
+| AdEMAMix reaches the target sooner than AdamW | no (identical epochs in 10/10 seeds) | no (matches AdamW; AdaGrad and momentum are faster than both) | **same direction** |
+| AdEMAMix ends at a better loss than AdamW | no (0.4% worse on the printed metric) | no over 10 seeds (0.13249 vs 0.13218; 3/10 seeds better) | **same direction** |
+| The paper's α/β3 warmup scheme helps at this budget | no (4.5× slower to target) | no (worst two arms: 0.14269 and 0.15261 vs 0.13218) | **same direction** |
+| Adam is the fastest optimizer | no (AdaGrad 4.7, momentum 16.7, Adam 22.6 epochs) | no (AdaGrad 6.2, momentum 7.0, Adam 20.3 epochs) | **same direction** |
+| Adam reaches the lowest final loss | yes at a fixed 80-epoch budget | yes (seed 7: 0.13620 train / 0.12363 test, best of the five) | not contradicted |
+
+So the strongest available objection to this card — "a two-parameter model cannot show an effect of a
+second moving average" — is answered on an MLP as well, with the caveat that both models are still
+small, full-batch and short-horizon compared with the paper's regime.
 
 The slow EMA is designed to pay off over a long horizon (the paper reports language-model training in
 the hundreds of thousands of steps at lr ≈ 1e-3). This task is a 120-epoch full-batch convex problem

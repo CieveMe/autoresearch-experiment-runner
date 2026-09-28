@@ -12,6 +12,7 @@ authors:
   - family-names: He
     given-names: Zhen
     alias: CieveMe
+    orcid: "https://orcid.org/0009-0009-1526-5793"
 version: 0.2.0
 date-released: "2026-09-28"
 license: MIT

@@ -297,6 +297,9 @@ ablation all average **13.7 ± 4.69** epochs (range 8–23) and the paired diffe
    off; a 120-epoch full-batch convex task that converges in ~20 steps has none. The card
    (`docs/papers/ademamix-2024.md`) says exactly that, and testing the paper's regime would need the
    paper's regime — long training, mini-batches, its own harness — which is out of scope here.
+   **Read §5.6 before quoting anything from this section**: the same suites were re-run on the MLP
+   trainer, the conclusions there agree with these, and that section also documents a single-seed trap
+   that would let a careless reader report the opposite of the ten-seed result.
 
 ### 5.6 Does any of this survive a bigger model? (the self-scepticism run)
 

@@ -36,6 +36,18 @@ def is_lower_is_better(metric: str) -> bool:
     return metric in LOWER_IS_BETTER_METRICS
 
 
+def merge_trial_config(config: Dict[str, Any], trial: Dict[str, Any]) -> Dict[str, Any]:
+    """Combine experiment-level keys (trainer, model shape, seed, schedule) with one arm.
+
+    Extracted so a test can assert the contract directly: if a suite claims to run N
+    seeds, every trial must actually receive the seed. Getting this wrong made a
+    "10-seed" MLP run vary only the data split while initialising every run from the
+    same weights — a bug that looks like a measurement but is not one.
+    """
+    inherited = {key: config[key] for key in TRIAL_INHERITED_KEYS if key in config}
+    return {**inherited, **trial}
+
+
 def _read_json(path: Path) -> Dict[str, Any]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -79,7 +91,7 @@ def run(config_path: Path, output_dir: Path) -> Dict[str, Any]:
     results: List[Dict[str, Any]] = []
     for trial in trials:
         started = time.perf_counter()
-        trial_config = {**{key: config[key] for key in TRIAL_INHERITED_KEYS if key in config}, **trial}
+        trial_config = merge_trial_config(config, trial)
         fit = trainer.fit(train_rows, trial_config)
         train_metrics = trainer.evaluate(train_rows, fit.params, trial_config)
         test_metrics = trainer.evaluate(test_rows, fit.params, trial_config)
