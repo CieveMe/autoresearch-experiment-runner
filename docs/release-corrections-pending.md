@@ -22,6 +22,10 @@ correction.
 
 ## Queue
 
+> **Status 2026-09-28:** both items below are stated in
+> `docs/release-notes-v0.10.0.published.md` and are therefore no longer pending. They stay here as the
+> record of what was owed and where it was paid, and the next entry will be added below them.
+
 ### 1. §5.13's σ column was not reproducible, and the correlation built on it is withdrawn
 
 * **Where the wrong text is:** `REPRODUCTION.md` §5.13's H5 verdict and its "σ and the number of

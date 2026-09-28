@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+**v0.10.0 is a corrections release.** Its body is
+`docs/release-notes-v0.10.0.published.md`: it withdraws §5.11's finding 7 and §5.13's H5 (case 5, the
+hand-assembled σ column) and the second half of §5.15's N4, adds the exact paired tests (§5.16), the
+figures that exposed the error, the T-ADAM-01 variant runs, and `case 6` — the checker that stopped
+checking. The queue those corrections came from is `docs/release-corrections-pending.md`; nothing below
+was moved to keep the release body self-contained.
+
 ### Added
 
 - **Trainer adapter** (`autoresearch/trainers/`): the original model moved, unchanged, into
