@@ -666,7 +666,7 @@ Ten-seed test-loss means, paired against the tuned-cosine baseline:
 
 | # | hypothesis | verdict | evidence |
 |---|---|---|---|
-| H1 | AdaGrad keeps strengthening | **boundary** | best arm and 8/10 wins at `[64]`; at `[16,16]` schedule-free overtakes it and its wins fall to 4/10 — "strengthens with capacity" holds up to `[64]`, not beyond |
+| H1 | AdaGrad keeps strengthening | **boundary** | best arm and 8/10 wins at `[64]`; at `[16,16]` schedule-free overtakes it and its wins fall to 4/10 — "strengthens with capacity" holds up to `[64]`, not beyond. The range is worth stating precisely: at `[16,16]` AdaGrad still beats the tuned-cosine baseline in 9/10 seeds (+0.02563 on mean test loss), so what ends is its *lead*, not its usefulness |
 | H2 | the schedule-free architecture effect continues | **confirmed** | beats the tuned cosine at both new capacities (9/10 and 10/10 seeds); it now holds at five MLP capacities |
 | H3 | AdEMAMix still has no advantage | **confirmed** | 1/10 and 0/10 seeds better than the AdamW baseline, worse on mean test loss; five capacities and both model families now agree |
 | H4 | train/test divergence keeps growing | **confirmed** | the top-1 differs between the two metrics at both capacities (ademamix → adagrad; ademamix → schedule-free) and five of six arms move at least two places in both |
