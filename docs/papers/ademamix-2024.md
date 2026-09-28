@@ -118,6 +118,15 @@ whoever wrote it — would have reported the opposite of the 10-seed result. The
 warning pointing at `runs/mlp-verified/ademamix/seed-sweep-summary.md` for exactly that reason, and this
 is the clearest illustration in the repository of why a single run is not evidence.
 
+**A second trap, of the same family: a tied band is not a ranking.** The threshold curves
+(`REPRODUCTION.md` §5.9) show the logistic suite's two leading arms trading the lead **five times inside
+a 0.0014-wide threshold band** (0.1435–0.1449). Inside that band they are tied, and "which one is
+faster at reaching the target" has no answer — so this card does **not** pick a threshold from that band
+to make either arm look better, and the AdEMAMix verdict rests on the final-loss comparison plus the
+ten-seed paired test, not on `epochs_to_target`. The same discipline applies to the schedule-free card,
+where the flip between models turned out to be a threshold crossing rather than a property of the
+method.
+
 ### Two model families, one direction
 
 The two trainers differ in capacity and curvature, so the honest summary is stated per family rather

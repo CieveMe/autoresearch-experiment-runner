@@ -1,0 +1,77 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 51d398e8b0413feca84c4d4457138da00bbb34fb607ba4cfd799ca4914fb062a",
+  "config": "examples/capacity-h32.json",
+  "config_sha256": "51d398e8b0413feca84c4d4457138da00bbb34fb607ba4cfd799ca4914fb062a",
+  "metric": "test_loss",
+  "best": "adagrad",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "schedule": "cosine",
+      "min_lr_factor": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12962289,
+      "epochs_to_target": 38
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.925,
+      "test_loss": 0.12921253,
+      "epochs_to_target": 37
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.925,
+      "test_loss": 0.12921253,
+      "epochs_to_target": 37
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12286263,
+      "epochs_to_target": 44
+    },
+    "ademamix": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "epochs": 200,
+      "test_accuracy": 0.925,
+      "test_loss": 0.12931594,
+      "epochs_to_target": 37
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12452343,
+      "epochs_to_target": 9
+    }
+  },
+  "notes": [
+    "Capacity check with 32 hidden units; every arm retuned for this model (examples/capacity-h32-sweep.json, 21 trials).",
+    "adam and adamw_constant are identical here because the suite uses no weight decay, which is the same consistency check as AdEMAMix's alpha=0 ablation.",
+    "AdEMAMix has the lowest TRAIN loss (0.13758) but one of the worst TEST losses (0.12932): at this capacity train-loss and test-loss rankings diverge, which is why both are reported.",
+    "Schedule-free AdamW is fastest to the target (9 epochs) and second-best on test loss; the verdicts come from runs/capacity-verified/h32/seed-sweep-summary.md."
+  ]
+}

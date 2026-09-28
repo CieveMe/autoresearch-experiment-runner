@@ -69,6 +69,20 @@ runs/*
 !runs/threshold-curves/*-thresholds.md
 !runs/threshold-curves/*-thresholds.csv
 !runs/threshold-curves/*-curves.svg
+!runs/capacity-verified/
+!runs/capacity-verified/h32/
+!runs/capacity-verified/h32/results.json
+!runs/capacity-verified/h32/report.md
+!runs/capacity-verified/h32/seed-sweep-summary.json
+!runs/capacity-verified/h32/seed-sweep-summary.md
+!runs/capacity-verified/h8x8/
+!runs/capacity-verified/h8x8/results.json
+!runs/capacity-verified/h8x8/report.md
+!runs/capacity-verified/h8x8/seed-sweep-summary.json
+!runs/capacity-verified/h8x8/seed-sweep-summary.md
+!runs/capacity-verified/sweeps/
+!runs/capacity-verified/sweeps/h32-report.md
+!runs/capacity-verified/sweeps/h8x8-report.md
 
 # Local credentials and editor state
 .env

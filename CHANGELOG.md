@@ -63,6 +63,17 @@ All notable changes to this project are documented here. The format follows
   is stable at all thirteen thresholds and `ademamix` (logistic) oscillates five times inside a
   0.0014-wide band (i.e. its two arms are tied there and "fastest" is noise). Six more unit tests (45
   total).
+
+### Added (capacity check, same release)
+
+- **Two more capacities**, `[32]` and a two-layer `[8,8]`, with every arm retuned for the model it runs
+  on (`examples/capacity-h32.json` / `capacity-h8x8.json` plus 21-trial sweeps) and ten seeds each.
+  Results: **AdEMAMix's "no advantage" is stable at every capacity and on both model families** (1/10
+  seeds better than the AdamW baseline in both new runs); the **schedule-free flip is an architecture
+  effect, not a capacity effect** (it beats the tuned cosine at all three MLP capacities and loses on
+  the logistic head); **AdaGrad wins on final test loss once the model has room to overfit** (9/10 and
+  10/10 seeds better than the cosine baseline); and train-loss versus test-loss rankings diverge as
+  capacity grows, so both are pinned. Nine suites / 229 asserted checks.
 - **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
   the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
   lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).

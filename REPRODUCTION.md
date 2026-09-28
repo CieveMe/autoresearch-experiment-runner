@@ -469,6 +469,68 @@ the suite's pinned threshold drawn as a dashed line).
    models — but each of those is now attached to a threshold rather than to a single number that happened
    to be picked in advance.
 
+### 5.10 Capacity: do the answers survive a wider or deeper model?
+
+Every conclusion so far was measured on an 8-unit hidden layer (or on the two-parameter logistic
+head). Two more capacities were added — `[32]` and a two-layer `[8,8]` — with **every arm retuned for
+the model it runs on** (`examples/capacity-h32-sweep.json` and `examples/capacity-h8x8-sweep.json`,
+21 trials each), 200 epochs, target 0.147 and ten seeds.
+
+Ten-seed test loss, paired against the tuned-cosine baseline:
+
+| arm | `[8]` (from §5.7) | `[32]` | `[8,8]` |
+|---|---:|---:|---:|
+| adagrad | — | **0.12555** (9/10 wins, +0.01032 vs cosine, 9/10 better) | **0.12845** (7/10 wins, +0.03949, 10/10 better) |
+| schedule-free AdamW | 0.13094 | 0.13214 (0/10, +0.00373, 8/10 better) | 0.14479 (2/10, +0.02314, 8/10 better) |
+| adamw + tuned cosine (baseline) | 0.13222 | 0.13587 | 0.16794 |
+| adamw constant / adam (identical, no weight decay) | 0.13796 | 0.14425 (−0.00838 vs cosine, 1/10 better) | 0.19479 (−0.02685, 1/10 better) |
+| ademamix | — | 0.14508 (−0.00921, 1/10 better) | 0.19793 (−0.02999, 1/10 better) |
+
+Seed-7 speed, for the record (`epochs_to_target` at 0.147): `[32]` schedule-free 9, adam/constant/
+ademamix 37, cosine 38, adagrad 44; `[8,8]` schedule-free 20, everything else 26.
+
+**Findings.**
+
+1. **AdEMAMix's "no advantage" verdict is stable across all three capacities and both model families.**
+   It is better than the AdamW baseline in only 1 of 10 seeds at `[32]` and 1 of 10 at `[8,8]`, and worse
+   on mean test loss in both (0.14508 vs 0.13587; 0.19793 vs 0.16794). Combined with §5.5 this is the
+   most robust negative result in the repository.
+2. **The schedule-free "direction flip" is an architecture effect, not a capacity effect.** On the MLP
+   it beats the tuned cosine at *every* capacity tested (8: 9/10 seeds; 32: 8/10; [8,8]: 8/10), while on
+   the logistic head it loses 10/10. §5.9 explains why: the two arms cross at a threshold, and the
+   logistic run's pinned threshold sits on the wrong side of its crossing. So the flip is not "some
+   models favour it" — it is "the comparison is threshold-scoped, and the two model families have
+   different crossings and different floors".
+3. **A new, capacity-dependent result: AdaGrad wins on final test loss once the model has room to
+   overfit** (9/10 and 10/10 seeds better than the tuned cosine). At `[8]` AdaGrad was only an also-ran.
+   This is the first conclusion in the report that *does* change with capacity, and it changes in favour
+   of the oldest method in the suite.
+4. **Train-loss and test-loss rankings diverge as capacity grows.** At `[8,8]`, adam/constant/ademamix
+   reach the lowest *train* losses (0.1332/0.1332/0.1330) and the worst *test* losses
+   (0.1411/0.1411/0.1418), while schedule-free reaches the best test loss (0.1247). A suite that ranked
+   by training loss would invert the answer at this capacity, which is why both numbers are pinned.
+5. **The consistency check reproduces at every capacity**: `adam` and `adamw` with weight decay 0 are
+   bit-identical (0.14425/0.14425 at `[32]`, 0.19479/0.19479 at `[8,8]`), the same way AdEMAMix with
+   α = 0 reduced to AdamW in §5.5.
+6. **Threshold crossings exist at every capacity.** On the new grids the tightest thresholds are won by
+   `ademamix` — its floor is the lowest — and the lead passes to `adam` at 0.1417 (`[32]`) and 0.1374
+   (`[8,8]`). "Fastest optimizer" therefore always needs its threshold attached, at any model size.
+
+**Which statements survive which change of facet** (✓ = direction held, ✗ = it flipped, — = not tested):
+
+| statement | logistic head | MLP `[8]` | MLP `[32]` | MLP `[8,8]` | threshold change | verdict |
+|---|---|---|---|---|---|---|
+| AdEMAMix has no advantage over AdamW | ✓ | ✓ | ✓ | ✓ | ✓ | **stable** |
+| Adam is not the fastest optimizer | ✓ | ✓ | ✓ | ✓ | ✗ (crossings exist) | stable in direction, not in ranking |
+| schedule-free beats a tuned cosine | ✗ | ✓ | ✓ | ✓ | ✗ (crossing at 0.1434) | **architecture- and threshold-scoped** |
+| a constant learning rate wins | ✓ | ✓ | ✗ (adagrad/cosine win) | ✗ | — | capacity-scoped |
+| AdaGrad is competitive | ✗ | ✗ | ✓ | ✓ | — | capacity-scoped |
+
+The point of the table is the middle column set: the repository reports four model sizes, two model
+families and a threshold grid, and a claim is only stated at the scope where it was measured. Nothing
+in §5.1–5.9 was retracted by the capacity runs; two claims (constant-rate dominance, AdaGrad) turned out
+to be capacity-scoped and are now labelled that way.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |

@@ -5,5 +5,5 @@ Each suite is read from its committed loss curves; no experiment was re-run to p
 
 | suite | fastest arm at the tight end | fastest at the loose end | ranking changes |
 |---|---|---|---|
-| `schedule-free` | `adamw_constant` | `adamw_constant` | 0 |
-| `schedule-free-mlp` | `adamw_constant` | `schedule_free_adamw` | 1 |
+| `capacity-h32` | `ademamix` | `adam` | 1 |
+| `capacity-h8x8` | `ademamix` | `adam` | 1 |

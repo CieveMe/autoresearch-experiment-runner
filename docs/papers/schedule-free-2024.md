@@ -86,6 +86,16 @@ beats schedule-free AdamW in 9/10 seeds** (mean +0.00703 ± 0.00571).
 
 ### Findings across both models
 
+0. **The flip is not a model dispute, it is a threshold dispute — and the curves locate it.**
+   `scripts/threshold_curve.py` (`REPRODUCTION.md` §5.9) shows the two arms crossing at **0.1434** on
+   the MLP: at thresholds *looser* than that, schedule-free arrives first; at thresholds *tighter*
+   than that, the constant-rate arm wins because it converges deeper (0.1378 against 0.1412 floor).
+   The MLP suite's pinned threshold (0.148) therefore sits in the region where schedule-free looks
+   fast, and the logistic suite's pinned threshold (0.148) sits in the region where the tuned cosine
+   has already won for good. So the earlier sentence "schedule-free beat the cosine on one model and
+   lost on the other" is really "two arms cross at a threshold, and the two models have different
+   floors and different crossings". That is a statement about the metric and the model, not about the
+   optimizer, and it is the reason this card no longer quotes a bare speed number anywhere.
 1. **"At worst matches" holds; "out-performs" is not established.** The direction of the
    schedule-free-versus-tuned-cosine comparison **flips with the model**: on the logistic head the tuned
    cosine wins 10/10 (by a tiny 0.00032), on the MLP schedule-free wins 9/10 (by 0.00128). Neither is a

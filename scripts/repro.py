@@ -79,6 +79,18 @@ SUITES: Dict[str, Dict[str, str]] = {
         "expected": "expected/expected_schedule_free_mlp.json",
         "label": "Schedule-Free AdamW against a tuned cosine schedule on the MLP",
     },
+    "capacity-h32": {
+        "config": "examples/capacity-h32.json",
+        "output": "runs/capacity-h32",
+        "expected": "expected/expected_capacity_h32.json",
+        "label": "capacity check: do the three claim families survive 32 hidden units?",
+    },
+    "capacity-h8x8": {
+        "config": "examples/capacity-h8x8.json",
+        "output": "runs/capacity-h8x8",
+        "expected": "expected/expected_capacity_h8x8.json",
+        "label": "capacity check: do they survive a second hidden layer?",
+    },
 }
 
 

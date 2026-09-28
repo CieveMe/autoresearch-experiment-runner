@@ -1,7 +1,7 @@
 # AutoResearch Lite - one-command reproduction.
 # `make repro` is the entry point quoted in REPRODUCTION.md and TASK.md.
 # On Windows without make, run: python scripts/repro.py
-.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp run verify test sweep thresholds score docker clean
+.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp repro-capacity run verify test sweep thresholds score docker clean
 
 PYTHON ?= python3
 
@@ -13,6 +13,7 @@ help:
 	@echo "make repro-mlp        - the two MLP suites (does the ranking survive a bigger model?)"
 	@echo "make repro-schedule-free - the schedule-free suite (tuned cosine baseline)"
 	@echo "make repro-schedule-free-mlp - the same comparison on the MLP trainer"
+	@echo "make repro-capacity   - the [32] and [8,8] capacity checks"
 	@echo "make run      - run the experiments only"
 	@echo "make verify   - compare runs/demo/results.json with expected/expected_metrics.json"
 	@echo "make test     - run the unit tests"
@@ -44,6 +45,10 @@ repro-schedule-free:
 repro-schedule-free-mlp:
 	$(PYTHON) scripts/repro.py --suite schedule-free-mlp
 
+repro-capacity:
+	$(PYTHON) scripts/repro.py --suite capacity-h32
+	$(PYTHON) scripts/repro.py --suite capacity-h8x8
+
 run:
 	$(PYTHON) -m autoresearch.cli run --config examples/classification.json --output runs/demo
 
@@ -55,6 +60,8 @@ verify:
 	$(PYTHON) scripts/verify_results.py --results runs/ademamix-mlp/results.json --expected expected/expected_ademamix_mlp.json
 	$(PYTHON) scripts/verify_results.py --results runs/schedule-free/results.json --expected expected/expected_schedule_free.json
 	$(PYTHON) scripts/verify_results.py --results runs/schedule-free-mlp/results.json --expected expected/expected_schedule_free_mlp.json
+	$(PYTHON) scripts/verify_results.py --results runs/capacity-h32/results.json --expected expected/expected_capacity_h32.json
+	$(PYTHON) scripts/verify_results.py --results runs/capacity-h8x8/results.json --expected expected/expected_capacity_h8x8.json
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v
@@ -74,7 +81,7 @@ sweep:
 	$(PYTHON) -m autoresearch.cli run --config examples/schedule-free-mlp-sweep.json --output runs/schedule-free-mlp-tuning
 
 thresholds:
-	$(PYTHON) scripts/threshold_curve.py --suite optimizers --suite optimizers-mlp --suite schedule-free --suite schedule-free-mlp --suite ademamix --suite ademamix-mlp
+	$(PYTHON) scripts/threshold_curve.py --suite optimizers --suite optimizers-mlp --suite schedule-free --suite schedule-free-mlp --suite ademamix --suite ademamix-mlp --suite capacity-h32 --suite capacity-h8x8
 
 score:
 	$(PYTHON) scripts/score_task.py
