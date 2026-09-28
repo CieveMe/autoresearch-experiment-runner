@@ -134,12 +134,23 @@ family below reuses the same scorer at increasing difficulty:
 | Variant | Initial state given to the agent | Extra requirement |
 |---|---|---|
 | **T-ADAM-01A — verify** | this repository as shipped | make one command pass; explain each number |
-| **T-ADAM-01B — implement** | `model.py` Adam branch replaced by a stub that raises | implement Algorithm 1 from the paper; pass the same expectations |
+| **T-ADAM-01B — implement** | `model.py` Adam branch replaced by a stub that raises | implement Algorithm 1 from the paper; pass the same expectations, **as a drop-in replacement** (see the note below) |
 | **T-ADAM-01C — ablate** | this repository as shipped | add one new ablation config with its own expectation file and justify the predicted direction |
 | **T-ADAM-01D — recover** | one negative control already applied | find the defect from the failing assertion alone; the scorer must return to 100 |
 
 T-ADAM-01D is directly supported today: `python scripts/score_task.py` shows exactly how a mutated
 implementation scores (82.4/100), so the agent gets a gradient to climb instead of a binary verdict.
+
+**Note for T-ADAM-01B: "drop-in" is part of the requirement, and it was learned the hard way.** The
+harness's negative controls work by replacing *text* in `autoresearch/optimizers.py`. An implementation
+that is numerically correct but leaves the original branch behind as dead code satisfies every fragment
+check while the code that actually runs is untouched — the controls then report that a broken
+implementation passed, and the harness has silently lost its teeth. A first attempt at this variant did
+exactly that: it scored 100/100 on the pinned numbers and two of the four controls came back *missed*.
+The accepted solution therefore has to keep the mutation points live, which `scripts/task_variants.py`
+verifies behaviourally (apply the fragments, run the main suite, require the pinned numbers to move)
+rather than by substring search. `REPRODUCTION.md` §5.16 and `docs/defect-family.md` case 5 have the
+same rule in general form: a check that can be satisfied without changing what runs is not a check.
 
 ## 10. What must stay human
 

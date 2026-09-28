@@ -7,7 +7,8 @@ Two pictures carry the two claims of §5.16 and §5.11/§5.15 better than the ta
   declared claim family, on one axis, so that "the effect is established at one suite" is visible
   rather than buried in a table row;
 * `noise-vs-stability.svg` — the per-seed noise of a suite against how many different arms win at
-  its pinned threshold, the correlation §5.11 rests on and the mechanism §5.15 refuted.
+  its pinned threshold. It was drawn to show the correlation §5.11 claimed; it shows instead that the
+  correlation is not there, which is why §5.11 finding 7, §5.13's H5 and §5.15's N4 are withdrawn.
 
 Everything is read from the committed per-seed files; no experiment is re-run. The SVGs are
 deterministic (no timestamps), so a figure that changes means the data changed.
@@ -200,7 +201,9 @@ def stability_svg(rows: Sequence[Dict[str, Any]], width: int = 760) -> str:
 
     A scatter was the first attempt and it was unreadable: the y quantity (how many arms win) is a
     small integer, so most suites land on the same three lanes and their labels pile up. Ordering the
-    suites by their own sigma and annotating the winner count on the right shows the same correlation
+    suites by their own sigma and annotating the winner count on the right shows the same picture with
+    no overlapping labels — and, as it turned out, no correlation either: the winner count does not
+    rise with sigma, which is what withdrew the claim that used to live in §5.11 finding 7.
     without a single overlapping label.
     """
     ordered = sorted(rows, key=lambda row: (row["sigma"], row["suite"]))
@@ -250,8 +253,9 @@ def stability_svg(rows: Sequence[Dict[str, Any]], width: int = 760) -> str:
                      f'fill="{ACCENT if stable else MUTED}">{row["winners"]} winner'
                      f'{"" if row["winners"] == 1 else "s"}</text>')
     lines.append(f'<text x="24" y="{height - 46}" {FONT} font-size="10" fill="{MUTED}">'
-                 f'Filled markers: one arm wins in all ten seeds. The correlation is a tendency at the '
-                 f'bottom of the observed range, not a threshold.</text>')
+                 f'Filled markers: one arm wins in all ten seeds. There is no monotone relationship: '
+                 f'optimizers-mlp has the second-lowest noise and five winners, activation-relu sits '
+                 f'higher and has one.</text>')
     lines.append("</svg>")
     return "\n".join(lines) + "\n"
 

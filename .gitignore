@@ -147,6 +147,12 @@ runs/*
 !runs/figures/noise-vs-stability.svg
 !runs/figures/captions.md
 !runs/figures/stability.csv
+!runs/task-runs/
+!runs/task-runs/README.md
+!runs/task-runs/T-ADAM-01B.md
+!runs/task-runs/T-ADAM-01C.md
+!runs/task-runs/T-ADAM-01D.md
+!runs/task-runs/variants.json
 # Raster previews are generated locally with cairosvg (an optional dependency, not part of the
 # repository's tooling) and are deliberately not committed: an artifact the repository cannot
 # regenerate is exactly what docs/defect-family.md case 5 warns about.

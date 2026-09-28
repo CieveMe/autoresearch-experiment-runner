@@ -81,5 +81,5 @@
 <line x1="204" y1="512.0" x2="566.7" y2="512.0" stroke="#d9dee3" stroke-width="1"/>
 <circle cx="572.7" cy="512.0" r="5" fill="white" stroke="#2f6f9f" stroke-width="2"/>
 <text x="624.0" y="516.0" font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif" font-size="10" fill="#7b8794">3 winners</text>
-<text x="24" y="570" font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif" font-size="10" fill="#7b8794">Filled markers: one arm wins in all ten seeds. The correlation is a tendency at the bottom of the observed range, not a threshold.</text>
+<text x="24" y="570" font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif" font-size="10" fill="#7b8794">Filled markers: one arm wins in all ten seeds. There is no monotone relationship: optimizers-mlp has the second-lowest noise and five winners, activation-relu sits higher and has one.</text>
 </svg>

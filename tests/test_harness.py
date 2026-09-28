@@ -1,4 +1,6 @@
 import json
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -110,6 +112,66 @@ class NegativeControlTests(unittest.TestCase):
                     self.assertTrue(target.exists(), f"{name}: missing {target}")
                     source = target.read_text(encoding="utf-8")
                     self.assertIn(mutation["old"], source, f"{name} in {target.name}")
+
+    def test_every_control_fragment_changes_the_numbers_it_mutates(self):
+        """Presence is not enough: the fragment has to be in the code that runs.
+
+        A rewrite that leaves the original branch behind as dead code satisfies every fragment check
+        while the code that actually executes is untouched — the controls then report that a broken
+        implementation passed, and the harness has lost its teeth. This happened for real while running
+        the T-ADAM-01B variant, so the guard is behavioural: mutate a throwaway copy, run one tiny
+        experiment with the optimizer the mutation targets, and require the loss to move.
+        """
+        exercise = {
+            "no-bias-correction": "adam",
+            "no-adaptive-scaling": "adam",
+            "ademamix-without-slow-ema": "ademamix",
+            "schedule-free-without-averaging": "schedule_free_adamw",
+        }
+        for name, optimizer in exercise.items():
+            with self.subTest(control=name):
+                with tempfile.TemporaryDirectory() as temporary:
+                    probe = Path(temporary) / "repo"
+                    shutil.copytree(ROOT / "autoresearch", probe / "autoresearch")
+                    config = {
+                        "task": f"liveness probe for {name}",
+                        "trainer": "logistic",
+                        "metric": "test_loss",
+                        "seed": 7,
+                        "dataset": {"size": 200, "test_ratio": 0.25, "noise": 0.18},
+                        "baseline": {"name": "probe", "optimizer": "sgd",
+                                     "learning_rate": 0.1, "epochs": 6},
+                        "experiments": [{"name": "arm", "optimizer": optimizer, "alpha": 2.0,
+                                         "beta3": 0.9999, "learning_rate": 0.1, "epochs": 6}],
+                    }
+                    config_path = probe / "probe.json"
+                    config_path.write_text(json.dumps(config), encoding="utf-8")
+                    before = _run_probe(probe, config_path)
+                    for fragment in NEGATIVE_CONTROLS[name]:
+                        target = probe / fragment["file"]
+                        text = target.read_text(encoding="utf-8")
+                        self.assertIn(fragment["old"], text, f"{name} in {target.name}")
+                        target.write_text(text.replace(fragment["old"], fragment["new"]), encoding="utf-8")
+                    after = _run_probe(probe, config_path, "mutated")
+                    self.assertNotAlmostEqual(
+                        before, after, places=9,
+                        msg=f"control `{name}` did not change the numbers it mutates: the fragment is "
+                            f"present but not live",
+                    )
+
+
+def _run_probe(probe: Path, config_path: Path, tag: str = "clean") -> float:
+    """Run one tiny experiment in the probe copy and return its final test loss."""
+    result = subprocess.run(
+        [sys.executable, "-m", "autoresearch.cli", "run", "--config", str(config_path),
+         "--output", f"runs/{tag}"],
+        cwd=str(probe), stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, encoding="utf-8", errors="replace",
+    )
+    if result.returncode != 0:
+        raise AssertionError(f"probe run failed: {result.stdout[-400:]}")
+    payload = json.loads((probe / "runs" / tag / "results.json").read_text(encoding="utf-8"))
+    return next(item["test_loss"] for item in payload["results"] if item["name"] == "arm")
 
 
 if __name__ == "__main__":

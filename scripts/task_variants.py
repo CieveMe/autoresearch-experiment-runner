@@ -142,9 +142,13 @@ def _score(directory: Path, tier: str = "core", skip_controls: bool = False) -> 
         score = float(match.group(1))
     controls = re.findall(r"control\[([^\]]+)\]: (detected|MISSED)[^(]*\(([^)]*)\)", output)
     failing = [line for line in output.splitlines() if line.startswith("FAIL")]
+    # `exit_code` is the scorer's own exit code; the submission's exit code is the one inside the
+    # summary line, and they differ whenever a control is missed. Parsing it keeps the record honest.
+    submission_exit = re.search(r"checks, exit (\d+)\)", output)
     return {
         "score": score,
         "tier_label": match.group(2) if match else None,
+        "submission_exit_code": int(submission_exit.group(1)) if submission_exit else None,
         "controls": [{"name": name, "outcome": outcome, "detail": detail}
                      for name, outcome, detail in controls],
         "failing_assertions": failing[:6],
@@ -161,6 +165,50 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+ADAM_CONTROLS = ("no-bias-correction", "no-adaptive-scaling")
+
+
+def _controls_still_live(workspace: Path) -> bool:
+    """Do the harness's controls still change the numbers they are supposed to change?
+
+    The controls mutate by replacing text, so they can be satisfied by a *dead* copy of the original
+    code: an implementation that leaves the old branch behind lets every fragment match while the code
+    that actually runs is untouched, and the controls then report "passed a broken implementation".
+    The repository's unit test only checks that a fragment is present, which dead code satisfies too.
+
+    This probe is the behavioural version: apply every control fragment that targets the optimizer
+    source to a throwaway copy, run the small main suite, and require its pinned numbers to move.
+    """
+    with tempfile.TemporaryDirectory(prefix="control-probe-") as temporary:
+        probe = Path(temporary) / "repo"
+        shutil.copytree(workspace, probe, ignore=_ignore)
+        expected = json.loads((probe / "expected" / "expected_metrics.json").read_text(encoding="utf-8"))
+        for name in ADAM_CONTROLS:
+            for fragment in NEGATIVE_CONTROLS[name]:
+                if not fragment["file"].endswith("optimizers.py"):
+                    continue
+                path = probe / fragment["file"]
+                text = _read(path)
+                if fragment["old"] not in text:
+                    return False
+                _write(path, text.replace(fragment["old"], fragment["new"], 1))
+        result = subprocess.run(
+            [sys.executable, "-m", "autoresearch.cli", "run", "--config", "examples/classification.json",
+             "--output", "runs/control-probe"],
+            cwd=str(probe), stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, encoding="utf-8", errors="replace", timeout=900,
+        )
+        results_path = probe / "runs" / "control-probe" / "results.json"
+        if result.returncode != 0 or not results_path.exists():
+            return False
+        payload = json.loads(results_path.read_text(encoding="utf-8"))
+        observed = {item["name"]: item["test_loss"] for item in payload["results"]}
+        for name, want in expected["trials"].items():
+            if abs(observed.get(name, -1.0) - want["test_loss"]) > 1e-6:
+                return True
+        return False
+
+
 def run_implement_variant(workspace: Path) -> Dict[str, Any]:
     """T-ADAM-01B: stub the Adam branch, score, implement it, score again."""
     target = workspace / "autoresearch" / "optimizers.py"
@@ -171,23 +219,33 @@ def run_implement_variant(workspace: Path) -> Dict[str, Any]:
     _write(target, original.replace(ADAM_STUB_OLD, ADAM_STUB_NEW, 1))
     attempts.append({"label": "given state: Adam branch stubbed out", **_score(workspace, skip_controls=True)})
     start = original.index(ADAM_STUB_OLD)
-    end = start + len(ADAM_STUB_OLD)
+    # Replace the *whole* branch body, not just the stub line: leaving the original loop behind as dead
+    # code is what silently disarmed two of the harness's controls (they mutate by replacing text, so a
+    # duplicate copy satisfies them without changing the code that runs).
+    branch_tail = original.index('\n\n    if optimizer == "sgd_momentum":')
     for label, implementation in (
-        ("attempt 2: Algorithm 1 implemented from the paper", ADAM_ATTEMPT_1),
-        ("attempt 3: arithmetic order aligned with the reference", ADAM_ATTEMPT_2),
+        ("attempt 2: Algorithm 1 implemented from the paper, arithmetic folded differently", ADAM_ATTEMPT_1),
+        ("attempt 3: implementation kept drop-in at the harness's mutation points", ADAM_ATTEMPT_2),
     ):
-        _write(target, original[:start] + implementation + original[end:])
+        _write(target, original[:start] + implementation + original[branch_tail:])
         attempt = {"label": label, **_score(workspace, skip_controls=True)}
+        attempt["control_fragments_still_live"] = _controls_still_live(workspace)
         attempts.append(attempt)
-        if attempt["score"] == 100.0:
+        if attempt["score"] == 100.0 and attempt["control_fragments_still_live"]:
             break
     attempts.append({"label": "final: full scorer including the negative controls",
                      **_score(workspace, skip_controls=False)})
+    final = attempts[-1]
     return {
         "variant": "T-ADAM-01B",
         "requirement": "implement Algorithm 1 from the paper; pass the same expectations",
         "attempts": attempts,
-        "solved": attempts[-1]["score"] == 100.0,
+        # A solve means three things at once: the pinned expectations pass, the tree is clean enough
+        # for the scorer to exit 0, and the harness can still tell a broken implementation from a
+        # working one. A tree that scores 100 while its own controls go undetected is not solved.
+        "solved": (final["score"] == 100.0
+                   and final["submission_exit_code"] == 0
+                   and all(control["outcome"] == "detected" for control in final["controls"])),
     }
 
 
@@ -211,12 +269,15 @@ def run_recover_variant(workspace: Path, control: str = "no-adaptive-scaling") -
                      **_score(workspace, skip_controls=True)})
     attempts.append({"label": "final: full scorer including the negative controls",
                      **_score(workspace, skip_controls=False)})
+    final = attempts[-1]
     return {
         "variant": "T-ADAM-01D",
         "requirement": "find the defect from the failing assertion alone; the scorer must return to 100",
         "control": control,
         "attempts": attempts,
-        "solved": attempts[-1]["score"] == 100.0,
+        "solved": (final["score"] == 100.0
+                   and final["submission_exit_code"] == 0
+                   and all(control["outcome"] == "detected" for control in final["controls"])),
     }
 
 
@@ -226,15 +287,19 @@ def render(result: Dict[str, Any]) -> str:
         "",
         f"Solved: **{'yes' if result['solved'] else 'no'}**.",
         "",
-        "| state | submission score | tier | controls detected |",
-        "|---|---:|---|---:|",
+        "| state | submission score | tier | submission exit | controls detected | mutation points live |",
+        "|---|---:|---|---:|---|---|",
     ]
     for attempt in result["attempts"]:
         detected = sum(1 for control in attempt["controls"] if control["outcome"] == "detected")
         total = len(attempt["controls"])
         controls = "not run" if not total else f"{detected}/{total}"
+        live = attempt.get("control_fragments_still_live")
+        live_label = "not checked" if live is None else ("yes" if live else "**NO**")
+        exit_code = attempt.get("submission_exit_code")
         lines.append(
-            f"| {attempt['label']} | {attempt['score']}/100 | {attempt['tier_label'] or '—'} | {controls} |"
+            f"| {attempt['label']} | {attempt['score']}/100 | {attempt['tier_label'] or '—'} | "
+            f"{'—' if exit_code is None else exit_code} | {controls} | {live_label} |"
         )
     for attempt in result["attempts"]:
         if attempt["failing_assertions"]:

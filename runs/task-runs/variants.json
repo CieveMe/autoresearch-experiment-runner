@@ -1,0 +1,136 @@
+{
+  "schema": "autoresearch-lite/task-variants@1",
+  "variants": {
+    "T-ADAM-01B": {
+      "variant": "T-ADAM-01B",
+      "requirement": "implement Algorithm 1 from the paper; pass the same expectations",
+      "attempts": [
+        {
+          "label": "given state: Adam branch stubbed out",
+          "score": 0.0,
+          "tier_label": "tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain",
+          "submission_exit_code": 1,
+          "controls": [],
+          "failing_assertions": [],
+          "exit_code": 1,
+          "raw": "submission score: 0.0/100 (tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain) (0/0 checks, exit 1)\n  FAIL main: no results.json produced\n  FAIL optimizers: no results.json produced\n  FAIL ablation-adam-no-first-moment: no results.json produced\n  FAIL ademamix: no results.json produced\n  FAIL optimizers-mlp: no results.json produced\n  FAIL ademamix-mlp: no results.json produced\n  FAIL schedule-free: no results.json produced\n  FAIL schedule-free-mlp: no results.json produced\n\nTASK RESULT: FAIL\n"
+        },
+        {
+          "label": "attempt 2: Algorithm 1 implemented from the paper, arithmetic folded differently",
+          "score": 100.0,
+          "tier_label": "tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain",
+          "submission_exit_code": 1,
+          "controls": [],
+          "failing_assertions": [],
+          "exit_code": 1,
+          "raw": "submission score: 100.0/100 (tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain) (184/184 checks, exit 1)\n\nTASK RESULT: FAIL\n",
+          "control_fragments_still_live": false
+        },
+        {
+          "label": "attempt 3: implementation kept drop-in at the harness's mutation points",
+          "score": 100.0,
+          "tier_label": "tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain",
+          "submission_exit_code": 0,
+          "controls": [],
+          "failing_assertions": [],
+          "exit_code": 0,
+          "raw": "submission score: 100.0/100 (tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain) (184/184 checks, exit 0)\n\nTASK RESULT: PASS\n",
+          "control_fragments_still_live": true
+        },
+        {
+          "label": "final: full scorer including the negative controls",
+          "score": 100.0,
+          "tier_label": "tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain",
+          "submission_exit_code": 0,
+          "controls": [
+            {
+              "name": "no-bias-correction",
+              "outcome": "detected",
+              "detail": "score 83.7/100, exit 1"
+            },
+            {
+              "name": "no-adaptive-scaling",
+              "outcome": "detected",
+              "detail": "score 82.1/100, exit 1"
+            },
+            {
+              "name": "ademamix-without-slow-ema",
+              "outcome": "detected",
+              "detail": "score 94.0/100, exit 1"
+            },
+            {
+              "name": "schedule-free-without-averaging",
+              "outcome": "detected",
+              "detail": "score 94.6/100, exit 1"
+            }
+          ],
+          "failing_assertions": [],
+          "exit_code": 0,
+          "raw": "submission score: 100.0/100 (tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain) (184/184 checks, exit 0)\ncontrol[no-bias-correction]: detected (score 83.7/100, exit 1)\ncontrol[no-adaptive-scaling]: detected (score 82.1/100, exit 1)\ncontrol[ademamix-without-slow-ema]: detected (score 94.0/100, exit 1)\ncontrol[schedule-free-without-averaging]: detected (score 94.6/100, exit 1)\n\nTASK RESULT: PASS\n"
+        }
+      ],
+      "solved": true,
+      "description": "implement Adam from the paper (the branch is stubbed out)"
+    },
+    "T-ADAM-01D": {
+      "variant": "T-ADAM-01D",
+      "requirement": "find the defect from the failing assertion alone; the scorer must return to 100",
+      "control": "no-adaptive-scaling",
+      "attempts": [
+        {
+          "label": "given state: negative control `no-adaptive-scaling` already applied",
+          "score": 82.1,
+          "tier_label": "tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain",
+          "submission_exit_code": 1,
+          "controls": [],
+          "failing_assertions": [],
+          "exit_code": 1,
+          "raw": "submission score: 82.1/100 (tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain) (151/184 checks, exit 1)\n  FAIL main: best.name: expected adam_reproduction, got sgd_control\n  FAIL main: trial[adam_reproduction].test_loss: expected 0.20216034, got 0.4646439\n  FAIL main: trial[adam_regularized].test_loss: expected 0.31407811, got 0.44953644\n  FAIL optimizers: trial[adam].test_loss: expected 0.12346246, got 0.22236247\n  FAIL optimizers: trial[adam].epochs_to_target: expected 33, got None\n  FAIL optimizers: trial[adam_no_bias_correction].test_loss: expected 0.12187267, got 0.33155543\n  FAIL optimizers: trial[adam_no_bias_correction].epochs: expected 65, got 120\n  FAIL optimizers: trial[adam_no_bias_correction].epochs_to_target: expected 13, got None\n  FAIL ablation-adam-no-first-moment: trial[adam].test_loss: expected 0.12346246, got 0.22236247\n  FAIL ablation-adam-no-first-moment: trial[adam].epochs_to_target: expected 33, got None\n  FAIL ablation-adam-no-first-moment: trial[adam_beta1_0].test_loss: expected 0.12646126, got 0.23420879\n  FAIL ablation-adam-no-first-moment: trial[adam_beta1_0].epochs_to_target: expected 61, got None\n  FAIL ademamix: trial[adamw].test_loss: expected 0.12255737, got 0.17808045\n  FAIL ademamix: trial[adamw].epochs: expected 72, got 120\n  FAIL ademamix: trial[adamw].epochs_to_target: expected 23, got None\n  FAIL optimizers-mlp: trial[adam].test_accuracy: expected 0.93, got 0.935\n  FAIL optimizers-mlp: trial[adam].test_loss: expected 0.12363451, got 0.12721656\n  FAIL optimizers-mlp: trial[adam].epochs_to_target: expected 36, got 56\n  FAIL ademamix-mlp: trial[adamw].test_accuracy: expected 0.93, got 0.935\n  FAIL ademamix-mlp: trial[adamw].test_loss: expected 0.12697878, got 0.13640149\n  FAIL ademamix-mlp: trial[adamw].epochs_to_target: expected 62, got None\n  FAIL schedule-free: best.name: expected adamw_constant, got schedule_free_adamw\n  FAIL schedule-free: trial[adamw_cosine].test_accuracy: expected 0.935, got 0.93\n  FAIL schedule-free: trial[adamw_cosine].test_loss: expected 0.12381987, got 0.23029594\n  FAIL schedule-free: trial[adamw_cosine].epochs_to_target: expected 80, got None\n  FAIL schedule-free: trial[adamw_constant].test_loss: expected 0.12228349, got 0.19192348\n  FAIL schedule-free: trial[adamw_constant].epochs_to_target: expected 70, got None\n  FAIL schedule-free-mlp: best.name: expected adamw_constant, got sgd_cosine\n  FAIL schedule-free-mlp: trial[adamw_cosine].test_loss: expected 0.12699107, got 0.13997714\n  FAIL schedule-free-mlp: trial[adamw_cosine].epochs_to_target: expected 23, got None\n  FAIL schedule-free-mlp: trial[adamw_constant].test_accuracy: expected 0.93, got 0.935\n  FAIL schedule-free-mlp: trial[adamw_constant].test_loss: expected 0.12501296, got 0.12790861\n  FAIL schedule-free-mlp: trial[adamw_constant].epochs_to_target: expected 22, got 193\n\nTASK RESULT: FAIL\n"
+        },
+        {
+          "label": "recovered: defect undone from the failing assertion alone",
+          "score": 100.0,
+          "tier_label": "tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain",
+          "submission_exit_code": 0,
+          "controls": [],
+          "failing_assertions": [],
+          "exit_code": 0,
+          "raw": "submission score: 100.0/100 (tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain) (184/184 checks, exit 0)\n\nTASK RESULT: PASS\n"
+        },
+        {
+          "label": "final: full scorer including the negative controls",
+          "score": 100.0,
+          "tier_label": "tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain",
+          "submission_exit_code": 0,
+          "controls": [
+            {
+              "name": "no-bias-correction",
+              "outcome": "detected",
+              "detail": "score 83.7/100, exit 1"
+            },
+            {
+              "name": "no-adaptive-scaling",
+              "outcome": "detected",
+              "detail": "score 82.1/100, exit 1"
+            },
+            {
+              "name": "ademamix-without-slow-ema",
+              "outcome": "detected",
+              "detail": "score 94.0/100, exit 1"
+            },
+            {
+              "name": "schedule-free-without-averaging",
+              "outcome": "detected",
+              "detail": "score 94.6/100, exit 1"
+            }
+          ],
+          "failing_assertions": [],
+          "exit_code": 0,
+          "raw": "submission score: 100.0/100 (tier=core; NOT run: capacity-h32, capacity-h8x8, capacity-h64, capacity-h16x16, activation-relu, activation-gelu, norm-layernorm, norm-batchnorm, init-he, init-plain) (184/184 checks, exit 0)\ncontrol[no-bias-correction]: detected (score 83.7/100, exit 1)\ncontrol[no-adaptive-scaling]: detected (score 82.1/100, exit 1)\ncontrol[ademamix-without-slow-ema]: detected (score 94.0/100, exit 1)\ncontrol[schedule-free-without-averaging]: detected (score 94.6/100, exit 1)\n\nTASK RESULT: PASS\n"
+        }
+      ],
+      "solved": true,
+      "description": "recover from a negative control already applied"
+    }
+  }
+}
