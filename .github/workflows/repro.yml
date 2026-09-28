@@ -83,6 +83,8 @@ jobs:
             runs/schedule-free-mlp-tuning
             runs/capacity-h64
             runs/capacity-h16x16
+            runs/activation-relu
+            runs/activation-gelu
             runs/threshold-curves
 
   docker:

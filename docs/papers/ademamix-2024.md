@@ -151,6 +151,26 @@ seeds at `[64]` and 0/10 at `[16,16]`, and was worse on mean test loss in both (
 AdEMAMix reaches the lowest **training** loss of any arm there (0.0944) and the worst **test** loss. This
 is the repository's most robust negative result: five capacities, both model families, ten seeds each.
 
+### The wording the activation expansion forced (§5.14)
+
+The `[32]` capacity was re-run with ReLU and with GELU, and the pre-registered prediction "AdEMAMix has no
+advantage over the AdamW baseline" came out **refuted as written** — which is the most useful result of
+that run. Under ReLU and GELU, AdEMAMix beats a *cosine-scheduled* AdamW in 9/10 and 7/10 seeds… because
+under those activations the scheduled baseline is the weakest arm, not because AdEMAMix improved. Against
+AdamW **at the same learning rate** the difference is 4 × 10⁻⁵ and −1.7 × 10⁻⁴, i.e. still a tie.
+
+So this card's claim is now stated at the precision the evidence supports:
+
+> **AdEMAMix shows no advantage over AdamW at matched settings** — same optimizer, same learning rate —
+> on both model families and five capacities, ten seeds each, with the α = 0 identity (§5.5) as the
+> correctness check. Against a *scheduled* AdamW the outcome depends on the activation, because which
+> baseline is strong is activation-scoped: under tanh the tuned cosine is the best test-loss arm of the
+> AdamW variants, under ReLU/GELU it has the lowest training loss and the worst test loss.
+
+This is a scope correction, not a retraction: the original verdict was measured under tanh, where the
+reference was the strongest AdamW variant, and it holds there. What the new runs remove is the
+generalisation from "no advantage over the baseline" to "no advantage over AdamW".
+
 The slow EMA is designed to pay off over a long horizon (the paper reports language-model training in
 the hundreds of thousands of steps at lr ≈ 1e-3). This task is a 120-epoch full-batch convex problem
 whose parameters converge in ~20–100 steps; there is simply no long horizon for a second, slower

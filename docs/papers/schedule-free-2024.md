@@ -109,6 +109,9 @@ beats schedule-free AdamW in 9/10 seeds** (mean +0.00703 ± 0.00571).
    by 9/10 and 10/10 seeds respectively, so the effect now holds at five MLP capacities and neither
    refutes it. The same section also restates the ranking-reproducibility rule this card depends on:
    a fixed-threshold ranking reproduced only in the suites whose noise floor is lowest (§5.11 finding 7).
+   **And it is not an artefact of `tanh`**: §5.14 re-ran the `[32]` capacity with ReLU and with GELU
+   (pre-registered A1) and schedule-free beat the tuned cosine under both, 8/10 seeds each. The effect now
+   rests on three activations, five capacities and both model families.
 1. **"At worst matches" holds; "out-performs" is not established.** The direction of the
    schedule-free-versus-tuned-cosine comparison **flips with the model**: on the logistic head the tuned
    cosine wins 10/10 (by a tiny 0.00032), on the MLP schedule-free wins 9/10 (by 0.00128). Neither is a

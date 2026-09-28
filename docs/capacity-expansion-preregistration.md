@@ -70,3 +70,21 @@ turn "mid-pack on speed" into a capacity-scoped claim.
    the training curve, so "faster to converge" is never substituted for "better final loss".
 4. Anything that contradicts a published statement gets an explicit correction note in the next release
    body, as `docs/defect-family.md` and §5.11 already do.
+
+## Activation expansion (v0.8.0) — pre-registered
+
+Committed before the runs, same discipline. Motivation: every result so far uses `tanh` hidden
+activations, so the two negative results rest on one modelling choice that has never been varied.
+
+Protocol: the `[32]` capacity with `hidden_activation: "relu"` and with `"gelu"`, 17-trial tuning sweep per
+activation, six arms, ten seeds, threshold curves; tanh at the same capacity already exists and is the
+reference. Everything else is unchanged (200 epochs, full batch, target 0.147).
+
+| # | hypothesis | prediction | refuted if |
+|---|---|---|---|
+| A1 | H2's schedule-free architecture effect does not depend on the activation | schedule-free beats the tuned cosine on mean test loss with ReLU and with GELU | the tuned cosine wins under either activation |
+| A2 | H3's AdEMAMix no-advantage verdict does not depend on the activation | AdEMAMix is better than the AdamW baseline in at most 2/10 seeds under both activations | it wins ≥5/10 under either |
+| A3 | the metric trap (§5.12) does not depend on the activation | the top arm by training loss differs from the top arm by test loss under at least one of the two activations | the two metrics agree at the top under both |
+
+Reporting rule unchanged: a refutation becomes a scope correction ("the effect holds for tanh and
+<activation>, and not for <other>"), never a silent rewrite.

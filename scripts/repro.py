@@ -107,6 +107,20 @@ SUITES: Dict[str, Dict[str, str]] = {
         "label": "capacity expansion: two 16-unit hidden layers (pre-registered hypotheses)",
         "tier": "capacity",
     },
+    "activation-relu": {
+        "config": "examples/activation-relu.json",
+        "output": "runs/activation-relu",
+        "expected": "expected/expected_activation_relu.json",
+        "label": "activation expansion: ReLU hidden units (pre-registered A1-A3)",
+        "tier": "capacity",
+    },
+    "activation-gelu": {
+        "config": "examples/activation-gelu.json",
+        "output": "runs/activation-gelu",
+        "expected": "expected/expected_activation_gelu.json",
+        "label": "activation expansion: GELU hidden units (pre-registered A1-A3)",
+        "tier": "capacity",
+    },
 }
 
 # Tiers exist to save local iteration time, never to hide coverage. Every report line that

@@ -97,6 +97,20 @@ runs/*
 !runs/capacity-expansion-verified/sweeps/
 !runs/capacity-expansion-verified/sweeps/h64-sweep-report.md
 !runs/capacity-expansion-verified/sweeps/h16x16-sweep-report.md
+!runs/activation-verified/
+!runs/activation-verified/relu/
+!runs/activation-verified/relu/results.json
+!runs/activation-verified/relu/report.md
+!runs/activation-verified/relu/seed-sweep-summary.json
+!runs/activation-verified/relu/seed-sweep-summary.md
+!runs/activation-verified/gelu/
+!runs/activation-verified/gelu/results.json
+!runs/activation-verified/gelu/report.md
+!runs/activation-verified/gelu/seed-sweep-summary.json
+!runs/activation-verified/gelu/seed-sweep-summary.md
+!runs/activation-verified/sweeps/
+!runs/activation-verified/sweeps/relu-sweep-report.md
+!runs/activation-verified/sweeps/gelu-sweep-report.md
 
 # Local credentials and editor state
 .env

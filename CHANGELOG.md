@@ -111,6 +111,19 @@ All notable changes to this project are documented here. The format follows
   committed before the headline runs, ten seeds each, and threshold curves as standard. Overfitting
   becomes dominant at `[16,16]`: the arm with the lowest training loss (AdEMAMix, 0.09444) has the worst
   test loss (0.18107), while schedule-free reaches the best test loss (0.11778).
+
+### Added (activation expansion, same release)
+
+- **ReLU and GELU hidden activations** in the MLP trainer (`hidden_activation` config key; exact erf GELU
+  with its derivative verified by the finite-difference check, which caught a variable-shadowing bug on
+  the first attempt). `tanh` remains the default and its arithmetic is unchanged: every existing MLP
+  suite still verifies bit for bit.
+- **The `[32]` capacity re-run with ReLU and with GELU**, every arm retuned (18-trial sweeps), ten seeds,
+  threshold curves, against three pre-registered predictions. A1 confirmed (schedule-free beats the tuned
+  cosine under both activations, 8/10 seeds each), A3 confirmed (the training/test ranking trap appears
+  under both), and **A2 refuted in an informative way**: AdEMAMix is a tie against AdamW at the same rate
+  but wins against a cosine-scheduled AdamW under ReLU/GELU — because under those activations the
+  scheduled baseline is the weakest arm, not AdEMAMix being good.
 - **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
   the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
   lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).

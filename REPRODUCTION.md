@@ -675,18 +675,23 @@ Ten-seed test-loss means, paired against the tuned-cosine baseline:
 
 The per-suite view behind H5 (winner at the suite's pinned threshold, per seed; ten seeds):
 
-| suite | test-loss σ of the best arm | distinct winners at the pinned threshold |
-|---|---:|---:|
-| `optimizers` (logistic) | 0.0199 | **1** (`adagrad` ×10) |
-| `ademamix` (logistic) | 0.0206 | **1** (a three-way tie ×10) |
-| `schedule-free` (logistic) | 0.0200 | 2 |
-| `capacity-h32` | 0.0210 | 3 |
-| `capacity-h64` | 0.0211 | 3 |
-| `optimizers-mlp` | 0.0225 | 4 |
-| `schedule-free-mlp` | 0.0257 | 3 |
-| `ademamix-mlp` | 0.0348 | 3 |
-| `capacity-h16x16` | 0.0381 | 3 |
-| `capacity-h8x8` | 0.0646 | 3 |
+| suite | test-loss σ of the best arm | distinct winners at the pinned threshold | which winners |
+|---|---:|---:|---|
+| `optimizers` (logistic) | 0.0199 | **1** | `adagrad` ×10 |
+| `ademamix` (logistic) | 0.0206 | **1** | a three-way tie ×10 |
+| `schedule-free` (logistic) | 0.0200 | 2 | `adamw_constant` ×7, tie ×3 |
+| `capacity-h32` | 0.0210 | 3 | tie ×6, `schedule_free_adamw` ×4 |
+| `capacity-h64` | 0.0211 | 3 | `schedule_free_adamw` ×7, `adagrad` ×2, tie ×1 |
+| `optimizers-mlp` | 0.0225 | 4 | `adagrad` ×6, `sgd_momentum` ×2, tie ×2 |
+| `schedule-free-mlp` | 0.0257 | 3 | tie ×7, `schedule_free_adamw` ×2 |
+| `ademamix-mlp` | 0.0348 | 3 | `sgd_momentum` ×5, tie ×5 |
+| `capacity-h16x16` | 0.0381 | 3 | `schedule_free_adamw` ×8, tie ×2 |
+| `capacity-h8x8` | 0.0646 | 3 | `schedule_free_adamw` ×7, tie ×3 |
+
+The two columns are the point: **σ and the number of distinct winners move together.** Every suite at
+σ ≥ 0.021 produced between two and four different winners across ten seeds; the only two suites that
+reproduced a single winner are the two with the lowest σ. Whatever the exact cut-off, a reader can
+measure σ before deciding whether a fixed-threshold ranking is quotable.
 
 **What this changes.** H1 and H5 are scope corrections, not retractions. AdaGrad's strengthening is now
 labelled as holding up to `[64]`; §5.11's noise claim keeps its direction but loses the number that was
@@ -696,6 +701,73 @@ capacities now agree that schedule-free beats a tuned cosine on this task and th
 AdamW. H4 and H6 were confirmed, and the `[16,16]` run is the clearest illustration of the metric trap in
 §5.12: AdEMAMix reaches the lowest training loss of any arm there (0.0944) and the worst test loss
 (0.2211 mean over ten seeds).
+
+**The value of pre-registration is not that the prediction was right; it is that a wrong prediction is
+still informative.** H5 is the clearest case in this repository: the pre-registered boundary (σ ≈ 0.03)
+turned out to be wrong, and the *reason* it was wrong — instability already appears at σ ≈ 0.021, near the
+bottom of the observed range — is a sharper statement than the guess was, because it is now anchored to
+the ten measurements in the table above instead of to an intuition. Without the pre-registration this
+would have been reported as "reproducibility correlates with noise" with no number attached; with it, the
+repository can say where the boundary sits in the ranges it has measured, and mark it as provisional
+because two capacities were tested rather than ten.
+
+**Boundary condition (not a separate finding): the newest capacities overfit.** At `[16,16]` the arm with
+the lowest training loss of any arm is also the worst on test loss (AdEMAMix: 0.0944 training, 0.2211 mean
+test), and at `[64]`/`[8,8]` the same inversion is present at smaller scale. This is recorded here as the
+range in which the suite's conclusions were measured — a capacity where training loss stops being a proxy
+for quality — and deliberately **not** developed into a generalisation study: adding regularisation,
+early stopping or a different model-selection rule would change the task and turn a reproduction of
+optimizer claims into a different paper.
+
+### 5.14 Activation expansion, pre-registered: do the two negative results depend on `tanh`?
+
+Every result up to here used `tanh` hidden units, so both negative results rested on one modelling choice
+that had never been varied. The `[32]` capacity was therefore re-run with **ReLU** and with **GELU**
+(exact erf formulation, with its derivative verified by the same finite-difference check), every arm
+retuned for its activation, ten seeds, threshold curves as standard. Predictions A1–A3 were committed in
+`docs/capacity-expansion-preregistration.md` before the runs.
+
+Ten-seed test-loss means, paired against the tuned-cosine baseline:
+
+| arm | tanh `[32]` (§5.10) | ReLU `[32]` | GELU `[32]` |
+|---|---:|---:|---:|
+| adagrad | 0.12555 (9/10 wins) | **0.12562 ± 0.02172** (5/10, +0.00715, 9/10 better) | **0.12617 ± 0.02176** (6/10, +0.00344, 9/10 better) |
+| schedule-free AdamW | 0.13214 (0/10) | 0.12718 ± 0.02284 (1/10, +0.00560, 8/10 better) | 0.12687 ± 0.02176 (3/10, +0.00273, 8/10 better) |
+| ademamix | 0.14508 (1/10) | 0.12824 ± 0.02646 (2/10, +0.00453, 9/10 better) | 0.12706 ± 0.02266 (0/10, +0.00255, 7/10 better) |
+| adamw constant / adam | 0.14425 (0/10) | 0.12828 ± 0.02613 (1/10, 9/10 better) | 0.12691 ± 0.02256 (0/10, 7/10 better) |
+| adamw + tuned cosine (baseline) | 0.13587 | 0.13277 | 0.12960 |
+
+**Verdicts.**
+
+| # | hypothesis | verdict | evidence |
+|---|---|---|---|
+| A1 | the schedule-free architecture effect does not depend on the activation | **confirmed** | it beats the tuned cosine on mean test loss and in 8/10 seeds under both ReLU and GELU; the effect now holds for tanh, ReLU and GELU |
+| A2 | AdEMAMix's no-advantage verdict does not depend on the activation | **refuted as written, and the refutation is informative** | against the tuned-cosine baseline it wins 9/10 (ReLU) and 7/10 (GELU) seeds — but against the AdamW arm *at the same rate* it differs by 4 × 10⁻⁵ and −1.7 × 10⁻⁴, i.e. a tie. What changes is not AdEMAMix, it is the baseline: under ReLU/GELU a cosine-scheduled AdamW is the *weakest* test-loss arm while having the lowest training loss, so "no advantage over the baseline" no longer means "no advantage over AdamW" |
+| A3 | the metric trap does not depend on the activation | **confirmed** | under both activations the top arm by training loss is `adamw_cosine` and the top arm by test loss is `adagrad`, with four of six arms moving at least two places |
+
+**Findings.**
+
+1. **H2 is now activation-independent.** Schedule-free beats a tuned cosine at the `[32]` capacity under
+   tanh, ReLU and GELU. Three activations, five capacities, both model families: this is the most
+   replicated positive result in the repository, and it is a *negative* result about the schedule-free
+   paper's strong claim (it wins against a tuned schedule, but the constant-rate arm still beats it under
+   tanh — the activation changes which baseline is strong, see below).
+2. **H3 needs a sharper wording, and this is a scope correction rather than a retraction.** "AdEMAMix has
+   no advantage over AdamW" holds when the comparison is *matched* — the same optimizer at the same
+   learning rate (differences of 10⁻⁵ and 10⁻⁴ under ReLU/GELU, and the α = 0 identity in §5.5). It does
+   **not** hold when the reference is a *scheduled* AdamW under an activation where the schedule itself
+   is weak. The earlier verdict was measured under tanh, where the tuned cosine was the strongest AdamW
+   variant; under ReLU/GELU it is the weakest on test loss. So the repository now states it as:
+   *AdEMAMix shows no advantage over AdamW at matched settings, on both model families and five
+   capacities; against a cosine-scheduled AdamW the outcome depends on the activation, because it is the
+   baseline that moves.*
+3. **Which baseline is strong is itself activation-scoped.** Under tanh at `[32]` the tuned cosine had the
+   best test loss of the AdamW variants; under ReLU/GELU it has the *lowest training loss* and the worst
+   test loss of the six arms. A reproduction that fixes one activation and calls a baseline "tuned" is
+   therefore measuring the pair (optimizer, activation), not the optimizer.
+4. **The metric trap is activation-independent** (A3): training-loss and test-loss rankings disagree
+   under every activation tested, which strengthens §5.12's rule that both numbers must be pinned and a
+   claim must name the one it is about.
 
 ## 6. Deviations from the paper (and why)
 

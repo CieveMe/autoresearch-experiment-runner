@@ -5,5 +5,5 @@ Each suite is read from its committed loss curves; no experiment was re-run to p
 
 | suite | fastest arm at the tight end | fastest at the loose end | ranking changes (strict) | tied thresholds |
 |---|---|---|---:|---:|
-| `capacity-h64` | `ademamix` | `tie: adam, adamw_constant, ademamix` | 0 | 2 |
-| `capacity-h16x16` | `ademamix` | `tie: adam, adamw_constant, adamw_cosine, ademamix` | 0 | 5 |
+| `activation-relu` | `adamw_cosine` | `adamw_cosine` | 0 | 0 |
+| `activation-gelu` | `adamw_cosine` | `adamw_cosine` | 0 | 0 |

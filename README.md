@@ -73,6 +73,7 @@ python scripts/threshold_curve.py --suite schedule-free --suite schedule-free-ml
 | `examples/schedule-free-mlp.json` | 换 MLP 后同一问题 | **方向翻转**：Schedule-Free 赢过调过的 cosine（**9/10 种子**，+0.00128），达标轮数 11 vs 23；但**常数学习率仍更好**（9/10 赢 Schedule-Free，+0.00703）⇒ 弱形式（"至少打平"）两模型都成立，强形式（"通常超过"）不成立 |
 | `examples/capacity-h32.json`、`capacity-h8x8.json` | 换更大/更深的 MLP，三个结论是否还成立 | **AdEMAMix 无优势：三个容量都稳定**（各只 1/10 种子更好）；**SF 方向翻转是"架构 + 阈值"效应而不是容量效应**（三种 MLP 容量上 SF 都赢调过的 cosine，logistic 上仍输）；**新结果：容量变大后 AdaGrad 在最终测试损失上胜出**（9/10、10/10 种子优于 cosine）；容量越大，**训练损失与测试损失的排名越分家**（[8,8] 上 adam/常数/AdEMAMix 训练最好、测试最差） |
 | `examples/capacity-h64.json`、`capacity-h16x16.json` | 容量再扩到 `[64]` 与两层 `[16,16]`（**假设先写下来再跑**：`docs/capacity-expansion-preregistration.md`） | 见 `REPRODUCTION.md` §5.13 的逐条判定；seed 7 上 `[64]` 是 AdaGrad 最优（测试损失 0.12268、达标 6 轮）、`[16,16]` 是 Schedule-Free 最优（0.11778，而 adam/常数/AdEMAMix 因过拟合落在 0.175–0.181） |
+| `examples/activation-relu.json`、`activation-gelu.json` | 换激活函数（tanh → ReLU/GELU）后，两条负结果是否还成立（预注册 A1–A3） | **A1 确认**：SF 在两种激活下都赢调过的 cosine（各 8/10 种子）⇒ 现覆盖 tanh/ReLU/GELU 三种激活；**A2 按字面被证伪且信息量最大**：AdEMAMix 对"同学习率的 AdamW"仍是持平（差 1e-5 量级），但对"调过 cosine 的 AdamW"在 ReLU/GELU 下反而赢 9/10、7/10——**动的是基线，不是 AdEMAMix**；**A3 确认**：两种激活下训练损失最优都是 cosine、测试损失最优都是 adagrad |
 
 第二个实验给每个优化器家族（SGD / 带动量 SGD / AdaGrad / RMSProp / Adam）都用同一套学习率扫描
 （`examples/optimizers-sweep.json`，24 组）选出自己的学习率，避免"用手选学习率比较调参运气"；

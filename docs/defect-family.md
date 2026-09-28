@@ -79,11 +79,43 @@ identifier. Ties are a result; a tie-break is a choice, and a choice has to be v
 
 ## What the three cases have in common
 
+## Case 4 — a refactor doubled the gradients of deep networks
+
+**Symptom.** After adding configurable hidden activations, the pinned numbers of the two-hidden-layer
+capacity suite stopped reproducing: the test losses moved by 1e-6 to 8e-4, in a code path whose
+arithmetic was supposed to be unchanged.
+
+**Cause.** A patch that was meant to add one derivative expression also re-indented the block that
+accumulates the gradients, moving it *inside* the loop that computes the deltas. For a network with two
+hidden layers that accumulation therefore ran twice, doubling every gradient; for a network with one
+hidden layer the loop ran once and the results stayed correct. The existing finite-difference test used a
+single hidden layer, so it passed while the deep path was wrong.
+
+**How it was found.** Not by the tests: by the pinned expectations of a *deep* suite failing on a fresh
+run. The diagnosis was then mechanical — an independent transliteration of the pre-refactor arithmetic
+showed exactly a factor of two at the output layer, and a finite-difference check on a two-hidden-layer
+net confirmed it (max |numerical − analytic| = 0.245 before the fix, 9.2 × 10⁻¹¹ after).
+
+**Fix.** Accumulate once per row, after every delta is known, and **extend the gradient check to two
+depths**: `test_gradients_match_numerical_differences` now runs `[3]` and `[3, 3]` for each of the three
+activations, six checks instead of one.
+
+**Check that catches it.** `tests/test_ademamix.py`:
+
+* `test_gradients_match_numerical_differences` (parameterised over depth and activation);
+
+plus, indirectly, every pinned expectation belonging to a two-hidden-layer suite.
+
+**Generalisation.** A test that covers one shape covers one shape. When a dimension of the model is
+varying (depth, activation, width), the check has to vary with it, and a refactor of an inner loop is the
+kind of change that is invisible in a diff review but visible in a number.
+
 | case | what the number was | what it should have been | check | test file |
 |---|---|---|---|---|
 | 1 | a ranking in the wrong direction | a ranking in the declared direction | `test_every_metric_the_runner_can_rank_has_a_known_direction` | `tests/test_metric_direction.py` |
 | 2 | ten runs, one initialisation | ten runs, ten seeds | `test_a_multi_seed_sweep_produces_distinct_seeds_not_a_fixed_value` | `tests/test_seed_contract.py` |
 | 3 | a leader produced by alphabetical order | a tie | `test_identical_curves_have_no_crossing` | `tests/test_threshold_curve.py` |
+| 4 | gradients of a deep network doubled by a refactor | gradients of the same network as before | `test_gradients_match_numerical_differences` (two depths) | `tests/test_ademamix.py` |
 
 None of the three would have been caught by looking harder at the *results*: all three produced tables
 that looked reasonable. What caught them was a check on the *machinery* — a declaration of direction, a

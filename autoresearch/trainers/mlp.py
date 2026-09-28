@@ -37,8 +37,36 @@ def _init_params(input_size: int, hidden_sizes: List[int], seed: int) -> Dict[st
     return {"weights": weights, "biases": biases}
 
 
-def _forward(params: Dict[str, Any], features: List[float]) -> Tuple[List[List[float]], float]:
-    """Return (activations per layer, output probability).
+HIDDEN_ACTIVATIONS = ("tanh", "relu", "gelu")
+
+
+def _activate(name: str, value: float) -> float:
+    if name == "tanh":
+        return math.tanh(value)
+    if name == "relu":
+        return value if value > 0.0 else 0.0
+    if name == "gelu":
+        # Exact (erf) GELU rather than the tanh approximation, so the derivative below is exact too.
+        return 0.5 * value * (1.0 + math.erf(value / math.sqrt(2.0)))
+    raise ValueError(f"unsupported hidden activation: {name} (available: {', '.join(HIDDEN_ACTIVATIONS)})")
+
+
+def _activation_derivative(name: str, pre: float, activated: float) -> float:
+    if name == "tanh":
+        return 1.0 - activated ** 2
+    if name == "relu":
+        return 1.0 if pre > 0.0 else 0.0
+    if name == "gelu":
+        cdf = 0.5 * (1.0 + math.erf(pre / math.sqrt(2.0)))
+        density = math.exp(-0.5 * pre * pre) / math.sqrt(2.0 * math.pi)
+        return cdf + pre * density
+    raise ValueError(f"unsupported hidden activation: {name}")
+
+
+def _forward(
+    params: Dict[str, Any], features: List[float], activation: str = "tanh"
+) -> Tuple[List[List[float]], List[List[float]], float]:
+    """Return (activations per layer, pre-activations per layer, output probability).
 
     Hidden layers use tanh; the output layer is linear and the sigmoid is applied to it
     once. That convention matters: with tanh on the output too, the gradient of the loss
@@ -46,20 +74,22 @@ def _forward(params: Dict[str, Any], features: List[float]) -> Tuple[List[List[f
     factor is a ~1% error that looks like a slightly wrong optimizer.
     """
     activations: List[List[float]] = [list(features)]
+    pre_activations: List[List[float]] = []
     current = list(features)
     last_layer = len(params["weights"]) - 1
     for layer, matrix in enumerate(params["weights"]):
         pre = [sum(w * x for w, x in zip(row, current)) + params["biases"][layer][unit]
                for unit, row in enumerate(matrix)]
-        current = pre if layer == last_layer else [math.tanh(value) for value in pre]
+        current = pre if layer == last_layer else [_activate(activation, value) for value in pre]
+        pre_activations.append(pre)
         activations.append(current)
-    return activations, sigmoid(current[0])
+    return activations, pre_activations, sigmoid(current[0])
 
 
-def loss(rows: List[Point], params: Dict[str, Any], weight_decay: float) -> float:
+def loss(rows: List[Point], params: Dict[str, Any], weight_decay: float, activation: str = "tanh") -> float:
     total = 0.0
     for features, label in rows:
-        _, probability = _forward(params, features)
+        _, _, probability = _forward(params, features, activation)
         probability = max(1e-12, min(1.0 - 1e-12, probability))
         total -= label * math.log(probability) + (1 - label) * math.log(1 - probability)
     regularization = weight_decay * sum(
@@ -68,12 +98,12 @@ def loss(rows: List[Point], params: Dict[str, Any], weight_decay: float) -> floa
     return total / len(rows) + regularization
 
 
-def evaluate(rows: List[Point], params: Dict[str, Any], weight_decay: float) -> Dict[str, float]:
+def evaluate(rows: List[Point], params: Dict[str, Any], weight_decay: float, activation: str = "tanh") -> Dict[str, float]:
     correct = 0
     for features, label in rows:
-        _, probability = _forward(params, features)
+        _, _, probability = _forward(params, features, activation)
         correct += int((1 if probability >= 0.5 else 0) == label)
-    return {"accuracy": correct / len(rows), "loss": loss(rows, params, weight_decay)}
+    return {"accuracy": correct / len(rows), "loss": loss(rows, params, weight_decay, activation)}
 
 
 def _alloc_states(optimizer: str, params: Dict[str, Any], config: Dict[str, Any]) -> List[Any]:
@@ -84,7 +114,7 @@ def _alloc_states(optimizer: str, params: Dict[str, Any], config: Dict[str, Any]
     return states
 
 
-def gradients(rows: List[Point], params: Dict[str, Any]) -> Dict[str, Any]:
+def gradients(rows: List[Point], params: Dict[str, Any], activation: str = "tanh") -> Dict[str, Any]:
     """Raw (unnormalised) gradients of the summed loss, for every weight and bias.
 
     Exposed so the training loop and the numerical-gradient test use exactly the same
@@ -95,7 +125,7 @@ def gradients(rows: List[Point], params: Dict[str, Any]) -> Dict[str, Any]:
     # Standard backprop: delta at the output is (p - y) because sigmoid+BCE cancel;
     # hidden deltas are (W_next^T delta_next) * tanh'(z) = ... * (1 - a^2).
     for features, label in rows:
-        activations, probability = _forward(params, features)
+        activations, pre_activations, probability = _forward(params, features, activation)
         deltas: List[List[float]] = [[0.0] * len(matrix) for matrix in params["weights"]]
         deltas[-1] = [probability - label]
         for layer in range(len(params["weights"]) - 2, -1, -1):
@@ -103,14 +133,22 @@ def gradients(rows: List[Point], params: Dict[str, Any]) -> Dict[str, Any]:
             next_delta = deltas[layer + 1]
             deltas[layer] = [
                 sum(next_matrix[unit][self_index] * next_delta[unit] for unit in range(len(next_delta)))
-                * (1.0 - activations[layer + 1][self_index] ** 2)
+                * _activation_derivative(
+                    activation, pre_activations[layer][self_index], activations[layer + 1][self_index]
+                )
                 for self_index in range(len(params["weights"][layer]))
             ]
+        # Accumulate once per row, after every delta is known. This block used to sit inside the
+        # loop above, which doubled the gradients of any network with two hidden layers while
+        # leaving one-hidden-layer networks correct - the finite-difference test now covers both.
         for layer, delta in enumerate(deltas):
             for unit in range(len(params["weights"][layer])):
                 grad_biases[layer][unit] += delta[unit]
-                for index, activation in enumerate(activations[layer]):
-                    grad_weights[layer][unit][index] += delta[unit] * activation
+                # NOTE: the loop variable must not be called `activation`; it would shadow the
+                # function's activation-name parameter and the next row would pass a float to
+                # _forward. tests/test_ademamix.py's finite-difference check catches exactly that.
+                for index, layer_input in enumerate(activations[layer]):
+                    grad_weights[layer][unit][index] += delta[unit] * layer_input
     return {"weights": grad_weights, "biases": grad_biases}
 
 
@@ -120,6 +158,7 @@ def fit(rows: List[Point], config: Dict[str, Any]) -> FitResult:
     max_epochs = int(config.get("epochs", 200))
     tolerance = float(config.get("tolerance", 1e-9))
     hidden_sizes = [int(value) for value in config.get("hidden_sizes", [8])]
+    activation = str(config.get("hidden_activation", "tanh")).lower()
     input_size = len(rows[0][0])
     params = _init_params(input_size, hidden_sizes, int(config.get("init_seed", config.get("seed", 0))))
     states = _alloc_states(optimizer, params, config)
@@ -130,7 +169,7 @@ def fit(rows: List[Point], config: Dict[str, Any]) -> FitResult:
     scale = 1.0 / len(rows)
 
     for epoch in range(1, max_epochs + 1):
-        raw = gradients(rows, params)
+        raw = gradients(rows, params, activation)
         grad_weights, grad_biases = raw["weights"], raw["biases"]
         # Track the evaluation point alongside the training parameters: for schedule-free
         # rules the reported model is the averaged sequence x, not the point y where the
@@ -161,7 +200,7 @@ def fit(rows: List[Point], config: Dict[str, Any]) -> FitResult:
                 )
                 eval_params["weights"][layer][unit] = row_eval
                 eval_params["biases"][layer][unit] = bias_eval
-        final_loss = loss(rows, eval_params, weight_decay)
+        final_loss = loss(rows, eval_params, weight_decay, activation)
         loss_curve.append(final_loss)
         epochs_run = epoch
         if abs(previous_loss - final_loss) < tolerance:
@@ -199,4 +238,9 @@ class MLPTrainer:
         return fit(rows, config)
 
     def evaluate(self, rows: List[Point], params: Any, config: Dict[str, Any]) -> Dict[str, float]:
-        return evaluate(rows, params, float(config.get("weight_decay", 0.0)))
+        return evaluate(
+            rows,
+            params,
+            float(config.get("weight_decay", 0.0)),
+            str(config.get("hidden_activation", "tanh")).lower(),
+        )

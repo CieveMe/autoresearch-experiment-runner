@@ -76,26 +76,52 @@ class ScheduleTests(unittest.TestCase):
 
 class MLPTrainerTests(unittest.TestCase):
     def test_gradients_match_numerical_differences(self):
+        """Checked for every hidden activation and for one *and two* hidden layers.
+
+        The depth dimension is not optional: a mis-indented accumulation block once doubled the
+        gradients of two-hidden-layer nets while leaving one-hidden-layer nets correct, so a
+        single-depth check passed while the deep path was wrong.
+        """
+        for hidden_sizes in ([3], [3, 3]):
+            for activation in ("tanh", "relu", "gelu"):
+                with self.subTest(hidden_sizes=hidden_sizes, activation=activation):
+                    self._gradient_check(activation, hidden_sizes)
+
+    def _gradient_check(self, activation: str, hidden_sizes: list):
         """A backprop sign/index error looks exactly like 'the method does not work',
         so the analytic gradient is checked against finite differences."""
         train_rows = rows()[:20]
-        config = {"hidden_sizes": [3], "seed": 11, "weight_decay": 0.0}
-        params = mlp._init_params(len(train_rows[0][0]), [3], 11)
+        config = {"hidden_sizes": hidden_sizes, "seed": 11, "weight_decay": 0.0}
+        params = mlp._init_params(len(train_rows[0][0]), hidden_sizes, 11)
         epsilon = 1e-6
         scale = 1.0 / len(train_rows)
-        analytic_gradients = mlp.gradients(train_rows, params)
+        analytic_gradients = mlp.gradients(train_rows, params, activation)
         for layer, matrix in enumerate(params["weights"]):
             for unit, row in enumerate(matrix):
                 for index in range(len(row)):
                     original = row[index]
                     row[index] = original + epsilon
-                    high = mlp.loss(train_rows, params, 0.0)
+                    high = mlp.loss(train_rows, params, 0.0, activation)
                     row[index] = original - epsilon
-                    low = mlp.loss(train_rows, params, 0.0)
+                    low = mlp.loss(train_rows, params, 0.0, activation)
                     row[index] = original
                     numerical = (high - low) / (2 * epsilon)
                     analytic = analytic_gradients["weights"][layer][unit][index] * scale
                     self.assertAlmostEqual(numerical, analytic, places=6, msg=f"W{layer}[{unit}][{index}]")
+
+    def test_relu_and_gelu_train_deterministically(self):
+        for activation in ("relu", "gelu"):
+            with self.subTest(activation=activation):
+                config = {"optimizer": "adam", "learning_rate": 0.1, "epochs": 25,
+                          "hidden_sizes": [4], "seed": 3, "hidden_activation": activation}
+                first = mlp.fit(rows(), config)
+                second = mlp.fit(rows(), config)
+                self.assertEqual(first.loss_curve, second.loss_curve)
+                self.assertLess(first.final_loss, 1.0)
+
+    def test_unknown_activation_is_rejected(self):
+        with self.assertRaises(ValueError):
+            mlp.fit(rows(), {"optimizer": "adam", "epochs": 2, "hidden_activation": "swish"})
 
     def test_training_is_deterministic(self):
         config = {"optimizer": "adam", "learning_rate": 0.1, "epochs": 25, "hidden_sizes": [4], "seed": 3}

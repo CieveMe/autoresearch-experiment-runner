@@ -1,0 +1,48 @@
+{
+  "task": "activation expansion, hidden [32] with ReLU: tuning sweep (pre-registered A1-A3)",
+  "paper": {
+    "title": "Activation expansion (Adam 2014, AdEMAMix 2024, Schedule-Free 2024)",
+    "authors": "see docs/papers/",
+    "year": 2026,
+    "identifier": "internal-activation-expansion"
+  },
+  "hypothesis": "Pre-registered A1-A3 in docs/capacity-expansion-preregistration.md: the schedule-free architecture effect (A1) and AdEMAMix's no-advantage verdict (A2) should not depend on the hidden activation, and neither should the metric trap (A3). Rates must be retuned for ReLU.",
+  "metric": "test_loss",
+  "seed": 7,
+  "trainer": "mlp",
+  "hidden_sizes": [32],
+  "hidden_activation": "relu",
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw_cosine_lr0.01",
+    "optimizer": "adamw",
+    "learning_rate": 0.01,
+    "schedule": "cosine",
+    "min_lr_factor": 0.1,
+    "epochs": 200
+  },
+  "experiments": [
+    {"name": "adamw_cosine_lr0.003", "optimizer": "adamw", "learning_rate": 0.003, "schedule": "cosine", "min_lr_factor": 0.1, "epochs": 200},
+    {"name": "adamw_cosine_lr0.03", "optimizer": "adamw", "learning_rate": 0.03, "schedule": "cosine", "min_lr_factor": 0.1, "epochs": 200},
+    {"name": "adamw_cosine_lr0.1", "optimizer": "adamw", "learning_rate": 0.1, "schedule": "cosine", "min_lr_factor": 0.1, "epochs": 200},
+    {"name": "adamw_constant_lr0.003", "optimizer": "adamw", "learning_rate": 0.003, "epochs": 200},
+    {"name": "adamw_constant_lr0.01", "optimizer": "adamw", "learning_rate": 0.01, "epochs": 200},
+    {"name": "adamw_constant_lr0.03", "optimizer": "adamw", "learning_rate": 0.03, "epochs": 200},
+    {"name": "adam_lr0.003", "optimizer": "adam", "learning_rate": 0.003, "epochs": 200},
+    {"name": "adam_lr0.01", "optimizer": "adam", "learning_rate": 0.01, "epochs": 200},
+    {"name": "adam_lr0.03", "optimizer": "adam", "learning_rate": 0.03, "epochs": 200},
+    {"name": "adagrad_lr0.01", "optimizer": "adagrad", "learning_rate": 0.01, "epochs": 200},
+    {"name": "adagrad_lr0.03", "optimizer": "adagrad", "learning_rate": 0.03, "epochs": 200},
+    {"name": "adagrad_lr0.1", "optimizer": "adagrad", "learning_rate": 0.1, "epochs": 200},
+    {"name": "ademamix_lr0.003", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "learning_rate": 0.003, "epochs": 200},
+    {"name": "ademamix_lr0.01", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "learning_rate": 0.01, "epochs": 200},
+    {"name": "ademamix_lr0.03", "optimizer": "ademamix", "alpha": 2.0, "beta3": 0.9999, "learning_rate": 0.03, "epochs": 200},
+    {"name": "schedule_free_adamw_lr0.003", "optimizer": "schedule_free_adamw", "learning_rate": 0.003, "epochs": 200},
+    {"name": "schedule_free_adamw_lr0.01", "optimizer": "schedule_free_adamw", "learning_rate": 0.01, "epochs": 200},
+    {"name": "schedule_free_adamw_lr0.03", "optimizer": "schedule_free_adamw", "learning_rate": 0.03, "epochs": 200}
+  ]
+}

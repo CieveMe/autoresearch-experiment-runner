@@ -24,6 +24,7 @@ LOWER_IS_BETTER_METRICS = frozenset(
 TRIAL_INHERITED_KEYS = (
     "trainer",
     "hidden_sizes",
+    "hidden_activation",
     "init_seed",
     "seed",  # so a trainer that initialises from the seed (the MLP) varies with the sweep seed
     "schedule",
