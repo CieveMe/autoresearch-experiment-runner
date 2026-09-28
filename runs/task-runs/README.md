@@ -19,6 +19,11 @@ recorded in `T-ADAM-01C.md`.
 
 ## Quotable output
 
+**The quote a release body or any outward-facing claim must use is the full-tier one**, in
+[`FULL-TIER.md`](FULL-TIER.md): `100.0/100 (tier=full (all suites)) (474/474 checks, exit 0)` with all
+four controls detected. The core-tier lines below are process evidence — they show the score curve the
+variants climb — and they say so in their own tier label.
+
 `T-ADAM-01B`, after the implementation (identical for 01D, which converges on the same tree):
 
 ```

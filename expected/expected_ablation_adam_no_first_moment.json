@@ -37,6 +37,7 @@
     "T-ADAM-01C ablation, pre-registered in the config hypothesis field and committed before the run: at the matched, already-tuned rate, removing Adam&apos;s first moment should be FASTER to the target and end WORSE.",
     "Seed 7: adam reaches 0.16 in 33 epochs with test loss 0.12346246; adam_beta1_0 needs 61 epochs and ends at 0.12646126 - the first half of the prediction is refuted.",
     "Ten seeds (runs/ablation-verified/seed-sweep-summary.md): adam 22.6 epochs / 0.12571 test loss, adam_beta1_0 41.1 epochs / 0.12824, and beta1 = 0 is faster in 0/10 seeds and better on test loss in 0/10.",
-    "Matched rate by design; the grid was not re-swept per arm, which is the ablation&apos;s stated limitation rather than a tuning claim."
+    "Matched rate by design; the grid was not re-swept per arm, which is the ablation&apos;s stated limitation rather than a tuning claim.",
+    "Scope guard: this is a comparison *within* one rule (beta1 = 0.9 vs 0), not a statement about AdEMAMix versus AdamW, which the repository reports separately as no advantage at matched settings. The first moment matters inside the family; the extra slow moment does not pay for itself across families."
   ]
 }

@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -10,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from autoresearch.runner import config_sha256
-from scripts.score_task import NEGATIVE_CONTROLS
+from scripts.score_task import NEGATIVE_CONTROLS, _ignore as scored_copy_ignore
 from scripts.seed_sweep import _aggregate, parse_seeds
 from scripts.verify_results import DEFAULT_EXPECTED, verify
 
@@ -114,6 +115,41 @@ class NegativeControlTests(unittest.TestCase):
                     self.assertIn(mutation["old"], source, f"{name} in {target.name}")
 
     def test_every_control_fragment_changes_the_numbers_it_mutates(self):
+        """Presence is not enough: the fragment has to be in the code that runs.
+
+        Case 6a. A rewrite that leaves the original branch behind as dead code satisfies every fragment
+        check while the code that actually executes is untouched — the controls then report that a broken
+        implementation passed, and the harness has lost its teeth. This happened for real while running
+        the T-ADAM-01B variant, so the guard is behavioural: mutate a throwaway copy, run one tiny
+        experiment with the optimizer the mutation targets, and require the loss to move.
+        """
+        self._check_control_liveness()
+
+    def test_the_scored_copy_can_run_the_repositorys_own_tests(self):
+        """Case 6b: the copy the scorer builds must be isomorphic enough to run the real suite.
+
+        The scorer copies the repository before mutating it. When that copy dropped the committed
+        per-seed sweeps, the analysis tests failed inside every scored tree, a perfect submission
+        reported ``exit 1``, and two controls came back *missed* — a verdict about the copy rather than
+        about the submission. The guard is the property itself: build the copy the way `score_task.py`
+        builds it and require the repository's own suite to pass inside it.
+        """
+        if os.environ.get("AUTORESEARCH_COPY_CHECK"):
+            self.skipTest("already running inside a scored copy")
+        with tempfile.TemporaryDirectory() as temporary:
+            copy = Path(temporary) / "scored"
+            shutil.copytree(ROOT, copy, ignore=scored_copy_ignore)
+            environment = dict(os.environ, AUTORESEARCH_COPY_CHECK="1")
+            result = subprocess.run(
+                [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
+                cwd=str(copy), env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                text=True, encoding="utf-8", errors="replace",
+            )
+            self.assertEqual(result.returncode, 0,
+                             "the scored copy cannot run the repository's own tests:\n"
+                             + result.stdout[-2000:])
+
+    def _check_control_liveness(self):
         """Presence is not enough: the fragment has to be in the code that runs.
 
         A rewrite that leaves the original branch behind as dead code satisfies every fragment check

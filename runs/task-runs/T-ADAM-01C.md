@@ -46,6 +46,20 @@ every seed. "The averaged first moment is what survives the noise, and losing it
 right. The first moment is doing work on both axes here, which is a more useful statement than the
 prediction it replaced.
 
+## One thing this ablation is not
+
+That β1 earns its place inside this update rule is **not** evidence about the AdEMAMix-versus-AdamW
+comparison, and the two must not be merged into a contradiction later:
+
+* this ablation compares **two configurations of one rule** (β1 = 0.9 against β1 = 0) at a matched
+  learning rate, and it says the momentum term matters inside the family;
+* the repository's negative result compares **two rules at matched settings** (AdEMAMix against AdamW)
+  and says the slow EMA buys nothing measurable on this task.
+
+Both sentences can be true at once, and they are about different pairs. The one-line summary is:
+*the first moment matters within the family; the extra slow moment does not pay for itself across
+families.*
+
 ## What this shows about the task contract
 
 The point of T-ADAM-01C is not that the ablation found something; it is that **a candidate can be scored

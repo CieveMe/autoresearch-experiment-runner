@@ -1,10 +1,11 @@
-# The defect family: five ways a number came from something other than the experiment
+# The defect family: six ways a number came from something other than the experiment
 
 This is a named section, not an appendix: it is the part of this repository a reviewer should read
-first, because every empirical claim elsewhere depends on it. Five defects were found here, all of the
-same kind — **a reported number was produced by something other than the experiment: the harness, or the
-person assembling the table** — and each one was caught by a *different* mechanical check. That is the
-argument for building those checks before trusting any result.
+first, because every empirical claim elsewhere depends on it. Six defects were found here, all of the
+same kind — **a reported number, or a reported verdict, was produced by something other than the
+experiment: the harness, the person assembling the table, or the checker that stopped checking** — and
+each one was caught by a *different* mechanical check. That is the argument for building those checks
+before trusting any result.
 
 ## Case 1 — the metric direction was inverted
 
@@ -115,6 +116,8 @@ kind of change that is invisible in a diff review but visible in a number.
 | 3 | a leader produced by alphabetical order | a tie | `test_identical_curves_have_no_crossing` | `tests/test_threshold_curve.py` |
 | 4 | gradients of a deep network doubled by a refactor | gradients of the same network as before | `test_gradients_match_numerical_differences` (two depths) | `tests/test_ademamix.py` |
 | 5 | a table column assembled by hand, not reproducible under its own heading | every statistic produced by a function with its definition named | `test_the_noise_statistics_are_reproducible_and_disagree_with_the_old_table` | `tests/test_figures.py` |
+| 6a | four "detected" verdicts produced by fragments that had moved into dead code | a control that demonstrably changes the code that runs | `test_every_control_fragment_changes_the_numbers_it_mutates` | `tests/test_harness.py` |
+| 6b | a score of "exit 1, two controls missed" produced by a copier that dropped the inputs | a scored copy that is isomorphic to the repository it claims to score | `test_the_scored_copy_can_run_the_repositorys_own_tests` | `tests/test_harness.py` |
 
 ## Case 5 — a table column that came from the author, not from a definition
 
@@ -157,21 +160,84 @@ drift apart — otherwise the number is a memory of the run, not a result of it.
 argument for drawing the figures early rather than last: the plot disagreed with the table, and the
 table was wrong.
 
-## What the five cases have in common
+## Case 6 — the checker stopped checking (two members, found by running the task)
 
-None of the five would have been caught by looking harder at the *results*: all five produced tables that
-looked reasonable. What caught them was a check on the *machinery* — a declaration of direction, a
-contract on the seed, a negative control for the tie, a gradient check that varies with the shape of the
-model, and a generator for every statistic in a table. That is the pattern this repository recommends:
-for every derived number, assert the property that makes it a number about the experiment rather than
-about the code or the author, and prefer a check that fails loudly when a new input arrives without a
-declaration.
+The first five cases are about a *number*. This one is about a *verdict*: the harness went on reporting
+success while it had stopped testing anything. It has two members, both found while running the
+T-ADAM-01 variants for real (`runs/task-runs/`), and they are numbered together because they share the
+mechanism — the verdict was produced by the machinery around the experiment rather than by the
+experiment — and the same repair shape: make the guard demonstrate its own liveness.
 
-The five also differ in *how* they were found, which is the more useful observation. Cases 1 and 3 were
+### 6a — four controls "detected" by fragments that had moved into dead code
+
+**Symptom.** T-ADAM-01B's second attempt implemented Adam correctly, passed every pinned expectation and
+scored **100/100** — while **two of the four negative controls came back `missed`**. A harness whose
+controls report that a broken implementation passed has silently lost its teeth, and the failure showed up
+on exactly the number everybody reads.
+
+**Cause.** The implementation left the original branch behind as dead code. The controls mutate by
+*replacing text*, so every fragment still matched, the replacements landed in code that never runs, and
+the mutations had no effect. The repository's own guard,
+`test_every_control_fragment_still_exists_in_the_source_it_names`, checks that the fragment is *present* —
+which dead code satisfies.
+
+**How it was found.** By running the variant: a score of 100/100 with two controls missed is not
+ambiguous, but nothing short of executing the loop produces it. The static check was green the whole time.
+
+**Check that catches it.** `tests/test_harness.py`:
+
+* `test_every_control_fragment_changes_the_numbers_it_mutates` — the behavioural version: mutate a
+  throwaway copy, run one six-epoch experiment with the optimizer the control targets, and require the
+  loss to move.
+
+**Fix.** The liveness probe also runs after every attempt of the T-ADAM-01B variant, and the variant's
+acceptance criterion is no longer the score alone: pinned 100/100 **and** submission `exit 0` **and** every
+control detected. `TASK.md` §9 now states that the implementation must stay drop-in at the mutation
+points.
+
+### 6b — "exit 1, two controls missed" produced by a copier that dropped the inputs
+
+**Symptom.** A perfect submission reported `exit 1`, and the same two controls above were reported missed
+in every scored copy — but for a completely different reason.
+
+**Cause.** The scorer copies the repository before mutating it, and its copy filter kept only
+`runs/*-verified` under `runs/`. The paired-statistics and figure tests read the committed per-seed
+sweeps (`runs/seed-sweep-*/seed-*/results.json`), which were neither committed nor copied. So the copy was
+not the repository: tests failed on missing inputs, the exit code was 1, and the control verdicts
+described the copy rather than the submission.
+
+**How it was found.** The two members were distinguished by a single experiment: the same tree scored
+`exit 0` with `--skip-controls` and `exit 1` with them, which located the fault in the harness rather than
+in the submission. (The same class of bug would have hit any fresh clone: the data was gitignored.)
+
+**Check that catches it.** `tests/test_harness.py`:
+
+* `test_the_scored_copy_can_run_the_repositorys_own_tests` — build the copy the scorer builds and require
+  the repository's own suite to pass inside it.
+
+**Fix.** The 7.4 MB of per-seed sweeps are committed, and the copy filter keeps them (`scripts/score_task.py`).
+
+**Generalisation for the pair.** A guard has to be able to show that it is live: presence of a fragment is
+not liveness of a mutation, and a copy is not the thing it claims to score. Both members were invisible to
+static checks and obvious the moment the machinery was executed end to end, which is the same lesson as
+case 5 — the audit has to be run, not asserted.
+
+## What the six cases have in common
+
+None of the six would have been caught by looking harder at the *results*: all six produced tables, or
+verdicts, that looked reasonable. What caught them was a check on the *machinery* — a declaration of
+direction, a contract on the seed, a negative control for the tie, a gradient check that varies with the
+shape of the model, a generator for every statistic in a table, and a liveness probe for every guard.
+That is the pattern this repository recommends: for every derived number, assert the property that makes
+it a number about the experiment rather than about the code or the author, and prefer a check that fails
+loudly when a new input arrives without a declaration.
+
+The six also differ in *how* they were found, which is the more useful observation. Cases 1 and 3 were
 caught by a purpose-built check; case 2 was caught by re-reading a contract; case 4 was caught by a
-pinned expectation of an *unrelated* suite failing; case 5 was caught by drawing a figure. Cases 4 and 5
-required nobody to have anticipated the problem, which is why the pinned numbers and the plots are a
-safety net and not just regression tests.
+pinned expectation of an *unrelated* suite failing; case 5 was caught by drawing a figure; case 6 was
+caught by running the task end to end. Cases 4–6 required nobody to have anticipated the problem, which
+is why the pinned numbers, the plots and an actual run of the harness are a safety net and not just
+regression tests.
 
 ## How to apply it to a new experiment
 
@@ -185,3 +251,9 @@ safety net and not just regression tests.
    and let a test compare the two — a number with no generator is a memory of the run, not a result.
 6. Draw the figures before the prose. Case 5 was found by a plot disagreeing with a published column,
    and a plot is cheap to make once the numbers already exist.
+7. Make every guard demonstrate its own liveness (case 6a). A mutation that lands in dead code, or a
+   fragment that is only *present*, produces a green check over an untested implementation.
+8. Make anything the harness copies isomorphic to the repository it claims to score (case 6b), and prove
+   it by running the repository's own suite inside the copy.
+9. Run the task itself. Cases 4, 5 and 6 were all found by executing the machinery rather than reading
+   it, and none of them was visible to a static check that was already green.
