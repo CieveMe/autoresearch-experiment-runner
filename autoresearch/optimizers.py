@@ -21,7 +21,14 @@ SUPPORTED_OPTIMIZERS = (
     "adam",
     "adamw",
     "ademamix",
+    "schedule_free_adamw",
+    "schedule_free_sgd",
 )
+
+# Rules that keep two sequences and are evaluated at the averaged one. Everything that
+# reads the model's parameters has to go through `eval_params` for these, or the reported
+# loss would be measured at the training point while the parameter update lives elsewhere.
+SCHEDULE_FREE_OPTIMIZERS = ("schedule_free_adamw", "schedule_free_sgd")
 
 
 def initial_state(optimizer: str, size: int, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -160,7 +167,80 @@ def apply_update(
         update = (state["bias_exp_avg_fast"] / bias_correction1 + alpha * state["bias_exp_avg_slow"]) / denom
         return bias - learning_rate * (update + weight_decay * bias)
 
+    if optimizer in SCHEDULE_FREE_OPTIMIZERS:
+        # Schedule-Free (arXiv:2405.15682), transliterated from
+        # `adamw_schedulefree_reference.py`: keep z (the point the update moves) and x (the
+        # running average of z), evaluate at x, and take gradients at the interpolation
+        # y = beta1*x + (1-beta1)*z. `epoch` plays the role of the reference's k+1.
+        beta1 = float(config.get("beta1", 0.9))
+        beta2 = float(config.get("beta2", 0.999))
+        average_power = float(config.get("average_power", 0.0))
+        weight_lr_power = float(config.get("weight_lr_power", 2.0))
+        warmup_steps = int(config.get("warmup_steps", 0))
+        weight_decay = float(config.get("weight_decay", 0.0))
+        if "z" not in state:
+            state["z"] = list(weights)
+            state["x"] = list(weights)
+            state["exp_avg_sq"] = [0.0] * len(weights)
+            state["bias_z"] = bias
+            state["bias_x"] = bias
+            state["bias_exp_avg_sq"] = 0.0
+            state["lr_max"] = 0.0
+            state["weight_sum"] = 0.0
+        step = epoch
+        schedule = (step / warmup_steps) if (warmup_steps and step <= warmup_steps) else 1.0
+        learning_rate = float(config.get("learning_rate", 0.15)) * schedule
+        state["lr_max"] = max(learning_rate, state["lr_max"])
+        weight = (step ** average_power) * (state["lr_max"] ** weight_lr_power)
+        state["weight_sum"] += weight
+        ckp1 = (weight / state["weight_sum"]) if state["weight_sum"] else 0.0
+        bias_correction2 = 1.0 - beta2**step
+        z_values = state["z"]
+        x_values = state["x"]
+        squared = state["exp_avg_sq"]
+        for index, gradient in enumerate(gradients):
+            if weight_decay:
+                # decay_at_y is the reference default
+                z_values[index] -= learning_rate * weight_decay * weights[index]
+            if optimizer == "schedule_free_adamw":
+                squared[index] = beta2 * squared[index] + (1.0 - beta2) * gradient * gradient
+                denom = math.sqrt(squared[index] / bias_correction2) + epsilon
+                z_values[index] -= learning_rate * gradient / denom
+            else:
+                z_values[index] -= learning_rate * gradient
+            x_values[index] = (1.0 - ckp1) * x_values[index] + ckp1 * z_values[index]
+            weights[index] = beta1 * x_values[index] + (1.0 - beta1) * z_values[index]
+        if weight_decay:
+            state["bias_z"] -= learning_rate * weight_decay * bias
+        if optimizer == "schedule_free_adamw":
+            state["bias_exp_avg_sq"] = (
+                beta2 * state["bias_exp_avg_sq"] + (1.0 - beta2) * bias_gradient * bias_gradient
+            )
+            denom = math.sqrt(state["bias_exp_avg_sq"] / bias_correction2) + epsilon
+            state["bias_z"] -= learning_rate * bias_gradient / denom
+        else:
+            state["bias_z"] -= learning_rate * bias_gradient
+        state["bias_x"] = (1.0 - ckp1) * state["bias_x"] + ckp1 * state["bias_z"]
+        return beta1 * state["bias_x"] + (1.0 - beta1) * state["bias_z"]
+
     # plain stochastic gradient descent
     for index, gradient in enumerate(gradients):
         weights[index] -= learning_rate * gradient
     return bias - learning_rate * bias_gradient
+
+
+def eval_params(
+    optimizer: str,
+    weights: List[float],
+    bias: float,
+    state: Dict[str, Any],
+) -> tuple:
+    """The parameters to *report*: the averaged sequence for schedule-free rules.
+
+    The reference implementation evaluates in `.eval()` mode at `x`, never at `y`; using the
+    training point for metrics would make the comparison with scheduled baselines unfair in
+    the method's favour, because `y` is the point the update was just pulled towards.
+    """
+    if optimizer in SCHEDULE_FREE_OPTIMIZERS and "x" in state:
+        return state["x"], state["bias_x"]
+    return weights, bias

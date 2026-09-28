@@ -76,6 +76,18 @@ NEGATIVE_CONTROLS: Dict[str, List[Dict[str, str]]] = {
             "new": "update = (exp_avg_fast[index] / bias_correction1) / denom",
         },
     ],
+    "schedule-free-without-averaging": [
+        {
+            "file": "autoresearch/optimizers.py",
+            "old": "            x_values[index] = (1.0 - ckp1) * x_values[index] + ckp1 * z_values[index]",
+            "new": "            x_values[index] = z_values[index]",
+        },
+        {
+            "file": "autoresearch/optimizers.py",
+            "old": "        state[\"bias_x\"] = (1.0 - ckp1) * state[\"bias_x\"] + ckp1 * state[\"bias_z\"]",
+            "new": "        state[\"bias_x\"] = state[\"bias_z\"]",
+        },
+    ],
 }
 
 

@@ -67,6 +67,12 @@ SUITES: Dict[str, Dict[str, str]] = {
         "expected": "expected/expected_ademamix_mlp.json",
         "label": "AdEMAMix on the MLP trainer (speed versus final quality)",
     },
+    "schedule-free": {
+        "config": "examples/schedule-free.json",
+        "output": "runs/schedule-free",
+        "expected": "expected/expected_schedule_free.json",
+        "label": "Schedule-Free AdamW against a tuned cosine schedule (2024)",
+    },
 }
 
 

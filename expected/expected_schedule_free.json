@@ -1,0 +1,69 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 3592a75bdfd388764ba55cf75fe77af25b2e25a7ce4240eb5c9f226259f0d779",
+  "config": "examples/schedule-free.json",
+  "config_sha256": "3592a75bdfd388764ba55cf75fe77af25b2e25a7ce4240eb5c9f226259f0d779",
+  "metric": "test_loss",
+  "best": "adamw_constant",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.4,
+      "schedule": "cosine",
+      "min_lr_factor": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12381987,
+      "epochs_to_target": 80
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.4,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12228349,
+      "epochs_to_target": 70
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.4,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12395906,
+      "epochs_to_target": 154
+    },
+    "sgd_cosine": {
+      "optimizer": "sgd",
+      "learning_rate": 0.6,
+      "schedule": "cosine",
+      "min_lr_factor": 0.0,
+      "epochs": 199,
+      "test_accuracy": 0.935,
+      "test_loss": 0.2159042,
+      "epochs_to_target": null
+    },
+    "schedule_free_sgd": {
+      "optimizer": "schedule_free_sgd",
+      "learning_rate": 0.6,
+      "epochs": 200,
+      "test_accuracy": 0.94,
+      "test_loss": 0.1954666,
+      "epochs_to_target": null
+    }
+  },
+  "notes": [
+    "The schedule-free rule is a transliteration of adamw_schedulefree_reference.py and is cross-checked against a literal re-implementation of that reference in tests/test_schedule_free.py.",
+    "Reported metrics use the averaged sequence (x), which is what the reference implementation's eval() mode evaluates; measuring at the training point would flatter the method.",
+    "The cosine baseline is tuned over both learning rate and min_lr_factor (examples/schedule-free-sweep.json, 21 trials), because an untuned baseline would make the paper's claim untestable.",
+    "Seed 7: schedule-free matches the tuned cosine on final test loss (0.12395906 vs 0.12381987, 0.1% apart) but takes about twice as long to reach the target (154 vs 80 epochs), and a plain constant learning rate is better than both on final loss (0.12228349)."
+  ]
+}

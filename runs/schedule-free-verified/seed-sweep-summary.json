@@ -1,0 +1,192 @@
+{
+  "schema": "autoresearch-lite/seed-sweep@1",
+  "metric": "test_loss",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed_count": 10,
+  "base_config": "examples\\schedule-free.json",
+  "base_config_sha256": "3592a75bdfd388764ba55cf75fe77af25b2e25a7ce4240eb5c9f226259f0d779",
+  "seed_config_sha256": {
+    "seed-0": "8d002f28d41a40e24b007aac1a5254fa4cf4e622fc3f3b344c3b635efd7eda3e",
+    "seed-1": "050fb31bf67dbda8022d21dea9610fdfb632ea61bba070abb6c08740656b3788",
+    "seed-2": "2be1971ffd7c30993c6e398ecbaa221bf05b284094ed679bf3e58ce90657d603",
+    "seed-3": "4825136495070eed394cedd14258e0c7ba02da44f4dcd04233e8832a36318ff6",
+    "seed-4": "7e4dbf6e3cb97631e576fdcde1ddc94907ca9e79fb0067156d333faed9994c90",
+    "seed-5": "669f265148793fd90efa3a91e639e24c002e25134434abd45a88dd561433eb45",
+    "seed-6": "d52541c4ff3d57a06b93b50502631929999136f0f9cc2d098ab7cdda724cd607",
+    "seed-7": "a2d00b14e83b6425fdb12e94d5dd9a28bcf713f71216f836f234336c2c6854e6",
+    "seed-8": "c8b00e12c5fb97d8162b8af6c5035a0e7563ce5d7790b9fc9cc2d5ddd0cb7c6a",
+    "seed-9": "9b0a950e08cab82e26d3d031ae63ea2724f5a6a9ecf32da22da10ba0c0a83775"
+  },
+  "paper": {
+    "title": "Schedule-Free Learning: Replacing Schedules with Iteration-Based Averages",
+    "authors": "Aaron Defazio, Xingyu Yang, Harsh Mehta, Konstantin Mishchenko, Ahmed Khaled, Ashok Cutkosky",
+    "year": 2024,
+    "identifier": "arXiv:2405.15682"
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.4,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.12609693,
+      "metric_stdev": 0.01946999,
+      "metric_min": 0.08637586,
+      "metric_max": 0.15520851,
+      "test_accuracy_mean": 0.943,
+      "test_accuracy_stdev": 0.017353,
+      "wins": 3,
+      "win_rate": 0.3
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.4,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.12448148,
+      "metric_stdev": 0.02004526,
+      "metric_min": 0.08398865,
+      "metric_max": 0.15593921,
+      "test_accuracy_mean": 0.943,
+      "test_accuracy_stdev": 0.017353,
+      "wins": 7,
+      "win_rate": 0.7
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.4,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.12641856,
+      "metric_stdev": 0.01951518,
+      "metric_min": 0.08651179,
+      "metric_max": 0.15544331,
+      "test_accuracy_mean": 0.943,
+      "test_accuracy_stdev": 0.017353,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "sgd_cosine": {
+      "optimizer": "sgd",
+      "learning_rate": 0.6,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.21655121,
+      "metric_stdev": 0.01913303,
+      "metric_min": 0.17983007,
+      "metric_max": 0.24178287,
+      "test_accuracy_mean": 0.945,
+      "test_accuracy_stdev": 0.013333,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "schedule_free_sgd": {
+      "optimizer": "schedule_free_sgd",
+      "learning_rate": 0.6,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.19638962,
+      "metric_stdev": 0.01936207,
+      "metric_min": 0.15849437,
+      "metric_max": 0.22138863,
+      "test_accuracy_mean": 0.9465,
+      "test_accuracy_stdev": 0.013134,
+      "wins": 0,
+      "win_rate": 0.0
+    }
+  },
+  "paired_improvement": {
+    "adamw_cosine": {
+      "adamw_constant": {
+        "better_in": 7,
+        "worse_in": 3,
+        "incomparable": 0,
+        "mean_improvement": 0.00161545,
+        "stdev_improvement": 0.00181455,
+        "min_improvement": -0.0007307000000000008,
+        "max_improvement": 0.004419300000000015
+      },
+      "schedule_free_adamw": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.00032163,
+        "stdev_improvement": 0.00020836,
+        "min_improvement": -0.0007201899999999817,
+        "max_improvement": -0.00013593000000000632
+      },
+      "sgd_cosine": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.09045427,
+        "stdev_improvement": 0.00871597,
+        "min_improvement": -0.10467137999999998,
+        "max_improvement": -0.07919467999999999
+      },
+      "schedule_free_sgd": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.07029268,
+        "stdev_improvement": 0.00799792,
+        "min_improvement": -0.08321255999999999,
+        "max_improvement": -0.059412960000000015
+      }
+    },
+    "schedule_free_adamw": {
+      "adamw_cosine": {
+        "better_in": 10,
+        "worse_in": 0,
+        "incomparable": 0,
+        "mean_improvement": 0.00032163,
+        "stdev_improvement": 0.00020836,
+        "min_improvement": 0.00013593000000000632,
+        "max_improvement": 0.0007201899999999817
+      },
+      "adamw_constant": {
+        "better_in": 7,
+        "worse_in": 3,
+        "incomparable": 0,
+        "mean_improvement": 0.00193708,
+        "stdev_improvement": 0.00197234,
+        "min_improvement": -0.0005600699999999958,
+        "max_improvement": 0.0051394899999999966
+      },
+      "sgd_cosine": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.09013264,
+        "stdev_improvement": 0.00864036,
+        "min_improvement": -0.10437338999999998,
+        "max_improvement": -0.07886256
+      },
+      "schedule_free_sgd": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -0.06997105,
+        "stdev_improvement": 0.00791722,
+        "min_improvement": -0.08291456999999999,
+        "max_improvement": -0.05923123999999999
+      }
+    }
+  }
+}

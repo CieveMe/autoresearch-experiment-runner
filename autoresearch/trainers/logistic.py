@@ -56,13 +56,17 @@ def fit(rows: List[Point], config: Dict[str, Any]) -> FitResult:
         bias = optimizers_module.apply_update(
             optimizer, weights, bias, gradients, bias_gradient, state, config, epoch
         )
-        final_loss = loss(rows, weights, bias, weight_decay)
+        eval_weights, eval_bias = optimizers_module.eval_params(optimizer, weights, bias, state)
+        final_loss = loss(rows, eval_weights, eval_bias, weight_decay)
         loss_curve.append(final_loss)
         epochs_run = epoch
         if abs(previous_loss - final_loss) < tolerance:
             break
         previous_loss = final_loss
-    return FitResult(params=(weights, bias), epochs_run=epochs_run, final_loss=final_loss, loss_curve=loss_curve)
+    eval_weights, eval_bias = optimizers_module.eval_params(optimizer, weights, bias, state)
+    return FitResult(
+        params=(eval_weights, eval_bias), epochs_run=epochs_run, final_loss=final_loss, loss_curve=loss_curve
+    )
 
 
 def train(rows: List[Point], config: Dict[str, Any]) -> Tuple[List[float], float, int, float, List[float]]:

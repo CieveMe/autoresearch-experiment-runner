@@ -361,6 +361,45 @@ Still not measured, and unchanged from §7: full-batch gradients, one dataset fa
 size, and ten seeds with a test-loss standard deviation around 0.023 — enough to separate "0.13 from
 0.15", not enough to resolve a 0.0003 difference.
 
+### 5.7 Schedule-Free AdamW against a *tuned* cosine schedule (2024)
+
+The earlier suites compared optimizers at a fixed learning rate. The 2024 Schedule-Free paper
+(arXiv:2405.15682) makes a claim about *schedules*: no decay is needed, and the method "typically
+out-performs, or at worst matches" a tuned cosine decay. Testing that requires the baseline to be
+tuned, or the comparison is free advertisement, so `examples/schedule-free-sweep.json` (21 trials)
+sweeps the cosine baseline's learning rate **and** its minimum-learning-rate factor, and a constant
+learning rate is included because that is what schedule-free is meant to replace.
+
+The rule was transliterated from `adamw_schedulefree_reference.py` and is cross-checked step by step
+against a literal re-implementation of that reference in `tests/test_schedule_free.py`. Reported
+metrics use the averaged sequence `x` (the reference's eval point), never the training point `y`;
+measuring at `y` would flatter the method.
+
+Seed 7, 200-epoch budget, target 0.148:
+
+| arm | test loss | epochs to target |
+|---|---:|---:|
+| adamw + tuned cosine (baseline) | 0.12381987 | 80 |
+| adamw, constant learning rate | **0.12228349** | **70** |
+| schedule-free AdamW | 0.12395906 | 154 |
+| SGD + cosine | 0.21590420 | never |
+| schedule-free SGD | 0.19546660 | never |
+
+Ten seeds: mean test loss 0.12448 (constant), 0.12610 (tuned cosine), **0.12642 (schedule-free)**; the
+tuned cosine beats schedule-free in **10/10 seeds** (mean +0.00032 ± 0.00021), and the constant rate
+beats it 7/10 (+0.00194).
+
+**Findings.**
+
+1. **"At worst matches" is close to what happens; "out-performs" is not.** Schedule-free is 0.3%
+   behind on mean test loss and behind in every seed — consistent, but small.
+2. **It is clearly slower to the target at this budget** (154 epochs against 80): the averaged
+   sequence moves more slowly by construction, and a 200-epoch run is short enough for that to show.
+3. **A constant learning rate beats both** on final loss. If the task does not need a decay, removing
+   the decay is not a benefit — true here, and the honest limit of what this repository can say.
+4. **Schedule-free SGD is far behind schedule-free AdamW** (0.196 vs 0.126), so the averaging does not
+   substitute for adaptive per-parameter scaling.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |

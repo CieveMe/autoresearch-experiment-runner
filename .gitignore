@@ -49,6 +49,14 @@ runs/*
 !runs/mlp-verified/sweeps/
 !runs/mlp-verified/sweeps/optimizers-report.md
 !runs/mlp-verified/sweeps/ademamix-report.md
+!runs/schedule-free-verified/
+!runs/schedule-free-verified/results.json
+!runs/schedule-free-verified/report.md
+!runs/schedule-free-verified/seed-sweep-summary.json
+!runs/schedule-free-verified/seed-sweep-summary.md
+!runs/schedule-free-verified/tuning-sweep/
+!runs/schedule-free-verified/tuning-sweep/report.md
+!runs/schedule-free-verified/tuning-sweep/loss-curves.csv
 
 # Local credentials and editor state
 .env

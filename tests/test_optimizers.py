@@ -26,6 +26,8 @@ class OptimizerTests(unittest.TestCase):
             "adam": {"optimizer": "adam", "learning_rate": 0.1},
             "adamw": {"optimizer": "adamw", "learning_rate": 0.1, "weight_decay": 0.01},
             "ademamix": {"optimizer": "ademamix", "learning_rate": 0.05, "alpha": 2.0, "beta3": 0.9999},
+            "schedule_free_adamw": {"optimizer": "schedule_free_adamw", "learning_rate": 0.1},
+            "schedule_free_sgd": {"optimizer": "schedule_free_sgd", "learning_rate": 0.1},
         }
         self.assertEqual(set(configs), set(SUPPORTED_OPTIMIZERS))
         for name, config in configs.items():

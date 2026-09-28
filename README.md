@@ -67,6 +67,7 @@ python scripts/score_task.py                  # 任务评分（0-100 部分得�
 | `examples/ademamix.json` | **2024 年论文 AdEMAMix** 是否比 AdamW 更快达标 | **没有更快**：AdEMAMix 与 AdamW **同为 23 轮**（10/10 种子逐种子相同，配对差 0.0），最终测试损失仅好 0.4%；按论文自己的 warmup 缩放到 120 轮预算则慢 4.5 倍（105 轮）。实现正确性检查：把慢 EMA 关掉（α=0）会精确回到 AdamW |
 | `examples/optimizers-mlp.json` | 换成**两层 MLP** 后，"Adam 速度居中"是否还成立 | **成立**：AdaGrad 6.2 轮、动量 7.0 轮、**Adam 20.3 轮**（10 种子）；Adam 仍拿到最低最终损失。⇒ 之前的结论不是"两参数模型"的产物 |
 | `examples/ademamix-mlp.json` | 换模型后，AdEMAMix 的好处是否出现 | **速度仍无优势，论文 warmup 仍然更差**：10 种子平均测试损失 AdamW 0.13218、AdEMAMix（无 warmup）0.13249、warmup=45 0.14269、warmup=120 0.15261 |
+| `examples/schedule-free.json` | **2024 论文 Schedule-Free** 是否能打平"调过的 cosine"计划 | **"打平"勉强成立、"超过"不成立**：10 种子平均测试损失 调过 cosine 0.12610 vs Schedule-Free 0.12642（**10/10 种子败**），达标轮数 80 vs 154；而**常数学习率**（0.12448）比两者都好 |
 
 第二个实验给每个优化器家族（SGD / 带动量 SGD / AdaGrad / RMSProp / Adam）都用同一套学习率扫描
 （`examples/optimizers-sweep.json`，24 组）选出自己的学习率，避免"用手选学习率比较调参运气"；

@@ -38,6 +38,19 @@ All notable changes to this project are documented here. The format follows
 - `scripts/repro.py` runs **five** suites (121 asserted checks, ~18 s); `scripts/score_task.py`
   aggregates over all suites and its negative controls now name the file they mutate.
 
+### Added (schedule-free follow-up, same release)
+
+- **Schedule-Free AdamW / SGD** (`autoresearch/optimizers.py`, transliterated from
+  `facebookresearch/schedule_free`, Apache-2.0) with the averaged-sequence evaluation point wired
+  through `optimizers.eval_params()`; `examples/schedule-free.json` compares it against a **tuned**
+  cosine baseline (21-trial sweep over learning rate × min-LR factor) and a constant-rate baseline, at
+  a 200-epoch budget. Result: "at worst matches" is roughly right, "out-performs" is not — schedule-free
+  is 0.3% behind the tuned cosine and loses all ten seeds, while a constant rate beats both.
+- `tests/test_schedule_free.py`: the port is cross-checked step by step against a literal
+  re-implementation of the reference rule, plus warmup, determinism and eval-point checks (39 tests
+  total).
+- `docs/papers/schedule-free-2024.md`.
+
 ### Fixed
 
 - Trial configs did not inherit the experiment's `seed`, so a "10-seed" MLP run varied the data split

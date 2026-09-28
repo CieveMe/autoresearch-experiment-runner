@@ -1,0 +1,48 @@
+{
+  "task": "tuning sweep for the schedule-free comparison (learning rate x schedule settings)",
+  "paper": {
+    "title": "Schedule-Free Learning: Replacing Schedules with Iteration-Based Averages",
+    "authors": "Aaron Defazio, Xingyu Yang, Harsh Mehta, Konstantin Mishchenko, Ahmed Khaled, Ashok Cutkosky",
+    "year": 2024,
+    "identifier": "arXiv:2405.15682"
+  },
+  "hypothesis": "The paper's claim is that a schedule-free method matches a well-tuned cosine schedule without needing one. That claim is only testable if the cosine baseline is actually tuned, so both the learning rate and the minimum-learning-rate factor of the baseline get a grid, and the schedule-free arms get the same learning-rate grid.",
+  "metric": "test_loss",
+  "seed": 7,
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw_cosine_lr0.1_min0.0",
+    "optimizer": "adamw",
+    "learning_rate": 0.1,
+    "schedule": "cosine",
+    "min_lr_factor": 0.0,
+    "epochs": 200
+  },
+  "experiments": [
+    {"name": "adamw_cosine_lr0.05_min0.0", "optimizer": "adamw", "learning_rate": 0.05, "schedule": "cosine", "min_lr_factor": 0.0, "epochs": 200},
+    {"name": "adamw_cosine_lr0.2_min0.0", "optimizer": "adamw", "learning_rate": 0.2, "schedule": "cosine", "min_lr_factor": 0.0, "epochs": 200},
+    {"name": "adamw_cosine_lr0.4_min0.0", "optimizer": "adamw", "learning_rate": 0.4, "schedule": "cosine", "min_lr_factor": 0.0, "epochs": 200},
+    {"name": "adamw_cosine_lr0.05_min0.1", "optimizer": "adamw", "learning_rate": 0.05, "schedule": "cosine", "min_lr_factor": 0.1, "epochs": 200},
+    {"name": "adamw_cosine_lr0.1_min0.1", "optimizer": "adamw", "learning_rate": 0.1, "schedule": "cosine", "min_lr_factor": 0.1, "epochs": 200},
+    {"name": "adamw_cosine_lr0.2_min0.1", "optimizer": "adamw", "learning_rate": 0.2, "schedule": "cosine", "min_lr_factor": 0.1, "epochs": 200},
+    {"name": "adamw_cosine_lr0.4_min0.1", "optimizer": "adamw", "learning_rate": 0.4, "schedule": "cosine", "min_lr_factor": 0.1, "epochs": 200},
+    {"name": "adamw_constant_lr0.05", "optimizer": "adamw", "learning_rate": 0.05, "epochs": 200},
+    {"name": "adamw_constant_lr0.1", "optimizer": "adamw", "learning_rate": 0.1, "epochs": 200},
+    {"name": "adamw_constant_lr0.2", "optimizer": "adamw", "learning_rate": 0.2, "epochs": 200},
+    {"name": "adamw_constant_lr0.4", "optimizer": "adamw", "learning_rate": 0.4, "epochs": 200},
+    {"name": "schedule_free_adamw_lr0.05", "optimizer": "schedule_free_adamw", "learning_rate": 0.05, "epochs": 200},
+    {"name": "schedule_free_adamw_lr0.1", "optimizer": "schedule_free_adamw", "learning_rate": 0.1, "epochs": 200},
+    {"name": "schedule_free_adamw_lr0.2", "optimizer": "schedule_free_adamw", "learning_rate": 0.2, "epochs": 200},
+    {"name": "schedule_free_adamw_lr0.4", "optimizer": "schedule_free_adamw", "learning_rate": 0.4, "epochs": 200},
+    {"name": "sgd_cosine_lr0.1_min0.0", "optimizer": "sgd", "learning_rate": 0.1, "schedule": "cosine", "min_lr_factor": 0.0, "epochs": 200},
+    {"name": "sgd_cosine_lr0.3_min0.0", "optimizer": "sgd", "learning_rate": 0.3, "schedule": "cosine", "min_lr_factor": 0.0, "epochs": 200},
+    {"name": "sgd_cosine_lr0.6_min0.0", "optimizer": "sgd", "learning_rate": 0.6, "schedule": "cosine", "min_lr_factor": 0.0, "epochs": 200},
+    {"name": "schedule_free_sgd_lr0.1", "optimizer": "schedule_free_sgd", "learning_rate": 0.1, "epochs": 200},
+    {"name": "schedule_free_sgd_lr0.3", "optimizer": "schedule_free_sgd", "learning_rate": 0.3, "epochs": 200},
+    {"name": "schedule_free_sgd_lr0.6", "optimizer": "schedule_free_sgd", "learning_rate": 0.6, "epochs": 200}
+  ]
+}
