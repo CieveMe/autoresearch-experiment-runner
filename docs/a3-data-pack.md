@@ -91,3 +91,13 @@ the tree (`rg -n "def <name>" tests`).
 line telling the releaser to confirm three files "all say `0.2.0`" became false the moment those files
 were bumped; §5.16's "78 comparisons" outlived the corpus reaching 79. Same disease — one fact maintained
 in two places — and the same repair: name the artifact that owns the number and quote it from there.
+
+**Third member, and the strongest one to cite, because the repair itself only spread to one place.** That
+"78" lived in four files — `README.md`, `TODO.md`, `CHANGELOG.md` and a comment in
+`scripts/paired_stats.py`, the producer itself — and when the corpus grew to 79 exactly one of them was
+corrected, which is as far as somebody remembered to look. The repairs: the two live documents now
+**point at the artifact instead of restating the count**, the producer's comment carries no numbers, the
+CHANGELOG keeps its text as a historical record, and a check enforces the rule from now on
+(`test_live_documents_do_not_hard_code_the_corpus_size`, plus companions that the artifact owns the count
+and that the live documents still point at it). Writing that guard immediately tripped case 6b's guard,
+because the artifact it reads was not copied into the scored tree — the family checking itself.

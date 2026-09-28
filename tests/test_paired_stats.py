@@ -8,6 +8,8 @@ evidence that the two arms are the same, because with ten seeds the power to det
 large effect is low.
 """
 
+import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -166,6 +168,64 @@ class CommittedData(unittest.TestCase):
         for forbidden in ("no difference between", "are equal", "no effect", "proves"):
             self.assertNotIn(forbidden, markdown)
 
+
+class LiveDocumentationTests(unittest.TestCase):
+    """A fact about the corpus belongs in the artifact, not in a sentence somebody has to update.
+
+    The paired-tests summary carried "78 comparisons (smallest adjusted p = 0.15)" in the README, the
+    TODO list, the CHANGELOG and a comment in the producer itself. When the corpus grew to 79 by adding
+    the T-ADAM-01C ablation suite, only one of the four was corrected — the repair reached exactly as
+    far as somebody remembered to look. This is the same disease as case 5 in `docs/defect-family.md`
+    (one fact maintained in several places) and the same repair: **quote the artifact or point at it,
+    but do not restate the count**, and give the rule a check so it does not depend on memory.
+
+    Scope, stated on purpose: the documents that *summarise* the claim are checked. `REPRODUCTION.md`
+    §5.16 owns the claim and records both numbers as part of the drift, `CHANGELOG.md` and the published
+    release bodies are historical records of what was said at the time, and `docs/a3-data-pack.md` and
+    `docs/defect-family.md` describe the drift itself. Those are exempt by being named here, not by
+    being forgotten.
+    """
+
+    LIVE_DOCUMENTS = ("README.md", "TODO.md")
+    # A line that summarises the family correction must not carry a corpus or family size.
+    FORBIDDEN = (
+        re.compile(r"\d+\s*个比较"),
+        re.compile(r"\b\d+\s+comparisons?\b"),
+        re.compile(r"族\s*内?\s*\d+\s*/\s*\d+"),
+        re.compile(r"\b\d+\s*/\s*\d+\s*(?:个比较|comparisons)"),
+    )
+    MENTIONS_THE_CLAIM = ("holm", "family correction", "族校正", "全族")
+
+    def _live_lines(self):
+        for name in self.LIVE_DOCUMENTS:
+            for number, line in enumerate((ROOT / name).read_text(encoding="utf-8").splitlines(), 1):
+                if any(marker in line.lower() for marker in self.MENTIONS_THE_CLAIM):
+                    yield name, number, line
+
+    def test_the_artifact_still_owns_the_comparison_count(self):
+        artifact = ROOT / "runs" / "paired-tests" / "paired-tests.json"
+        payload = json.loads(artifact.read_text(encoding="utf-8"))
+        self.assertIsInstance(payload["comparisons_tested"], int)
+        self.assertEqual(payload["comparisons_tested"], len(payload["comparisons"]))
+
+    def test_live_documents_do_not_hard_code_the_corpus_size(self):
+        offenders = [
+            f"{name}:{number}: {line.strip()[:120]}"
+            for name, number, line in self._live_lines()
+            if any(pattern.search(line) for pattern in self.FORBIDDEN)
+        ]
+        self.assertEqual(
+            offenders, [],
+            "a live document restates a corpus/family count instead of pointing at the artifact "
+            "(runs/paired-tests/paired-tests.json):\n" + "\n".join(offenders),
+        )
+
+    def test_live_documents_point_at_the_artifact(self):
+        joined = "\n".join(line for _, _, line in self._live_lines())
+        self.assertTrue(
+            ("§5.16" in joined) or ("make stats" in joined) or ("paired-tests" in joined),
+            "the live documents dropped the count but must also say where the number lives",
+        )
 
 if __name__ == "__main__":
     unittest.main()

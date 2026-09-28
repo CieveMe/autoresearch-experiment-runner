@@ -115,6 +115,28 @@ correction.
   ("confirm the three files all say `0.2.0`") was already false the moment those files were bumped — the
   smallest example of the same disease, worth one sentence rather than a case of its own.
 
+#### Follow-up, same entry: the count also lived in three more files, and the guard now enforces the rule
+
+* **What the first pass missed:** after the queue entry above was written, a grep for the number found it
+  still live in `README.md` (the outward-facing summary), `TODO.md`, `CHANGELOG.md` and a comment in
+  `scripts/paired_stats.py` — the file that produces it. Four places, one of them corrected: the same
+  disease as case 5, with the repair itself spreading only as far as somebody remembered to look. This is
+  the third member of the family note in `docs/defect-family.md`.
+* **How the live files were treated** (deliberately not "78 → 79", which would only postpone the rot):
+  * `README.md` and `TODO.md` **no longer restate the count or the adjusted p**; they make the qualitative
+    claim and point at `REPRODUCTION.md` §5.16 and the `make stats` artifact (field paths in
+    `docs/a3-data-pack.md`);
+  * `scripts/paired_stats.py`'s comment carries no numbers — the producer least of all;
+  * `CHANGELOG.md` **keeps its text as a record of what was said at the time**, and is exempt from the
+    guard by being named in it.
+* **The rule is now mechanical**, because otherwise it depends on memory:
+  `tests/test_paired_stats.py::test_live_documents_do_not_hard_code_the_corpus_size` (with companions that
+  the artifact still owns the count and that the live documents still point at it). Writing it immediately
+  failed case 6b's own guard — the artifact it reads was not yet copied into the scored tree — so
+  `scripts/score_task.py`'s copy filter now also keeps `runs/paired-tests` and `runs/figures`.
+* **What the next release body must say:** one line — the three live files now reference the artifact,
+  `CHANGELOG.md` is kept as history on purpose, and a test enforces it from now on.
+
 ## Rules for the person writing the next body
 
 1. Every item above gets an explicit line in the release body, with the section it corrects.

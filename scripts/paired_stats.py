@@ -88,8 +88,8 @@ HEADLINE_COMPARISONS: Tuple[Tuple[str, str, str], ...] = (
     ("optimizers", "adam", "baseline"),
 )
 
-# A p-value is only adjusted *within a family*, and the family has to be declared. Printing 78
-# comparisons and then correcting across all 78 answers a question nobody asked: the repository's
+# A p-value is only adjusted *within a family*, and the family has to be declared. Printing every
+# comparison and then correcting across the whole printed set answers a question nobody asked: the
 # claims were pre-registered one at a time, and a claim tested at ten capacities is still one claim.
 # Both views are reported, and the report names the family each adjusted number belongs to.
 CLAIM_FAMILIES: Dict[str, Tuple[Tuple[str, str, str], ...]] = {

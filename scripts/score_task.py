@@ -40,17 +40,24 @@ def _ignore(directory: str, names: List[str]) -> set[str]:
     is part of the contract (a unit test asserts the committed result still matches the
     expected numbers), so it must be present in the copy.
 
-    The committed per-seed sweeps are copied too. They are the input of the paired-statistics and
-    figure tests, and leaving them out made those tests fail inside every scored copy — which made a
-    perfect submission report ``exit 1`` and a mutated one report its controls as *missed*, because the
-    copy could not run the same suite the repository runs.
+    The committed analysis inputs are copied too: the per-seed sweeps and the small derived artifacts
+    (`runs/paired-tests`, `runs/figures`). They are the input of the paired-statistics and figure tests,
+    and leaving them out made those tests fail inside every scored copy — which made a perfect
+    submission report ``exit 1`` and a mutated one report its controls as *missed*, because the copy
+    could not run the same suite the repository runs. `tests/test_harness.py` now asserts exactly that
+    property by building this copy and running the suite inside it, so the next input that gets dropped
+    fails the suite instead of quietly changing a verdict.
     """
     skip = {name for name in names if name in {".git", ".github", "__pycache__"} or name.endswith(".pyc")}
     if Path(directory).name == "runs":
         skip.update(
             name for name in names
-            if not (name.endswith("-verified") or name.startswith("seed-sweep"))
+            if not (name.endswith("-verified")
+                    or name.startswith(("seed-sweep", "paired-tests", "figures")))
         )
+    if Path(directory).name == "figures":
+        # Raster previews are local conveniences (cairosvg is not a repository dependency).
+        skip.update(name for name in names if name.startswith("preview-"))
     return skip
 
 # Each control replaces a fragment of the implementation. The expectation is that the

@@ -248,6 +248,20 @@ grew to 79 when the T-ADAM-01C ablation was registered. Neither is a case of its
 note in miniature, and the repair is the same: **name the artifact that owns the number, and let the
 prose quote it.** A duplicated fact does not rot slowly, it rots on the next edit.
 
+**The third member is the sharpest, because the repair itself only spread to one place.** That same "78"
+lived in four: `README.md` (the outward-facing summary), `TODO.md`, `CHANGELOG.md`, and a comment in
+`scripts/paired_stats.py` — the file that *produces* the number. When the corpus reached 79, one of the
+four was corrected, because that is as far as somebody remembered to look; a reader grepping the word
+"78" found the other three immediately, which is exactly how the first three cases in this list were
+found too. The repairs now applied are the family's own rule taken seriously: the live documents **point
+at the artifact instead of restating the count** (`README.md`, `TODO.md`), the producer's comment carries
+no numbers, `CHANGELOG.md` keeps its text as a record of what was said at the time, and — because "quote
+the artifact" is itself a rule that would otherwise depend on memory — a check enforces it:
+`tests/test_paired_stats.py::test_live_documents_do_not_hard_code_the_corpus_size`, with a companion test
+that the artifact still owns the count and a third that the live documents still point at it. Writing that
+guard immediately failed the *other* guard from case 6b, because the artifact it reads was not yet copied
+into the scored tree — the family checking itself, which is the most useful thing it does.
+
 ## How to apply it to a new experiment
 
 1. Name the metric and declare its direction in one place.
