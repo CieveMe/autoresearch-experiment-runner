@@ -1,0 +1,192 @@
+{
+  "schema": "autoresearch-lite/seed-sweep@1",
+  "metric": "epochs_to_target",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed_count": 10,
+  "base_config": "examples\\optimizers-mlp.json",
+  "base_config_sha256": "be7ead0661fdd714d0e46405badfc9d8ba84353ca4cf3122f4f1b5f1b12d7b5b",
+  "seed_config_sha256": {
+    "seed-0": "3ab272355fae83afab22ff4ea62473e9dc2ea290a5fa2ec0d68f8d888ea2c54d",
+    "seed-1": "17cbfb24ca3a2b5e4a7a5a21d1ecd121af13135d8d508a673e11d8eb3404f539",
+    "seed-2": "b00696365439fe7f9bc55039b4a9a2da5ba5e01a4abd7c7dac6559df58ca2358",
+    "seed-3": "4651df0a923c662a6254a41acf7ce7e777c895ea3000a7b601beb4a4dc7eb78c",
+    "seed-4": "4107b8ed576a4a7b25600b25777d946700565e02b56c0d435730beae7bbd136b",
+    "seed-5": "663432cd22b4345dca902aaca2ae090549d68be3d63394a12262543586b768d7",
+    "seed-6": "589dfee713fea7c787b145c1f6f2e0e2385c36b9c20cd48169262df331e6b37f",
+    "seed-7": "aaba734bb5efa86e026e2b313b24ac4a1851b52090d86f2e254adf560172507f",
+    "seed-8": "a36a650f7c571079ba7ce7f607be37b8824124c2105e04117f5b3e180344d78a",
+    "seed-9": "054ca0977e86d3c89be0f32b47b754d18759a71603cbfa8c9308b3b7b256d667"
+  },
+  "paper": {
+    "title": "Adam: A Method for Stochastic Optimization",
+    "authors": "Diederik P. Kingma and Jimmy Ba",
+    "year": 2014,
+    "identifier": "arXiv:1412.6980"
+  },
+  "trials": {
+    "sgd": {
+      "optimizer": "sgd",
+      "learning_rate": 1.0,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 36.1,
+      "metric_stdev": 17.77920133,
+      "metric_min": 17,
+      "metric_max": 70,
+      "test_accuracy_mean": 0.9435,
+      "test_accuracy_stdev": 0.017329,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "sgd_momentum": {
+      "optimizer": "sgd_momentum",
+      "learning_rate": 1.0,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 7.0,
+      "metric_stdev": 1.33333333,
+      "metric_min": 5,
+      "metric_max": 9,
+      "test_accuracy_mean": 0.944,
+      "test_accuracy_stdev": 0.015239,
+      "wins": 2,
+      "win_rate": 0.2
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 1.0,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 6.2,
+      "metric_stdev": 3.99444058,
+      "metric_min": 3,
+      "metric_max": 14,
+      "test_accuracy_mean": 0.9435,
+      "test_accuracy_stdev": 0.016841,
+      "wins": 7,
+      "win_rate": 0.7
+    },
+    "rmsprop": {
+      "optimizer": "rmsprop",
+      "learning_rate": 0.03,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 33.3,
+      "metric_stdev": 14.2987956,
+      "metric_min": 16,
+      "metric_max": 51,
+      "test_accuracy_mean": 0.945,
+      "test_accuracy_stdev": 0.013744,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 1.0,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 20.3,
+      "metric_stdev": 13.23337531,
+      "metric_min": 4,
+      "metric_max": 43,
+      "test_accuracy_mean": 0.939,
+      "test_accuracy_stdev": 0.02079,
+      "wins": 1,
+      "win_rate": 0.1
+    }
+  },
+  "paired_improvement": {
+    "adam": {
+      "sgd": {
+        "better_in": 1,
+        "worse_in": 9,
+        "incomparable": 0,
+        "mean_improvement": -15.8,
+        "stdev_improvement": 15.16428553,
+        "min_improvement": -43.0,
+        "max_improvement": 5.0
+      },
+      "sgd_momentum": {
+        "better_in": 8,
+        "worse_in": 2,
+        "incomparable": 0,
+        "mean_improvement": 13.3,
+        "stdev_improvement": 12.86727114,
+        "min_improvement": -4.0,
+        "max_improvement": 35.0
+      },
+      "adagrad": {
+        "better_in": 8,
+        "worse_in": 1,
+        "incomparable": 0,
+        "mean_improvement": 14.1,
+        "stdev_improvement": 12.51177223,
+        "min_improvement": -2.0,
+        "max_improvement": 37.0
+      },
+      "rmsprop": {
+        "better_in": 2,
+        "worse_in": 7,
+        "incomparable": 0,
+        "mean_improvement": -13.0,
+        "stdev_improvement": 15.202339,
+        "min_improvement": -33.0,
+        "max_improvement": 8.0
+      }
+    },
+    "sgd_momentum": {
+      "sgd": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -29.1,
+        "stdev_improvement": 16.71625955,
+        "min_improvement": -62.0,
+        "max_improvement": -12.0
+      },
+      "adagrad": {
+        "better_in": 7,
+        "worse_in": 2,
+        "incomparable": 0,
+        "mean_improvement": 0.8,
+        "stdev_improvement": 3.01109061,
+        "min_improvement": -6.0,
+        "max_improvement": 3.0
+      },
+      "rmsprop": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -26.3,
+        "stdev_improvement": 13.06437055,
+        "min_improvement": -43.0,
+        "max_improvement": -11.0
+      },
+      "adam": {
+        "better_in": 2,
+        "worse_in": 8,
+        "incomparable": 0,
+        "mean_improvement": -13.3,
+        "stdev_improvement": 12.86727114,
+        "min_improvement": -35.0,
+        "max_improvement": 4.0
+      }
+    }
+  }
+}

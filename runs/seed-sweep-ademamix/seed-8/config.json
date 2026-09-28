@@ -1,0 +1,60 @@
+{
+  "task": "AdEMAMix convergence speed against AdamW and momentum on a fixed synthetic task",
+  "paper": {
+    "title": "AdEMAMix: A Smarter Learning Rate Schedule for Adam",
+    "authors": "Matteo Pagliardini, Pierre Ablin, David Grangier",
+    "year": 2024,
+    "identifier": "arXiv:2409.03137"
+  },
+  "hypothesis": "AdEMAMix's slow EMA, mixed in with a growing coefficient, should reach a training-loss target in fewer epochs than AdamW at a matched budget. Each arm - including the warmup length that only AdEMAMix has - is tuned by the same rule used for the earlier optimizer suite: lowest final training loss inside the grid, ties to the smaller value.",
+  "metric": "epochs_to_target",
+  "target_loss": 0.148,
+  "seed": 8,
+  "trainer": "logistic",
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw",
+    "optimizer": "adamw",
+    "learning_rate": 0.8,
+    "epochs": 120
+  },
+  "experiments": [
+    {
+      "name": "ademamix_tuned",
+      "optimizer": "ademamix",
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "learning_rate": 0.8,
+      "epochs": 120
+    },
+    {
+      "name": "ademamix_paper_warmups",
+      "optimizer": "ademamix",
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "alpha_warmup": 120,
+      "beta3_warmup": 120,
+      "learning_rate": 0.2,
+      "epochs": 120
+    },
+    {
+      "name": "ademamix_no_slow_ema",
+      "optimizer": "ademamix",
+      "alpha": 0.0,
+      "beta3": 0.9999,
+      "learning_rate": 0.8,
+      "epochs": 120
+    },
+    {
+      "name": "sgd_momentum",
+      "optimizer": "sgd_momentum",
+      "learning_rate": 0.8,
+      "momentum": 0.9,
+      "epochs": 120
+    }
+  ]
+}

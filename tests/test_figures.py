@@ -71,8 +71,8 @@ class FigureTests(unittest.TestCase):
     def test_stability_scatter_has_one_point_per_suite(self):
         svg = figures.stability_svg(self.stability)
         root = self._check_inside(svg)
-        # Sixteen suites pin a target; `main` does not, and is deliberately not plotted.
-        self.assertEqual(len(self.stability), 16)
+        # Every suite that pins a target is plotted; `main` does not, and is deliberately excluded.
+        self.assertEqual(len(self.stability), 17)
         self.assertNotIn("main", [row["suite"] for row in self.stability])
         circles = [element for element in root.iter() if element.tag.endswith("circle")]
         self.assertEqual(len(circles), len(self.stability))

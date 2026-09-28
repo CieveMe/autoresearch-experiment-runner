@@ -1,0 +1,192 @@
+{
+  "schema": "autoresearch-lite/seed-sweep@1",
+  "metric": "test_loss",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed_count": 10,
+  "base_config": "examples\\ademamix-mlp.json",
+  "base_config_sha256": "0acc10bdd3f96b3f301e426e80a54604063007f58f27b3f80684b1a9f296f68d",
+  "seed_config_sha256": {
+    "seed-0": "bf5363802d3172f44734bddfc3fa3b343f1ca2c82499f99265d7c90b4d341130",
+    "seed-1": "a8399efa37d4130b8af4fd6a379b57a57c3b9490c3880a50877a5b7ca3cff99b",
+    "seed-2": "fd4050b69ad065512df153c6cd02bcaf669e9fd52f0da61a56ec4bb4920d9728",
+    "seed-3": "e4c1ebba58bfa855f7a148c305e53642d8e042d72a9785bbd9ffe831772dab2e",
+    "seed-4": "e91b2148e01a96a1ded16c7f2ca080742407ae758251e07e7fec9c54d4bc2f48",
+    "seed-5": "97233e172f4b8db4804d1868bad41e439f88a47748669f8916c8fb7dcc2a36eb",
+    "seed-6": "2669c959d842ae00f0c3c45c395a62464e08558a0ee89cf1bbe80d641a5a06dc",
+    "seed-7": "d3ea7b67336e4405d5f5f4b42eedde0fe0c71722ba53770d62da06d415eb6906",
+    "seed-8": "338aada836cd682dc52875bb668bc45895dfb478285fdb6e0294ab97f7db0d35",
+    "seed-9": "e9c68a1e9206d6217a400594174ba823799e43700d03b714afb5c896e2ebacc8"
+  },
+  "paper": {
+    "title": "AdEMAMix: A Smarter Learning Rate Schedule for Adam",
+    "authors": "Matteo Pagliardini, Pierre Ablin, David Grangier",
+    "year": 2024,
+    "identifier": "arXiv:2409.03137"
+  },
+  "trials": {
+    "adamw": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 0.13218391,
+      "metric_stdev": 0.0247297,
+      "metric_min": 0.08174844,
+      "metric_max": 0.16607861,
+      "test_accuracy_mean": 0.9415,
+      "test_accuracy_stdev": 0.014347,
+      "wins": 1,
+      "win_rate": 0.1
+    },
+    "ademamix_no_warmups": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 0.13248842,
+      "metric_stdev": 0.02482561,
+      "metric_min": 0.08213844,
+      "metric_max": 0.16629654,
+      "test_accuracy_mean": 0.942,
+      "test_accuracy_stdev": 0.013581,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "ademamix_warmup_45": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 0.14269105,
+      "metric_stdev": 0.03484904,
+      "metric_min": 0.09015425,
+      "metric_max": 0.19632853,
+      "test_accuracy_mean": 0.94,
+      "test_accuracy_stdev": 0.01453,
+      "wins": 3,
+      "win_rate": 0.3
+    },
+    "ademamix_warmup_120": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 0.1526129,
+      "metric_stdev": 0.03962154,
+      "metric_min": 0.09454079,
+      "metric_max": 0.2126496,
+      "test_accuracy_mean": 0.938,
+      "test_accuracy_stdev": 0.015129,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "sgd_momentum": {
+      "optimizer": "sgd_momentum",
+      "learning_rate": 1.0,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 0.13025849,
+      "metric_stdev": 0.02342932,
+      "metric_min": 0.08058201,
+      "metric_max": 0.16283995,
+      "test_accuracy_mean": 0.944,
+      "test_accuracy_stdev": 0.015239,
+      "wins": 6,
+      "win_rate": 0.6
+    }
+  },
+  "paired_improvement": {
+    "adamw": {
+      "ademamix_no_warmups": {
+        "better_in": 2,
+        "worse_in": 8,
+        "incomparable": 0,
+        "mean_improvement": -0.00030451,
+        "stdev_improvement": 0.00028027,
+        "min_improvement": -0.0007053700000000107,
+        "max_improvement": 0.00014885000000000592
+      },
+      "ademamix_warmup_45": {
+        "better_in": 3,
+        "worse_in": 7,
+        "incomparable": 0,
+        "mean_improvement": -0.01050714,
+        "stdev_improvement": 0.01386963,
+        "min_improvement": -0.031684110000000015,
+        "max_improvement": 0.006438080000000013
+      },
+      "ademamix_warmup_120": {
+        "better_in": 2,
+        "worse_in": 8,
+        "incomparable": 0,
+        "mean_improvement": -0.02042899,
+        "stdev_improvement": 0.02012738,
+        "min_improvement": -0.04833072000000002,
+        "max_improvement": 0.003300850000000008
+      },
+      "sgd_momentum": {
+        "better_in": 8,
+        "worse_in": 2,
+        "incomparable": 0,
+        "mean_improvement": 0.00192542,
+        "stdev_improvement": 0.00295795,
+        "min_improvement": -0.002949850000000004,
+        "max_improvement": 0.00804286999999998
+      }
+    },
+    "sgd_momentum": {
+      "adamw": {
+        "better_in": 2,
+        "worse_in": 8,
+        "incomparable": 0,
+        "mean_improvement": -0.00192542,
+        "stdev_improvement": 0.00295795,
+        "min_improvement": -0.00804286999999998,
+        "max_improvement": 0.002949850000000004
+      },
+      "ademamix_no_warmups": {
+        "better_in": 2,
+        "worse_in": 8,
+        "incomparable": 0,
+        "mean_improvement": -0.00222993,
+        "stdev_improvement": 0.0030854,
+        "min_improvement": -0.00874823999999999,
+        "max_improvement": 0.002452679999999985
+      },
+      "ademamix_warmup_45": {
+        "better_in": 3,
+        "worse_in": 7,
+        "incomparable": 0,
+        "mean_improvement": -0.01243256,
+        "stdev_improvement": 0.01537955,
+        "min_improvement": -0.039726979999999995,
+        "max_improvement": 0.006845970000000007
+      },
+      "ademamix_warmup_120": {
+        "better_in": 2,
+        "worse_in": 8,
+        "incomparable": 0,
+        "mean_improvement": -0.02235441,
+        "stdev_improvement": 0.0211637,
+        "min_improvement": -0.04980964999999998,
+        "max_improvement": 0.003708740000000002
+      }
+    }
+  }
+}

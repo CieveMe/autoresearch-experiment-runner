@@ -1,0 +1,65 @@
+{
+  "task": "capacity expansion, hidden [16,16]: the same four claim families",
+  "paper": {
+    "title": "Cross-paper capacity expansion (Adam 2014, AdEMAMix 2024, Schedule-Free 2024)",
+    "authors": "see docs/papers/",
+    "year": 2026,
+    "identifier": "internal-capacity-expansion"
+  },
+  "hypothesis": "Same six pre-registered hypotheses as the [64] run, for a deeper network. Overfitting is expected to dominate here, which is exactly what H4 predicts; the run tests whether the schedule-free architecture effect (H2) survives it.",
+  "metric": "test_loss",
+  "target_loss": 0.147,
+  "seed": 8,
+  "trainer": "mlp",
+  "hidden_sizes": [
+    16,
+    16
+  ],
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw_cosine",
+    "optimizer": "adamw",
+    "learning_rate": 0.3,
+    "schedule": "cosine",
+    "min_lr_factor": 0.1,
+    "epochs": 200
+  },
+  "experiments": [
+    {
+      "name": "adamw_constant",
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 200
+    },
+    {
+      "name": "adam",
+      "optimizer": "adam",
+      "learning_rate": 0.3,
+      "epochs": 200
+    },
+    {
+      "name": "adagrad",
+      "optimizer": "adagrad",
+      "learning_rate": 1.0,
+      "epochs": 200
+    },
+    {
+      "name": "ademamix",
+      "optimizer": "ademamix",
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "learning_rate": 0.3,
+      "epochs": 200
+    },
+    {
+      "name": "schedule_free_adamw",
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200
+    }
+  ]
+}

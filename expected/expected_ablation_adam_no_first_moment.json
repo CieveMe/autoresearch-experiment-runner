@@ -1,0 +1,42 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 27392c22f2dc2f258d9e5d52d5b857efb84c5258cb9584763005aef4cc232f55",
+  "config": "examples/ablation-adam-no-first-moment.json",
+  "config_sha256": "27392c22f2dc2f258d9e5d52d5b857efb84c5258cb9584763005aef4cc232f55",
+  "metric": "epochs_to_target",
+  "best": "adam",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.4,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12346246,
+      "epochs_to_target": 33
+    },
+    "adam_beta1_0": {
+      "optimizer": "adam",
+      "learning_rate": 0.4,
+      "beta1": 0.0,
+      "epochs": 120,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12646126,
+      "epochs_to_target": 61
+    }
+  },
+  "notes": [
+    "T-ADAM-01C ablation, pre-registered in the config hypothesis field and committed before the run: at the matched, already-tuned rate, removing Adam&apos;s first moment should be FASTER to the target and end WORSE.",
+    "Seed 7: adam reaches 0.16 in 33 epochs with test loss 0.12346246; adam_beta1_0 needs 61 epochs and ends at 0.12646126 - the first half of the prediction is refuted.",
+    "Ten seeds (runs/ablation-verified/seed-sweep-summary.md): adam 22.6 epochs / 0.12571 test loss, adam_beta1_0 41.1 epochs / 0.12824, and beta1 = 0 is faster in 0/10 seeds and better on test loss in 0/10.",
+    "Matched rate by design; the grid was not re-swept per arm, which is the ablation&apos;s stated limitation rather than a tuning claim."
+  ]
+}

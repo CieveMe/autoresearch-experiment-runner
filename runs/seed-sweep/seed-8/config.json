@@ -1,0 +1,46 @@
+{
+  "task": "paper-inspired binary classification optimization",
+  "paper": {
+    "title": "Adam: A Method for Stochastic Optimization",
+    "authors": "Diederik P. Kingma and Jimmy Ba",
+    "year": 2014,
+    "identifier": "arXiv:1412.6980"
+  },
+  "hypothesis": "Adam 的一阶/二阶矩估计与偏差修正，可以在相同任务上比固定学习率 SGD 更快收敛。",
+  "metric": "test_loss",
+  "seed": 8,
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "optimizer": "sgd",
+    "learning_rate": 0.15,
+    "weight_decay": 0.0,
+    "epochs": 80
+  },
+  "experiments": [
+    {
+      "name": "adam_reproduction",
+      "optimizer": "adam",
+      "learning_rate": 0.08,
+      "weight_decay": 0.0,
+      "epochs": 80
+    },
+    {
+      "name": "adam_regularized",
+      "optimizer": "adam",
+      "learning_rate": 0.08,
+      "weight_decay": 0.01,
+      "epochs": 100
+    },
+    {
+      "name": "sgd_control",
+      "optimizer": "sgd",
+      "learning_rate": 0.35,
+      "weight_decay": 0.0,
+      "epochs": 80
+    }
+  ]
+}

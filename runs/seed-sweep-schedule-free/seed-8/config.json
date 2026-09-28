@@ -1,0 +1,54 @@
+{
+  "task": "Schedule-Free AdamW against a tuned cosine schedule, at a matched budget",
+  "paper": {
+    "title": "Schedule-Free Learning: Replacing Schedules with Iteration-Based Averages",
+    "authors": "Aaron Defazio, Xingyu Yang, Harsh Mehta, Konstantin Mishchenko, Ahmed Khaled, Ashok Cutkosky",
+    "year": 2024,
+    "identifier": "arXiv:2405.15682"
+  },
+  "hypothesis": "The paper claims a schedule-free method needs no learning-rate schedule and still matches, or beats, a well-tuned cosine decay. The comparison is only meaningful if the cosine baseline is tuned, so its learning rate AND its minimum-learning-rate factor were swept (examples/schedule-free-sweep.json, 21 trials); the strongest constant-learning-rate baseline is included as well, because a constant rate is exactly what schedule-free is meant to replace.",
+  "metric": "test_loss",
+  "target_loss": 0.148,
+  "seed": 8,
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw_cosine",
+    "optimizer": "adamw",
+    "learning_rate": 0.4,
+    "schedule": "cosine",
+    "min_lr_factor": 0.1,
+    "epochs": 200
+  },
+  "experiments": [
+    {
+      "name": "adamw_constant",
+      "optimizer": "adamw",
+      "learning_rate": 0.4,
+      "epochs": 200
+    },
+    {
+      "name": "schedule_free_adamw",
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.4,
+      "epochs": 200
+    },
+    {
+      "name": "sgd_cosine",
+      "optimizer": "sgd",
+      "learning_rate": 0.6,
+      "schedule": "cosine",
+      "min_lr_factor": 0.0,
+      "epochs": 200
+    },
+    {
+      "name": "schedule_free_sgd",
+      "optimizer": "schedule_free_sgd",
+      "learning_rate": 0.6,
+      "epochs": 200
+    }
+  ]
+}

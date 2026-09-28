@@ -39,10 +39,18 @@ def _ignore(directory: str, names: List[str]) -> set[str]:
     ``runs/demo`` and ``runs/seed-sweep`` are regenerated per attempt; ``runs/demo-verified``
     is part of the contract (a unit test asserts the committed result still matches the
     expected numbers), so it must be present in the copy.
+
+    The committed per-seed sweeps are copied too. They are the input of the paired-statistics and
+    figure tests, and leaving them out made those tests fail inside every scored copy — which made a
+    perfect submission report ``exit 1`` and a mutated one report its controls as *missed*, because the
+    copy could not run the same suite the repository runs.
     """
     skip = {name for name in names if name in {".git", ".github", "__pycache__"} or name.endswith(".pyc")}
     if Path(directory).name == "runs":
-        skip.update(name for name in names if not name.endswith("-verified"))
+        skip.update(
+            name for name in names
+            if not (name.endswith("-verified") or name.startswith("seed-sweep"))
+        )
     return skip
 
 # Each control replaces a fragment of the implementation. The expectation is that the

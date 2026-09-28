@@ -1,0 +1,58 @@
+{
+  "task": "Schedule-Free AdamW against a tuned cosine schedule on the MLP trainer",
+  "paper": {
+    "title": "Schedule-Free Learning: Replacing Schedules with Iteration-Based Averages",
+    "authors": "Aaron Defazio, Xingyu Yang, Harsh Mehta, Konstantin Mishchenko, Ahmed Khaled, Ashok Cutkosky",
+    "year": 2024,
+    "identifier": "arXiv:2405.15682"
+  },
+  "hypothesis": "Same question as the logistic suite, on a model with curvature: does schedule-free AdamW beat, or at least match, a cosine schedule that was tuned over both its learning rate and its minimum-learning-rate factor - and does a constant learning rate remain competitive?",
+  "metric": "test_loss",
+  "target_loss": 0.148,
+  "seed": 2,
+  "trainer": "mlp",
+  "hidden_sizes": [
+    8
+  ],
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw_cosine",
+    "optimizer": "adamw",
+    "learning_rate": 0.3,
+    "schedule": "cosine",
+    "min_lr_factor": 0.1,
+    "epochs": 200
+  },
+  "experiments": [
+    {
+      "name": "adamw_constant",
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 200
+    },
+    {
+      "name": "schedule_free_adamw",
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200
+    },
+    {
+      "name": "sgd_cosine",
+      "optimizer": "sgd",
+      "learning_rate": 1.0,
+      "schedule": "cosine",
+      "min_lr_factor": 0.0,
+      "epochs": 200
+    },
+    {
+      "name": "schedule_free_sgd",
+      "optimizer": "schedule_free_sgd",
+      "learning_rate": 1.0,
+      "epochs": 200
+    }
+  ]
+}

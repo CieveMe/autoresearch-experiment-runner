@@ -9,6 +9,7 @@ help:
 	@echo "make repro    - validate, run, verify expected numbers, run tests"
 	@echo "make repro-main       - only the Adam mechanism suite"
 	@echo "make repro-optimizers - only the optimizer convergence-speed suite"
+	@echo "make repro-ablation   - only the T-ADAM-01C first-moment ablation"
 	@echo "make repro-ademamix   - only the AdEMAMix (2024) suite"
 	@echo "make repro-mlp        - the two MLP suites (does the ranking survive a bigger model?)"
 	@echo "make repro-schedule-free - the schedule-free suite (tuned cosine baseline)"
@@ -34,6 +35,9 @@ repro-main:
 
 repro-optimizers:
 	$(PYTHON) scripts/repro.py --suite optimizers
+
+repro-ablation:
+	$(PYTHON) scripts/repro.py --suite ablation-adam-no-first-moment
 
 repro-ademamix:
 	$(PYTHON) scripts/repro.py --suite ademamix
@@ -68,6 +72,7 @@ run:
 verify:
 	$(PYTHON) scripts/verify_results.py --results runs/demo/results.json
 	$(PYTHON) scripts/verify_results.py --results runs/optimizers/results.json --expected expected/expected_optimizers.json
+	$(PYTHON) scripts/verify_results.py --results runs/ablation-adam-no-first-moment/results.json --expected expected/expected_ablation_adam_no_first_moment.json
 	$(PYTHON) scripts/verify_results.py --results runs/ademamix/results.json --expected expected/expected_ademamix.json
 	$(PYTHON) scripts/verify_results.py --results runs/optimizers-mlp/results.json --expected expected/expected_optimizers_mlp.json
 	$(PYTHON) scripts/verify_results.py --results runs/ademamix-mlp/results.json --expected expected/expected_ademamix_mlp.json

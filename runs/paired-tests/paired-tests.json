@@ -2,7 +2,7 @@
   "schema": "autoresearch-lite/paired-tests@1",
   "metric": "test_loss",
   "alpha": 0.05,
-  "comparisons_tested": 78,
+  "comparisons_tested": 79,
   "headline": [
     {
       "suite": "activation-gelu",
@@ -132,7 +132,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false,
       "holm_within_family": 0.01953125
     },
@@ -363,7 +363,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -521,7 +521,7 @@
       ]
     },
     {
-      "claim": "AdEMAMix has no advantage over AdamW at matched settings (one claim, twelve suites)",
+      "claim": "AdEMAMix shows no advantage over AdamW at matched settings (one claim, eleven suites)",
       "members": 11,
       "smallest_raw_p": 0.021484375,
       "smallest_adjusted_p": 0.236328125,
@@ -653,6 +653,38 @@
   ],
   "skipped": [],
   "comparisons": [
+    {
+      "suite": "ablation-adam-no-first-moment",
+      "metric": "test_loss",
+      "arm": "adam_beta1_0",
+      "reference": "adam",
+      "seeds": 10,
+      "n": 10,
+      "wins": 0,
+      "losses": 10,
+      "ties": 0,
+      "mean": 0.002533284000000005,
+      "median": 0.0026789499999999994,
+      "stdev": 0.001449861755664232,
+      "mean_ci_low": 0.0014961874374110429,
+      "mean_ci_high": 0.0035703805625889673,
+      "median_ci_low": 0.0011313800000000152,
+      "median_ci_high": 0.0034177799999999953,
+      "min": 0.0005004400000000048,
+      "max": 0.005341540000000006,
+      "sign_p": 0.001953125,
+      "wilcoxon_p": 0.001953125,
+      "wilcoxon_exact": true,
+      "combined_p": 0.001953125,
+      "min_detectable_effect_80": 0.0014419401809647595,
+      "informative": true,
+      "cohens_dz": 1.7472589990756877,
+      "rank_biserial": 1.0,
+      "probability_of_superiority": 0.0,
+      "verdict": "evidence of a difference (both tests agree; A is worse on this metric)",
+      "holm_p": 0.154296875,
+      "significant_after_holm": false
+    },
     {
       "suite": "activation-gelu",
       "metric": "test_loss",
@@ -1262,7 +1294,7 @@
       "rank_biserial": 1.0,
       "probability_of_superiority": 0.0,
       "verdict": "evidence of a difference (both tests agree; A is worse on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -1294,7 +1326,7 @@
       "rank_biserial": 1.0,
       "probability_of_superiority": 0.0,
       "verdict": "evidence of a difference (both tests agree; A is worse on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -1358,7 +1390,7 @@
       "rank_biserial": 1.0,
       "probability_of_superiority": 0.0,
       "verdict": "evidence of a difference (both tests agree; A is worse on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -1390,7 +1422,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false,
       "holm_within_family": 0.01953125
     },
@@ -1809,7 +1841,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2227,7 +2259,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2259,7 +2291,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2291,7 +2323,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2645,7 +2677,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2677,7 +2709,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2709,7 +2741,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2741,7 +2773,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2773,7 +2805,7 @@
       "rank_biserial": -1.0,
       "probability_of_superiority": 1.0,
       "verdict": "evidence of a difference (both tests agree; A is better on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2965,7 +2997,7 @@
       "rank_biserial": 1.0,
       "probability_of_superiority": 0.0,
       "verdict": "evidence of a difference (both tests agree; A is worse on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -2997,7 +3029,7 @@
       "rank_biserial": 1.0,
       "probability_of_superiority": 0.0,
       "verdict": "evidence of a difference (both tests agree; A is worse on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {
@@ -3029,7 +3061,7 @@
       "rank_biserial": 1.0,
       "probability_of_superiority": 0.0,
       "verdict": "evidence of a difference (both tests agree; A is worse on this metric)",
-      "holm_p": 0.15234375,
+      "holm_p": 0.154296875,
       "significant_after_holm": false
     },
     {

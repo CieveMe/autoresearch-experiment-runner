@@ -1,0 +1,65 @@
+{
+  "task": "AdEMAMix on the two-layer MLP: speed versus final quality",
+  "paper": {
+    "title": "AdEMAMix: A Smarter Learning Rate Schedule for Adam",
+    "authors": "Matteo Pagliardini, Pierre Ablin, David Grangier",
+    "year": 2024,
+    "identifier": "arXiv:2409.03137"
+  },
+  "hypothesis": "The logistic head is almost convex and converges in tens of steps, which is the wrong regime for a second, slower moving average. On a two-layer tanh MLP the same comparison may show an effect: does AdEMAMix reach a training-loss target sooner than AdamW, and does it end up at a better loss? Ranked here by final test loss, with epochs-to-target reported alongside.",
+  "metric": "test_loss",
+  "target_loss": 0.143,
+  "seed": 2,
+  "trainer": "mlp",
+  "hidden_sizes": [
+    8
+  ],
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw",
+    "optimizer": "adamw",
+    "learning_rate": 0.3,
+    "epochs": 120
+  },
+  "experiments": [
+    {
+      "name": "ademamix_no_warmups",
+      "optimizer": "ademamix",
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "learning_rate": 0.3,
+      "epochs": 120
+    },
+    {
+      "name": "ademamix_warmup_45",
+      "optimizer": "ademamix",
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "alpha_warmup": 45,
+      "beta3_warmup": 45,
+      "learning_rate": 0.3,
+      "epochs": 120
+    },
+    {
+      "name": "ademamix_warmup_120",
+      "optimizer": "ademamix",
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "alpha_warmup": 120,
+      "beta3_warmup": 120,
+      "learning_rate": 0.3,
+      "epochs": 120
+    },
+    {
+      "name": "sgd_momentum",
+      "optimizer": "sgd_momentum",
+      "learning_rate": 1.0,
+      "momentum": 0.9,
+      "epochs": 120
+    }
+  ]
+}

@@ -143,6 +143,29 @@ class CommittedData(unittest.TestCase):
         for item in report["comparisons"]:
             self.assertGreaterEqual(item["holm_p"], item["combined_p"] - 1e-12)
 
+    def test_every_verdict_comes_from_the_closed_set_of_phrasings(self):
+        """No bypass path around the wording rule.
+
+        The rule is only worth having if nothing can print a verdict that did not come from
+        `evidence_phrase`. The renderer prints `item["verdict"]` and nothing else, so this test pins the
+        closed set of phrasings over the whole corpus and checks that the rendered tables introduce no
+        equality claim of their own.
+        """
+        report = stats.build_report(ROOT / "runs", "test_loss", None, None, 0.05)
+        allowed = (
+            "evidence of a difference",
+            "no evidence of a difference at this budget",
+            "the two arms are identical in every seed",
+        )
+        verdicts = [item["verdict"] for item in report["comparisons"]]
+        verdicts += [detail["verdict"] for family in report["claim_families"] for detail in family["detail"]]
+        self.assertTrue(verdicts)
+        for verdict in verdicts:
+            self.assertTrue(verdict.startswith(allowed), verdict)
+        markdown = stats.render_markdown(report)
+        for forbidden in ("no difference between", "are equal", "no effect", "proves"):
+            self.assertNotIn(forbidden, markdown)
+
 
 if __name__ == "__main__":
     unittest.main()

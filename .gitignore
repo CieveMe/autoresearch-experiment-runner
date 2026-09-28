@@ -12,6 +12,7 @@ build/
 
 # Keep the verified demo artifacts, ignore ad-hoc local runs.
 runs/*
+!runs/seed-sweep*/
 !runs/demo-verified/
 !runs/demo-verified/results.json
 !runs/demo-verified/report.md

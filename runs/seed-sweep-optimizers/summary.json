@@ -1,0 +1,225 @@
+{
+  "schema": "autoresearch-lite/seed-sweep@1",
+  "metric": "epochs_to_target",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed_count": 10,
+  "base_config": "examples\\optimizers.json",
+  "base_config_sha256": "808b4c1692271929dd61293f66bf97c0682f9907e8724713d9570a1f94eaeddf",
+  "seed_config_sha256": {
+    "seed-0": "252962a97ef1217b86b8651a8e84b614ee29b054ba2bc5fcf8bd9591250ee7f3",
+    "seed-1": "113d6ec9f96c26198103294c3b54448248bec674292c595c72ff883f4dfa5e46",
+    "seed-2": "b0e86067c81c9b52073b422b0849d912866085710b2d9667e549664c28a508d3",
+    "seed-3": "59878e96feef7bff7ded9c5c92eb4fbc442c22e1c3ef41274aa9e6eeee52088c",
+    "seed-4": "af9108a19d1b5de0eb318cad0864cc609204bbab2f885448a013106c9e33b589",
+    "seed-5": "b5d8543a0ad0819105fb01ef42499e6cb67e76ee5d04b061b416adc2a60ceb0d",
+    "seed-6": "17b89ef346a66e8597f3b08ba8b3825859b4865831896d3fde2bd2de7c64ce9a",
+    "seed-7": "afd47635720e74897c80c169640bdf7926e40e533d5459e90155fc1e90a8c111",
+    "seed-8": "9daa598ba57fb59c8b8018fac3024abce04752f7885349158acbcb14c4820388",
+    "seed-9": "e9867a91839052b3381540379a64d8692ea6919e7d299d9d3257aae387b1ff5e"
+  },
+  "paper": {
+    "title": "Adam: A Method for Stochastic Optimization",
+    "authors": "Diederik P. Kingma and Jimmy Ba",
+    "year": 2014,
+    "identifier": "arXiv:1412.6980"
+  },
+  "trials": {
+    "baseline": {
+      "optimizer": "sgd",
+      "learning_rate": 0.6,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 0,
+      "metric_mean": null,
+      "metric_stdev": 0.0,
+      "metric_min": null,
+      "metric_max": null,
+      "test_accuracy_mean": 0.946,
+      "test_accuracy_stdev": 0.013081,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "sgd_momentum": {
+      "optimizer": "sgd_momentum",
+      "learning_rate": 0.8,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 16.7,
+      "metric_stdev": 3.91719855,
+      "metric_min": 12,
+      "metric_max": 23,
+      "test_accuracy_mean": 0.9435,
+      "test_accuracy_stdev": 0.017005,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 4.0,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 4.7,
+      "metric_stdev": 3.33499958,
+      "metric_min": 2,
+      "metric_max": 12,
+      "test_accuracy_mean": 0.943,
+      "test_accuracy_stdev": 0.017353,
+      "wins": 10,
+      "win_rate": 1.0
+    },
+    "rmsprop": {
+      "optimizer": "rmsprop",
+      "learning_rate": 0.2,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 42.0,
+      "metric_stdev": 9.6378882,
+      "metric_min": 29,
+      "metric_max": 57,
+      "test_accuracy_mean": 0.9445,
+      "test_accuracy_stdev": 0.016741,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.4,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 22.6,
+      "metric_stdev": 6.39791633,
+      "metric_min": 15,
+      "metric_max": 33,
+      "test_accuracy_mean": 0.943,
+      "test_accuracy_stdev": 0.017353,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adam_no_bias_correction": {
+      "optimizer": "adam",
+      "learning_rate": 0.15,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 10.1,
+      "metric_stdev": 1.79195734,
+      "metric_min": 8,
+      "metric_max": 13,
+      "test_accuracy_mean": 0.943,
+      "test_accuracy_stdev": 0.017353,
+      "wins": 0,
+      "win_rate": 0.0
+    }
+  },
+  "paired_improvement": {
+    "adam": {
+      "baseline": {
+        "better_in": 0,
+        "worse_in": 0,
+        "incomparable": 10,
+        "mean_improvement": null,
+        "stdev_improvement": 0.0,
+        "min_improvement": null,
+        "max_improvement": null
+      },
+      "sgd_momentum": {
+        "better_in": 10,
+        "worse_in": 0,
+        "incomparable": 0,
+        "mean_improvement": 5.9,
+        "stdev_improvement": 2.51440296,
+        "min_improvement": 3.0,
+        "max_improvement": 10.0
+      },
+      "adagrad": {
+        "better_in": 10,
+        "worse_in": 0,
+        "incomparable": 0,
+        "mean_improvement": 17.9,
+        "stdev_improvement": 3.44641521,
+        "min_improvement": 13.0,
+        "max_improvement": 23.0
+      },
+      "rmsprop": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -19.4,
+        "stdev_improvement": 3.40587727,
+        "min_improvement": -24.0,
+        "max_improvement": -14.0
+      },
+      "adam_no_bias_correction": {
+        "better_in": 10,
+        "worse_in": 0,
+        "incomparable": 0,
+        "mean_improvement": 12.5,
+        "stdev_improvement": 4.62481231,
+        "min_improvement": 7.0,
+        "max_improvement": 20.0
+      }
+    },
+    "sgd_momentum": {
+      "baseline": {
+        "better_in": 0,
+        "worse_in": 0,
+        "incomparable": 10,
+        "mean_improvement": null,
+        "stdev_improvement": 0.0,
+        "min_improvement": null,
+        "max_improvement": null
+      },
+      "adagrad": {
+        "better_in": 10,
+        "worse_in": 0,
+        "incomparable": 0,
+        "mean_improvement": 12.0,
+        "stdev_improvement": 1.41421356,
+        "min_improvement": 10.0,
+        "max_improvement": 14.0
+      },
+      "rmsprop": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -25.3,
+        "stdev_improvement": 5.83190459,
+        "min_improvement": -34.0,
+        "max_improvement": -17.0
+      },
+      "adam": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -5.9,
+        "stdev_improvement": 2.51440296,
+        "min_improvement": -10.0,
+        "max_improvement": -3.0
+      },
+      "adam_no_bias_correction": {
+        "better_in": 10,
+        "worse_in": 0,
+        "incomparable": 0,
+        "mean_improvement": 6.6,
+        "stdev_improvement": 2.17050941,
+        "min_improvement": 4.0,
+        "max_improvement": 10.0
+      }
+    }
+  }
+}

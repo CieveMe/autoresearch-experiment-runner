@@ -1,0 +1,65 @@
+{
+  "task": "normalisation/initialisation robustness check, hidden [32], He initialisation (no normalisation): do the two negative results survive?",
+  "paper": {
+    "title": "Normalisation/initialisation robustness (AdEMAMix 2024, Schedule-Free 2024)",
+    "authors": "see docs/papers/",
+    "year": 2026,
+    "identifier": "internal-normalization-expansion"
+  },
+  "hypothesis": "Pre-registered N1-N4 in docs/normalization-init-preregistration.md. Not a new topic: this asks whether the schedule-free architecture effect and AdEMAMix's no-advantage verdict depend on this modelling choice (He initialisation (no normalisation)). Every arm retuned on the same grid as the [32] reference, ten seeds, threshold curves.",
+  "metric": "test_loss",
+  "target_loss": 0.147,
+  "seed": 2,
+  "trainer": "mlp",
+  "hidden_sizes": [
+    32
+  ],
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw_cosine",
+    "optimizer": "adamw",
+    "learning_rate": 0.3,
+    "schedule": "cosine",
+    "min_lr_factor": 0.1,
+    "epochs": 200
+  },
+  "experiments": [
+    {
+      "name": "adamw_constant",
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 200
+    },
+    {
+      "name": "adam",
+      "optimizer": "adam",
+      "learning_rate": 0.3,
+      "epochs": 200
+    },
+    {
+      "name": "adagrad",
+      "optimizer": "adagrad",
+      "learning_rate": 1.0,
+      "epochs": 200
+    },
+    {
+      "name": "ademamix",
+      "optimizer": "ademamix",
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "learning_rate": 0.3,
+      "epochs": 200
+    },
+    {
+      "name": "schedule_free_adamw",
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200
+    }
+  ],
+  "init_scheme": "he"
+}

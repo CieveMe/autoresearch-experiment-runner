@@ -1,0 +1,58 @@
+{
+  "task": "optimizer convergence speed on a fixed synthetic task",
+  "paper": {
+    "title": "Adam: A Method for Stochastic Optimization",
+    "authors": "Diederik P. Kingma and Jimmy Ba",
+    "year": 2014,
+    "identifier": "arXiv:1412.6980"
+  },
+  "hypothesis": "At a matched epoch budget, and with each optimizer family tuned by the same coarse learning-rate sweep, Adam reaches a training-loss target close to the converged floor in as few epochs as SGD, SGD with momentum, AdaGrad and RMSProp — and disabling Adam's bias correction changes when the target is reached.",
+  "metric": "epochs_to_target",
+  "target_loss": 0.16,
+  "seed": 4,
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "optimizer": "sgd",
+    "learning_rate": 0.6,
+    "epochs": 120
+  },
+  "experiments": [
+    {
+      "name": "sgd_momentum",
+      "optimizer": "sgd_momentum",
+      "learning_rate": 0.8,
+      "momentum": 0.9,
+      "epochs": 120
+    },
+    {
+      "name": "adagrad",
+      "optimizer": "adagrad",
+      "learning_rate": 4.0,
+      "epochs": 120
+    },
+    {
+      "name": "rmsprop",
+      "optimizer": "rmsprop",
+      "learning_rate": 0.2,
+      "decay": 0.9,
+      "epochs": 120
+    },
+    {
+      "name": "adam",
+      "optimizer": "adam",
+      "learning_rate": 0.4,
+      "epochs": 120
+    },
+    {
+      "name": "adam_no_bias_correction",
+      "optimizer": "adam",
+      "learning_rate": 0.15,
+      "bias_correction": false,
+      "epochs": 120
+    }
+  ]
+}

@@ -27,6 +27,22 @@ owner's accounts, so they are not automated.
 
 ## 1. Before tagging
 
+### Hard rules that outrank the steps below
+
+1. **Save the release body verbatim into the repository before publishing it**
+   (`docs/release-notes-vX.Y.Z.published.md`), because a release body deleted or edited on GitHub is
+   gone from the git history.
+2. **A release body quotes a full-tier run.** `python scripts/score_task.py --tier full`, with the tier
+   label visible, so a core-tier number can never be read as full coverage.
+3. **A published release body and a pushed tag are never edited.** Corrections go into the next
+   version's body and into the section that carries the wrong statement; `docs/release-corrections-pending.md`
+   is the queue. Reasons, in order: editing the body does not re-trigger archival, so GitHub and the
+   archive would disagree; the archive is the tag's repository snapshot, so text in the tree at that tag
+   is archived regardless; and silently repairing a published version destroys the evidence that this
+   repository corrects itself in public.
+4. **Any statistic a conclusion quotes has a generator, a definition and a test** before it is written
+   into a table (`docs/defect-family.md` case 5).
+
 ```bash
 python scripts/repro.py          # both suites: 46 checks, 0 failures, exit 0
 python scripts/score_task.py     # 100/100 and both negative controls detected

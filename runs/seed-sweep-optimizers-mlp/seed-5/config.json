@@ -1,0 +1,56 @@
+{
+  "task": "optimizer convergence speed on the two-layer MLP trainer",
+  "paper": {
+    "title": "Adam: A Method for Stochastic Optimization",
+    "authors": "Diederik P. Kingma and Jimmy Ba",
+    "year": 2014,
+    "identifier": "arXiv:1412.6980"
+  },
+  "hypothesis": "The logistic head has two weights and a bias, so 'Adam is mid-pack on time-to-target' could be an artefact of an almost-convex model. This runs the same question on a two-layer tanh MLP with every family retuned for that model: at a matched epoch budget, does Adam reach a training-loss target in fewer epochs than SGD, momentum, AdaGrad and RMSProp?",
+  "metric": "epochs_to_target",
+  "target_loss": 0.147,
+  "seed": 5,
+  "trainer": "mlp",
+  "hidden_sizes": [
+    8
+  ],
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "sgd",
+    "optimizer": "sgd",
+    "learning_rate": 1.0,
+    "epochs": 120
+  },
+  "experiments": [
+    {
+      "name": "sgd_momentum",
+      "optimizer": "sgd_momentum",
+      "learning_rate": 1.0,
+      "momentum": 0.9,
+      "epochs": 120
+    },
+    {
+      "name": "adagrad",
+      "optimizer": "adagrad",
+      "learning_rate": 1.0,
+      "epochs": 120
+    },
+    {
+      "name": "rmsprop",
+      "optimizer": "rmsprop",
+      "learning_rate": 0.03,
+      "decay": 0.9,
+      "epochs": 120
+    },
+    {
+      "name": "adam",
+      "optimizer": "adam",
+      "learning_rate": 1.0,
+      "epochs": 120
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "task": "T-ADAM-01C ablation: what does Adam's first moment actually buy on this task?",
+  "paper": {
+    "title": "Adam (Kingma & Ba 2014) - momentum ablation on the pinned optimizer suite",
+    "authors": "see docs/papers/",
+    "year": 2026,
+    "identifier": "internal-ablation-first-moment"
+  },
+  "hypothesis": "PRE-REGISTERED BEFORE THE RUN. With both arms at the learning rate tuned for Adam in examples/optimizers.json (0.4) and the same 120-epoch budget and 0.16 target, removing the first moment (beta1 = 0, so the update collapses to g / (sqrt(v_hat) + eps) - a sign-like step) reaches the target in FEWER epochs but ends at a WORSE final test loss than the default Adam (beta1 = 0.9). Reasoning: the sign-like step is larger early, but the averaged first moment is the part that survives gradient noise, and this task's floor is what the recent capacity and normalisation work kept finding to be the harder number. Refuted if beta1 = 0 is slower to the target, or if it ends at a better final test loss. Matched-rate on purpose: re-tuning each arm would turn a one-line ablation into a second tuning study, and the grid is not re-swept (listed as a limitation in the record).",
+  "metric": "epochs_to_target",
+  "target_loss": 0.16,
+  "seed": 0,
+  "trainer": "logistic",
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adam",
+    "optimizer": "adam",
+    "learning_rate": 0.4,
+    "epochs": 120
+  },
+  "experiments": [
+    {
+      "name": "adam_beta1_0",
+      "optimizer": "adam",
+      "beta1": 0.0,
+      "learning_rate": 0.4,
+      "epochs": 120
+    }
+  ]
+}

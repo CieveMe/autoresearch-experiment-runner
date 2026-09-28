@@ -49,6 +49,12 @@ SUITES: Dict[str, Dict[str, str]] = {
         "expected": "expected/expected_optimizers.json",
         "label": "optimizer convergence speed (tuned rates, tight target)",
     },
+    "ablation-adam-no-first-moment": {
+        "config": "examples/ablation-adam-no-first-moment.json",
+        "output": "runs/ablation-adam-no-first-moment",
+        "expected": "expected/expected_ablation_adam_no_first_moment.json",
+        "label": "T-ADAM-01C ablation: Adam without its first moment, at the matched rate",
+    },
     "ademamix": {
         "config": "examples/ademamix.json",
         "output": "runs/ademamix",

@@ -1,0 +1,65 @@
+{
+  "task": "activation expansion, hidden [32] with ReLU: the four claim families",
+  "paper": {
+    "title": "Activation expansion (Adam 2014, AdEMAMix 2024, Schedule-Free 2024)",
+    "authors": "see docs/papers/",
+    "year": 2026,
+    "identifier": "internal-activation-expansion"
+  },
+  "hypothesis": "Pre-registered A1-A3: the schedule-free architecture effect, AdEMAMix's no-advantage verdict and the metric trap should not depend on the hidden activation. This suite is the tanh [32] suite with ReLU instead, same budget, every arm retuned.",
+  "metric": "test_loss",
+  "target_loss": 0.147,
+  "seed": 0,
+  "trainer": "mlp",
+  "hidden_sizes": [
+    32
+  ],
+  "hidden_activation": "relu",
+  "dataset": {
+    "size": 800,
+    "test_ratio": 0.25,
+    "noise": 0.18
+  },
+  "baseline": {
+    "name": "adamw_cosine",
+    "optimizer": "adamw",
+    "learning_rate": 0.1,
+    "schedule": "cosine",
+    "min_lr_factor": 0.1,
+    "epochs": 200
+  },
+  "experiments": [
+    {
+      "name": "adamw_constant",
+      "optimizer": "adamw",
+      "learning_rate": 0.03,
+      "epochs": 200
+    },
+    {
+      "name": "adam",
+      "optimizer": "adam",
+      "learning_rate": 0.03,
+      "epochs": 200
+    },
+    {
+      "name": "adagrad",
+      "optimizer": "adagrad",
+      "learning_rate": 0.1,
+      "epochs": 200
+    },
+    {
+      "name": "ademamix",
+      "optimizer": "ademamix",
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "learning_rate": 0.03,
+      "epochs": 200
+    },
+    {
+      "name": "schedule_free_adamw",
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.03,
+      "epochs": 200
+    }
+  ]
+}
