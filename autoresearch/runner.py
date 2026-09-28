@@ -25,6 +25,8 @@ TRIAL_INHERITED_KEYS = (
     "trainer",
     "hidden_sizes",
     "hidden_activation",
+    "hidden_norm",
+    "init_scheme",
     "init_seed",
     "seed",  # so a trainer that initialises from the seed (the MLP) varies with the sweep seed
     "schedule",

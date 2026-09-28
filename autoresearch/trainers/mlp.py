@@ -22,22 +22,44 @@ def sigmoid(value: float) -> float:
     return 1.0 / (1.0 + math.exp(-value))
 
 
-def _init_params(input_size: int, hidden_sizes: List[int], seed: int) -> Dict[str, Any]:
-    """Deterministic Xavier-style initialisation from the config seed."""
+HIDDEN_ACTIVATIONS = ("tanh", "relu", "gelu")
+# Normalisation of the hidden pre-activations. `none` is the original arithmetic;
+# the other two are modelling choices a suite can vary, and both are verifiable
+# against finite differences exactly like the activations are.
+HIDDEN_NORMS = ("none", "layernorm", "batchnorm")
+# Weight-initialisation scaling. `xavier` is the original (Glorot) limit and stays the
+# default so every existing pinned number is unaffected; `he` scales by fan-in only and
+# `plain` is a fixed 0.05, which is what a hand-written trainer usually starts with.
+INIT_SCHEMES = ("xavier", "he", "plain")
+
+NORM_EPSILON = 1e-5
+
+
+def _init_limit(scheme: str, fan_in: int, fan_out: int) -> float:
+    if scheme == "xavier":
+        return math.sqrt(6.0 / (fan_in + fan_out))
+    if scheme == "he":
+        return math.sqrt(6.0 / fan_in)
+    if scheme == "plain":
+        return 0.05
+    raise ValueError(f"unsupported init_scheme: {scheme} (available: {', '.join(INIT_SCHEMES)})")
+
+
+def _init_params(
+    input_size: int, hidden_sizes: List[int], seed: int, scheme: str = "xavier"
+) -> Dict[str, Any]:
+    """Deterministic initialisation from the config seed, with a selectable scaling."""
     rng = random.Random(seed)
     sizes = [input_size, *hidden_sizes, 1]
     weights: List[List[List[float]]] = []
     biases: List[List[float]] = []
     for layer in range(len(sizes) - 1):
         fan_in, fan_out = sizes[layer], sizes[layer + 1]
-        limit = math.sqrt(6.0 / (fan_in + fan_out))
+        limit = _init_limit(scheme, fan_in, fan_out)
         matrix = [[rng.uniform(-limit, limit) for _ in range(fan_in)] for _ in range(fan_out)]
         weights.append(matrix)
         biases.append([0.0] * fan_out)
     return {"weights": weights, "biases": biases}
-
-
-HIDDEN_ACTIVATIONS = ("tanh", "relu", "gelu")
 
 
 def _activate(name: str, value: float) -> float:
@@ -63,33 +85,98 @@ def _activation_derivative(name: str, pre: float, activated: float) -> float:
     raise ValueError(f"unsupported hidden activation: {name}")
 
 
-def _forward(
-    params: Dict[str, Any], features: List[float], activation: str = "tanh"
-) -> Tuple[List[List[float]], List[List[float]], float]:
-    """Return (activations per layer, pre-activations per layer, output probability).
+def _forward_batch(
+    rows: List[Point], params: Dict[str, Any], activation: str = "tanh", norm: str = "none"
+) -> Dict[str, Any]:
+    """Forward pass for a whole batch, keeping what the backward pass needs.
 
-    Hidden layers use tanh; the output layer is linear and the sigmoid is applied to it
-    once. That convention matters: with tanh on the output too, the gradient of the loss
-    w.r.t. the last pre-activation is (p − y)·(1 − tanh²), and forgetting the second
-    factor is a ~1% error that looks like a slightly wrong optimizer.
+    The output layer is linear and the sigmoid is applied to it once. That convention
+    matters: with tanh on the output too, the gradient of the loss w.r.t. the last
+    pre-activation is (p − y)·(1 − tanh²), and forgetting the second factor is a ~1%
+    error that looks like a slightly wrong optimizer.
+
+    `norm` normalises the hidden pre-activations, and it is the only place where rows
+    are not independent: `batchnorm` takes its statistics across the batch, `layernorm`
+    across the units of one row. There are no running statistics, so the statistics are
+    recomputed on whatever batch is passed in — an honest scope note, not an oversight.
+    `none` reproduces the original arithmetic term for term.
     """
-    activations: List[List[float]] = [list(features)]
-    pre_activations: List[List[float]] = []
-    current = list(features)
+    if norm not in HIDDEN_NORMS:
+        raise ValueError(f"unsupported hidden_norm: {norm} (available: {', '.join(HIDDEN_NORMS)})")
+    count = len(rows)
     last_layer = len(params["weights"]) - 1
+    activations: List[List[List[float]]] = [[list(features) for features, _ in rows]]
+    pre_activations: List[List[List[float]]] = []
+    normalised: List[List[List[float]]] = []
+    statistics: List[Any] = []
     for layer, matrix in enumerate(params["weights"]):
-        pre = [sum(w * x for w, x in zip(row, current)) + params["biases"][layer][unit]
-               for unit, row in enumerate(matrix)]
-        current = pre if layer == last_layer else [_activate(activation, value) for value in pre]
-        pre_activations.append(pre)
-        activations.append(current)
-    return activations, pre_activations, sigmoid(current[0])
+        inputs = activations[layer]
+        pre_rows = [
+            [sum(w * x for w, x in zip(row, inputs[index])) + params["biases"][layer][unit]
+             for unit, row in enumerate(matrix)]
+            for index in range(count)
+        ]
+        if layer == last_layer or norm == "none":
+            current = pre_rows
+            statistics.append(None)
+        elif norm == "batchnorm":
+            width = len(matrix)
+            means = [sum(pre_rows[index][unit] for index in range(count)) / count
+                     for unit in range(width)]
+            variances = [sum((pre_rows[index][unit] - means[unit]) ** 2 for index in range(count)) / count
+                         for unit in range(width)]
+            scales = [1.0 / math.sqrt(value + NORM_EPSILON) for value in variances]
+            current = [[(pre_rows[index][unit] - means[unit]) * scales[unit] for unit in range(width)]
+                       for index in range(count)]
+            statistics.append((means, scales))
+        else:  # layernorm: statistics across the units of one row
+            width = len(matrix)
+            means, scales, current = [], [], []
+            for index in range(count):
+                mean = sum(pre_rows[index]) / width
+                variance = sum((value - mean) ** 2 for value in pre_rows[index]) / width
+                scale = 1.0 / math.sqrt(variance + NORM_EPSILON)
+                means.append(mean)
+                scales.append(scale)
+                current.append([(value - mean) * scale for value in pre_rows[index]])
+            statistics.append((means, scales))
+        pre_activations.append(pre_rows)
+        normalised.append(current)
+        activations.append(
+            current if layer == last_layer
+            else [[_activate(activation, value) for value in row] for row in current]
+        )
+    probabilities = [sigmoid(normalised[last_layer][index][0]) for index in range(count)]
+    return {
+        "activations": activations,
+        "pre_activations": pre_activations,
+        "normalised": normalised,
+        "statistics": statistics,
+        "probabilities": probabilities,
+    }
 
 
-def loss(rows: List[Point], params: Dict[str, Any], weight_decay: float, activation: str = "tanh") -> float:
+def _forward(
+    params: Dict[str, Any], features: List[float], activation: str = "tanh", norm: str = "none"
+) -> Tuple[List[List[float]], List[List[float]], float]:
+    """Single-row convenience wrapper: (activations, pre-activations, probability).
+
+    For `batchnorm` a batch of one row has zero variance, so this wrapper is only
+    meaningful for `none` and `layernorm`; the training path always goes through
+    `_forward_batch`.
+    """
+    forward = _forward_batch([(list(features), 0)], params, activation, norm)
+    return forward["activations"], forward["pre_activations"], forward["probabilities"][0]
+
+
+def loss(
+    rows: List[Point], params: Dict[str, Any], weight_decay: float,
+    activation: str = "tanh", norm: str = "none",
+) -> float:
     total = 0.0
-    for features, label in rows:
-        _, _, probability = _forward(params, features, activation)
+    forward = _forward_batch(rows, params, activation, norm)
+    for index, (_, label) in enumerate(rows):
+        probability = forward["probabilities"][index]
         probability = max(1e-12, min(1.0 - 1e-12, probability))
         total -= label * math.log(probability) + (1 - label) * math.log(1 - probability)
     regularization = weight_decay * sum(
@@ -98,12 +185,16 @@ def loss(rows: List[Point], params: Dict[str, Any], weight_decay: float, activat
     return total / len(rows) + regularization
 
 
-def evaluate(rows: List[Point], params: Dict[str, Any], weight_decay: float, activation: str = "tanh") -> Dict[str, float]:
+def evaluate(
+    rows: List[Point], params: Dict[str, Any], weight_decay: float,
+    activation: str = "tanh", norm: str = "none",
+) -> Dict[str, float]:
     correct = 0
-    for features, label in rows:
-        _, _, probability = _forward(params, features, activation)
+    forward = _forward_batch(rows, params, activation, norm)
+    for index, (_, label) in enumerate(rows):
+        probability = forward["probabilities"][index]
         correct += int((1 if probability >= 0.5 else 0) == label)
-    return {"accuracy": correct / len(rows), "loss": loss(rows, params, weight_decay, activation)}
+    return {"accuracy": correct / len(rows), "loss": loss(rows, params, weight_decay, activation, norm)}
 
 
 def _alloc_states(optimizer: str, params: Dict[str, Any], config: Dict[str, Any]) -> List[Any]:
@@ -114,41 +205,102 @@ def _alloc_states(optimizer: str, params: Dict[str, Any], config: Dict[str, Any]
     return states
 
 
-def gradients(rows: List[Point], params: Dict[str, Any], activation: str = "tanh") -> Dict[str, Any]:
+def _normalisation_backward(
+    norm: str, dz_rows: List[List[float]], normalised: List[List[float]], statistics: Any, count: int
+) -> List[List[float]]:
+    """Turn dL/dz into dL/d(pre-activation) for one layer.
+
+    Both normalisations have the same shape — subtract the mean of the gradient, subtract
+    the component along the normalised value, rescale — and differ only in which axis the
+    mean is taken over: the batch for batchnorm, the units of one row for layernorm. The
+    finite-difference test covers every case, because 'the normalisation backward pass is
+    slightly wrong' is indistinguishable from 'this optimizer does not work'.
+    """
+    if norm == "none" or statistics is None:
+        return [list(row) for row in dz_rows]
+    means, scales = statistics
+    if norm == "batchnorm":
+        width = len(dz_rows[0])
+        totals = [sum(dz_rows[index][unit] for index in range(count)) for unit in range(width)]
+        products = [
+            sum(dz_rows[index][unit] * normalised[index][unit] for index in range(count))
+            for unit in range(width)
+        ]
+        return [
+            [
+                (dz_rows[index][unit]
+                 - totals[unit] / count
+                 - normalised[index][unit] * products[unit] / count) * scales[unit]
+                for unit in range(width)
+            ]
+            for index in range(count)
+        ]
+    # layernorm
+    result: List[List[float]] = []
+    for index in range(count):
+        width = len(dz_rows[index])
+        total = sum(dz_rows[index])
+        product = sum(dz_rows[index][unit] * normalised[index][unit] for unit in range(width))
+        result.append([
+            (dz_rows[index][unit] - total / width - normalised[index][unit] * product / width)
+            * scales[index]
+            for unit in range(width)
+        ])
+    return result
+
+
+def gradients(
+    rows: List[Point], params: Dict[str, Any], activation: str = "tanh", norm: str = "none"
+) -> Dict[str, Any]:
     """Raw (unnormalised) gradients of the summed loss, for every weight and bias.
 
     Exposed so the training loop and the numerical-gradient test use exactly the same
     code path: a backprop error would otherwise look like "the method does not work".
+
+    The chain is propagated layer by layer over the whole batch rather than row by row,
+    because normalisation is the one place where rows stop being independent. With
+    `norm="none"` every quantity is the same one the row-at-a-time version produced, in
+    the same order, so the existing pinned numbers do not move.
     """
+    count = len(rows)
+    last_layer = len(params["weights"]) - 1
+    forward = _forward_batch(rows, params, activation, norm)
     grad_weights = [[[0.0] * len(row) for row in matrix] for matrix in params["weights"]]
     grad_biases = [[0.0] * len(bias) for bias in params["biases"]]
     # Standard backprop: delta at the output is (p - y) because sigmoid+BCE cancel;
-    # hidden deltas are (W_next^T delta_next) * tanh'(z) = ... * (1 - a^2).
-    for features, label in rows:
-        activations, pre_activations, probability = _forward(params, features, activation)
-        deltas: List[List[float]] = [[0.0] * len(matrix) for matrix in params["weights"]]
-        deltas[-1] = [probability - label]
-        for layer in range(len(params["weights"]) - 2, -1, -1):
-            next_matrix = params["weights"][layer + 1]
-            next_delta = deltas[layer + 1]
-            deltas[layer] = [
-                sum(next_matrix[unit][self_index] * next_delta[unit] for unit in range(len(next_delta)))
+    # hidden deltas are (W_next^T delta_next) * act'(z), and then through the
+    # normalisation if there is one.
+    deltas: List[Any] = [None] * len(params["weights"])
+    deltas[last_layer] = [[forward["probabilities"][index] - label] for index, (_, label) in enumerate(rows)]
+    for layer in range(last_layer - 1, -1, -1):
+        next_matrix = params["weights"][layer + 1]
+        next_delta = deltas[layer + 1]
+        normalised_rows = forward["normalised"][layer]
+        activated_rows = forward["activations"][layer + 1]
+        dz_rows = [
+            [
+                sum(next_matrix[unit][self_index] * next_delta[index][unit]
+                    for unit in range(len(next_delta[index])))
                 * _activation_derivative(
-                    activation, pre_activations[layer][self_index], activations[layer + 1][self_index]
+                    activation, normalised_rows[index][self_index], activated_rows[index][self_index]
                 )
                 for self_index in range(len(params["weights"][layer]))
             ]
-        # Accumulate once per row, after every delta is known. This block used to sit inside the
-        # loop above, which doubled the gradients of any network with two hidden layers while
-        # leaving one-hidden-layer networks correct - the finite-difference test now covers both.
-        for layer, delta in enumerate(deltas):
-            for unit in range(len(params["weights"][layer])):
-                grad_biases[layer][unit] += delta[unit]
-                # NOTE: the loop variable must not be called `activation`; it would shadow the
-                # function's activation-name parameter and the next row would pass a float to
-                # _forward. tests/test_ademamix.py's finite-difference check catches exactly that.
-                for index, layer_input in enumerate(activations[layer]):
-                    grad_weights[layer][unit][index] += delta[unit] * layer_input
+            for index in range(count)
+        ]
+        deltas[layer] = _normalisation_backward(
+            norm, dz_rows, normalised_rows, forward["statistics"][layer], count
+        )
+    # Accumulate once per layer, with the rows still in their original order, so the
+    # floating-point sums are the same ones the previous implementation produced.
+    for layer, delta in enumerate(deltas):
+        for unit in range(len(params["weights"][layer])):
+            for index in range(count):
+                grad_biases[layer][unit] += delta[index][unit]
+            for index in range(count):
+                layer_inputs = forward["activations"][layer][index]
+                for position, layer_input in enumerate(layer_inputs):
+                    grad_weights[layer][unit][position] += delta[index][unit] * layer_input
     return {"weights": grad_weights, "biases": grad_biases}
 
 
@@ -159,8 +311,12 @@ def fit(rows: List[Point], config: Dict[str, Any]) -> FitResult:
     tolerance = float(config.get("tolerance", 1e-9))
     hidden_sizes = [int(value) for value in config.get("hidden_sizes", [8])]
     activation = str(config.get("hidden_activation", "tanh")).lower()
+    norm = str(config.get("hidden_norm", "none")).lower()
+    scheme = str(config.get("init_scheme", "xavier")).lower()
     input_size = len(rows[0][0])
-    params = _init_params(input_size, hidden_sizes, int(config.get("init_seed", config.get("seed", 0))))
+    params = _init_params(
+        input_size, hidden_sizes, int(config.get("init_seed", config.get("seed", 0))), scheme
+    )
     states = _alloc_states(optimizer, params, config)
     previous_loss = float("inf")
     final_loss = previous_loss
@@ -169,7 +325,7 @@ def fit(rows: List[Point], config: Dict[str, Any]) -> FitResult:
     scale = 1.0 / len(rows)
 
     for epoch in range(1, max_epochs + 1):
-        raw = gradients(rows, params, activation)
+        raw = gradients(rows, params, activation, norm)
         grad_weights, grad_biases = raw["weights"], raw["biases"]
         # Track the evaluation point alongside the training parameters: for schedule-free
         # rules the reported model is the averaged sequence x, not the point y where the
@@ -200,7 +356,7 @@ def fit(rows: List[Point], config: Dict[str, Any]) -> FitResult:
                 )
                 eval_params["weights"][layer][unit] = row_eval
                 eval_params["biases"][layer][unit] = bias_eval
-        final_loss = loss(rows, eval_params, weight_decay, activation)
+        final_loss = loss(rows, eval_params, weight_decay, activation, norm)
         loss_curve.append(final_loss)
         epochs_run = epoch
         if abs(previous_loss - final_loss) < tolerance:
@@ -243,4 +399,5 @@ class MLPTrainer:
             params,
             float(config.get("weight_decay", 0.0)),
             str(config.get("hidden_activation", "tanh")).lower(),
+            str(config.get("hidden_norm", "none")).lower(),
         )

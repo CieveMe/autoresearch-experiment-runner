@@ -76,18 +76,22 @@ class ScheduleTests(unittest.TestCase):
 
 class MLPTrainerTests(unittest.TestCase):
     def test_gradients_match_numerical_differences(self):
-        """Checked for every hidden activation and for one *and two* hidden layers.
+        """Checked for every hidden activation, every normalisation and one *and two* hidden layers.
 
         The depth dimension is not optional: a mis-indented accumulation block once doubled the
         gradients of two-hidden-layer nets while leaving one-hidden-layer nets correct, so a
         single-depth check passed while the deep path was wrong.
+
+        The normalisation dimension is not optional for the same reason: a wrong backward pass
+        through a normalisation looks exactly like an optimizer that does not work.
         """
         for hidden_sizes in ([3], [3, 3]):
             for activation in ("tanh", "relu", "gelu"):
-                with self.subTest(hidden_sizes=hidden_sizes, activation=activation):
-                    self._gradient_check(activation, hidden_sizes)
+                for norm in ("none", "layernorm", "batchnorm"):
+                    with self.subTest(hidden_sizes=hidden_sizes, activation=activation, norm=norm):
+                        self._gradient_check(activation, hidden_sizes, norm)
 
-    def _gradient_check(self, activation: str, hidden_sizes: list):
+    def _gradient_check(self, activation: str, hidden_sizes: list, norm: str = "none"):
         """A backprop sign/index error looks exactly like 'the method does not work',
         so the analytic gradient is checked against finite differences."""
         train_rows = rows()[:20]
@@ -95,19 +99,57 @@ class MLPTrainerTests(unittest.TestCase):
         params = mlp._init_params(len(train_rows[0][0]), hidden_sizes, 11)
         epsilon = 1e-6
         scale = 1.0 / len(train_rows)
-        analytic_gradients = mlp.gradients(train_rows, params, activation)
+        analytic_gradients = mlp.gradients(train_rows, params, activation, norm)
         for layer, matrix in enumerate(params["weights"]):
             for unit, row in enumerate(matrix):
                 for index in range(len(row)):
                     original = row[index]
                     row[index] = original + epsilon
-                    high = mlp.loss(train_rows, params, 0.0, activation)
+                    high = mlp.loss(train_rows, params, 0.0, activation, norm)
                     row[index] = original - epsilon
-                    low = mlp.loss(train_rows, params, 0.0, activation)
+                    low = mlp.loss(train_rows, params, 0.0, activation, norm)
                     row[index] = original
                     numerical = (high - low) / (2 * epsilon)
                     analytic = analytic_gradients["weights"][layer][unit][index] * scale
-                    self.assertAlmostEqual(numerical, analytic, places=6, msg=f"W{layer}[{unit}][{index}]")
+                    self.assertAlmostEqual(
+                        numerical, analytic, places=6,
+                        msg=f"W{layer}[{unit}][{index}] activation={activation} norm={norm}",
+                    )
+
+    def test_unknown_normalisation_and_init_scheme_are_rejected(self):
+        with self.assertRaises(ValueError):
+            mlp.gradients(rows()[:5], mlp._init_params(2, [3], 1), "tanh", "batchnorm2")
+        with self.assertRaises(ValueError):
+            mlp._init_params(2, [3], 1, "kaiming")
+
+    def test_normalisation_modes_train_deterministically(self):
+        for norm in ("layernorm", "batchnorm"):
+            with self.subTest(norm=norm):
+                config = {"optimizer": "adam", "learning_rate": 0.05, "epochs": 25,
+                          "hidden_sizes": [4], "seed": 3, "hidden_norm": norm}
+                first = mlp.fit(rows(), config)
+                second = mlp.fit(rows(), config)
+                self.assertEqual(first.loss_curve, second.loss_curve)
+                self.assertLess(first.final_loss, 1.0)
+
+    def test_init_schemes_scale_differently_but_stay_deterministic(self):
+        xavier = mlp._init_params(2, [8], 1, "xavier")
+        he = mlp._init_params(2, [8], 1, "he")
+        plain = mlp._init_params(2, [8], 1, "plain")
+        self.assertEqual(xavier, mlp._init_params(2, [8], 1, "xavier"))
+        # The default must stay the original scaling: a suite that does not name a scheme
+        # has to reproduce the numbers published before the option existed.
+        self.assertEqual(xavier, mlp._init_params(2, [8], 1))
+        self.assertAlmostEqual(mlp._init_limit("xavier", 2, 8), math.sqrt(6.0 / 10), places=12)
+        self.assertAlmostEqual(mlp._init_limit("he", 2, 8), math.sqrt(6.0 / 2), places=12)
+        self.assertAlmostEqual(mlp._init_limit("plain", 2, 8), 0.05, places=12)
+        for scheme, params in (("xavier", xavier), ("he", he), ("plain", plain)):
+            limit = mlp._init_limit(scheme, 2, 8)
+            magnitudes = [abs(w) for row in params["weights"][0] for w in row]
+            self.assertLessEqual(max(magnitudes), limit)
+            # Not a vacuous bound: with 16 samples from a seeded uniform, the largest one
+            # sits well inside the range but is nowhere near zero.
+            self.assertGreater(max(magnitudes), 0.5 * limit)
 
     def test_relu_and_gelu_train_deterministically(self):
         for activation in ("relu", "gelu"):
