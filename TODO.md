@@ -24,7 +24,8 @@
 - [x] 具名小节材料：`docs/defect-family.md`（三例同族缺陷 + 每例的检查名与测试文件）。
 - [x] 容量再扩到 `[64]` 与 `[16,16]`（假设先写入 `docs/capacity-expansion-preregistration.md` 再跑）：逐条判定见 `REPRODUCTION.md` §5.13；`[16,16]` 上过拟合主导（最低训练损失的 AdEMAMix 同时是测试损失最差的）。
 - [x] 换激活函数完成（ReLU/GELU，`[32]` 容量，各 18 组调参 + 10 种子，预注册 A1–A3）：**A1 确认**（SF 在两种激活下都赢调过的 cosine，8/10）；**A2 按字面被证伪且最有信息量**（对同学习率 AdamW 仍持平，但对"调过 cosine 的 AdamW"反而赢 9/10、7/10 ⇒ **动的是基线**）；**A3 确认**。见 `REPRODUCTION.md` 5.14。
-- [ ] 归一化/初始化选择（batchnorm/layernorm、Xavier vs He）是否会改变"哪个基线强"——A2 的证伪把这个问题推到前台。
+- [x] 归一化/初始化选择（batchnorm/layernorm、Xavier vs He、固定 0.05）是否会改变那两条负结果（预注册 N1–N4，`docs/normalization-init-preregistration.md`）：**N1 被证伪**（SF 赢调过的 cosine 只在 He 下更强、batchnorm/朴素初始化下是平局、layernorm 下反向）、**N2 方向 3/4 成立但胜场数标准被证伪**（8/10 胜而均值差 9e-5）、**N3 确认**、**N4 被证伪**（没有变体把 σ 降到 0.0210 以下 ⇒ "norm 降低噪声"不成立）。见 `REPRODUCTION.md` §5.15。
+- [x] **实验维度到此冻结（2026-09-28）**：scope 表共六轴——threshold / model family / capacity / metric / activation / normalization-init。除审稿人明确要求，不再加新轴；精力转向 A3 写作与内审。（`REPRODUCTION.md` §5.15 末尾）
 - [ ] 增加失败实验重试、断点恢复和超时控制。
 - [ ] 增加 PyTorch 适配器，同时保持标准库示例可离线运行。
 - [ ] 增加实验结果可视化和 HTML 报告导出。

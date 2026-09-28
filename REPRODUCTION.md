@@ -538,6 +538,17 @@ families and a threshold grid, and a claim is only stated at the scope where it 
 in §5.1–5.9 was retracted by the capacity runs; two claims (constant-rate dominance, AdaGrad) turned out
 to be capacity-scoped and are now labelled that way.
 
+**Correction note (recorded here because these suites are what caught it).** The deep capacities are also
+where the fourth defect of the family in §8 surfaced: while the activation option was being added, a
+refactor re-indented the gradient-accumulation block into the delta loop, which doubled the gradients of
+every two-hidden-layer network and left one-hidden-layer networks correct. It was a pinned number of
+`capacity-h16x16` that failed on a fresh run, not any of the tests. Two wordings were wrong and are
+corrected rather than quietly dropped: `CHANGELOG.md` first said the finite-difference check had caught
+it — it had not, the check covered a single hidden layer and passed — and §8's earlier summary called the
+family "three defects". The check now varies depth and activation, and the family has four members. No
+number published before this was affected: after the fix the one-hidden-layer suites reproduced bit for
+bit and the two-hidden-layer suites returned to their previously pinned values.
+
 ### 5.11 Is the crossing itself stable? (ten seeds, and a bug in the analysis)
 
 §5.9 located crossings on the seed-7 curves. A crossing that exists in one seed and moves, or
@@ -702,6 +713,12 @@ AdamW. H4 and H6 were confirmed, and the `[16,16]` run is the clearest illustrat
 §5.12: AdEMAMix reaches the lowest training loss of any arm there (0.0944) and the worst test loss
 (0.2211 mean over ten seeds).
 
+**H1's boundary, stated precisely.** What ends above `[64]` is AdaGrad's *lead*, not its usefulness. At
+`[16,16]` schedule-free overtakes it and its per-seed wins fall from 8/10 to 4/10, but it still beats the
+tuned-cosine baseline in 9/10 seeds there (+0.02563 on mean test loss). "AdaGrad gets stronger with
+capacity" is therefore scoped to `[64]` and below; "AdaGrad is useful at these capacities" is not
+scoped by anything measured here.
+
 **The value of pre-registration is not that the prediction was right; it is that a wrong prediction is
 still informative.** H5 is the clearest case in this repository: the pre-registered boundary (σ ≈ 0.03)
 turned out to be wrong, and the *reason* it was wrong — instability already appears at σ ≈ 0.021, near the
@@ -769,6 +786,89 @@ Ten-seed test-loss means, paired against the tuned-cosine baseline:
    under every activation tested, which strengthens §5.12's rule that both numbers must be pinned and a
    claim must name the one it is about.
 
+### 5.15 Normalisation and initialisation, pre-registered: a robustness check, not a new topic
+
+Every measurement above was taken with Xavier initialisation and no normalisation of the hidden
+pre-activations. This batch varies exactly those two choices at the `[32]` capacity and asks whether the
+two negative results depend on them. It introduces no new optimizer, dataset or metric. Hypotheses
+N1–N4 were committed in `docs/normalization-init-preregistration.md` before the runs, the tuning grid is
+the same one the `[32]` reference was tuned on, and **`none`/`xavier` remain the defaults: the full tier
+still reproduces every earlier pinned number bit for bit.**
+
+Definitions, so the names are reproducible: **layernorm** standardises each row's hidden pre-activations
+across the units of a layer, **batchnorm** standardises each unit's pre-activations across the batch,
+both with the biased variance, ε = 1e-5, no affine parameter and no running statistics (the statistics
+are recomputed on whatever batch is evaluated). **He** is `sqrt(6/fan_in)`; **plain** is a fixed 0.05.
+
+Ten-seed mean test loss (lower is better), the winner in bold, paired per-seed comparison against the
+tuned-cosine baseline. The reference column is §5.10's `[32]` suite re-verified under the new code:
+
+| arm | reference (none, Xavier) | layernorm | batchnorm | He init | plain init |
+|---|---:|---:|---:|---:|---:|
+| adagrad | **0.12555** (9/10 better than cosine) | 0.13382 (4/10) | 0.13323 (6/10) | **0.13664** (9/10) | 0.13372 (1/10) |
+| schedule-free AdamW | 0.13214 (8/10) | 0.13625 (3/10) | **0.13323** (5/10) | 0.14293 (9/10) | **0.12555** (5/10) |
+| adamw + tuned cosine (baseline) | 0.13587 | **0.13251** | 0.13417 | 0.14860 | 0.12607 |
+| adamw constant / adam | 0.14425 (1/10) | 0.13388 (5/10) | 0.13447 (3/10) | 0.15919 (2/10) | 0.13699 (1/10) |
+| ademamix | 0.14508 (1/10) | 0.13379 (5/10) | 0.13453 (3/10) | 0.16156 (1/10) | 0.13895 (1/10) |
+
+**Verdicts.**
+
+| # | hypothesis | verdict | evidence |
+|---|---|---|---|
+| N1 | the schedule-free architecture effect survives both change families | **refuted (scope correction)** | it holds under He init (better than the tuned cosine in 9/10 seeds, +0.00566) and is a tie under batchnorm (+0.00094, 5/10) and plain init (+0.00052, 5/10) — but under layernorm the tuned cosine wins in 7/10 seeds (+0.00374 for the cosine). Both arms moved, so this is not the A2 pattern: schedule-free's own mean got worse (0.13214 → 0.13625) *and* the baseline got better (0.13587 → 0.13251) |
+| N2 | AdEMAMix's no-advantage verdict survives both change families | **direction holds in 3 of 4; the pre-registered win-count criterion is refuted** | against AdamW at the same rate it is worse on the mean under batchnorm (+0.00006), He (+0.00238) and plain (+0.00195), and marginally better under layernorm (−0.00009). But it wins 8/10 seeds under layernorm and 3/10 under plain, where the criterion demanded ≤2/10 — see finding 3 |
+| N3 | the metric trap (§5.12) survives | **confirmed** | on the ten-seed means the best arm by training loss differs from the best by test loss in **4 of 4** variants (layernorm: schedule-free → cosine; batchnorm: ademamix → schedule-free; He: ademamix → adagrad; plain: ademamix → schedule-free), with 3/5/5/6 of the six arms moving at least two places. On the *pinned single runs* it appears in only 2 of 4 — see finding 4 |
+| N4 | a variant lowers the per-seed noise, and its fixed-threshold winner then becomes stable | **refuted on the mechanism, confirmed on the correlation** | no variant lowered σ below the reference's 0.0210 (layernorm 0.0237, batchnorm 0.0306, He 0.0277, plain 0.0216, each measured on its best arm). The second half still behaves as §5.11 says: the only variant whose fixed-threshold winner is consistent across ten seeds is plain init, the one with the lowest σ — 2 distinct winners, against 3 for the reference, 3 for layernorm, 5 for batchnorm and 3 for He |
+
+**Findings.**
+
+1. **Which arm is best is itself normalisation- and initialisation-scoped.** At `[32]` the mean-test-loss
+   winner is `adagrad` in the reference, `adamw_cosine` under layernorm, `schedule_free_adamw` under
+   batchnorm and under plain init, and `adagrad` again under He. The AdaGrad lead of §5.10 finding 3 —
+   "AdaGrad wins on final test loss once the model has room to overfit" — is therefore **scoped to the
+   default normalisation and initialisation**: under a plain fixed 0.05 initialisation it beats the tuned
+   cosine in only 1 of 10 seeds, and it is the third-best arm on the mean.
+2. **The schedule-free effect is the one that does not fully survive** (N1). Under He init it is stronger
+   than at the reference (9/10 seeds, +0.00566); under batchnorm and plain init it is a coin flip on the
+   seeds with a mean difference below 0.001; under layernorm it loses. As in §5.14 the honest statement is
+   about the pair, not the method: "schedule-free beats a tuned cosine" holds for tanh+Xavier and for He,
+   is unproven at this capacity under batchnorm/plain, and fails under layernorm.
+3. **A win count without a magnitude is not evidence — this is the pre-registered criterion failing, and
+   it is worth more than the hypothesis it tested.** N2 asked for "at most 2/10 seeds better". Under
+   layernorm AdEMAMix is better in 8 of 10 seeds — while the mean difference is 0.00009, three orders of
+   magnitude below the per-seed spread of either arm (σ ≈ 0.025). The sign is consistent and the effect is
+   nil; a criterion written in wins alone cannot tell those apart. This is the same lesson as A2 and as
+   §5.13's H5, arriving from a third direction, and it is now written into the reporting rules of the
+   pre-registration file.
+4. **The metric trap is a property of the mean ranking, and the pre-registration had not said which
+   statistic it was about.** Judged on ten-seed means it is present in all four variants (N3 confirmed);
+   judged on the pinned single runs it is present in two. Neither number is wrong, and the discrepancy is
+   the finding: a training-loss ranking taken from one seed is not the ten-seed ranking, which is the same
+   warning §5.11 makes about speed rankings. Both counts are reported and the pre-registered criterion is
+   recorded as under-specified rather than retro-fitted.
+5. **Normalisation did not lower the noise floor** (N4). The intuition worth testing was that
+   normalising the pre-activations makes the per-seed outcome more repeatable. It does not: σ of the best
+   arm moved from 0.0210 to 0.0237/0.0306/0.0277/0.0216. What σ appears to track is the task and the
+   capacity, not the conditioning of the hidden layer. The correlation in §5.11 therefore survives a
+   fifth and sixth test while its most obvious mechanism is refuted — and, as §5.11 already insisted, it
+   remains a tendency at the bottom of the observed range rather than a threshold: σ 0.0210 produced
+   three distinct winners while σ 0.0216 produced two.
+
+**The scope table, now complete.** A claim in this repository is stated at the intersection of six axes,
+and this batch closes the last one:
+
+| axis | levels measured |
+|---|---|
+| threshold | 13-point grid, pinned at 0.147 (§5.9, §5.11) |
+| model family | 2-parameter logistic head and MLP (§5.6, §5.8) |
+| capacity | `[8]`, `[32]`, `[8,8]`, `[64]`, `[16,16]` (§5.10, §5.13) |
+| metric | `test_loss` and `epochs_to_target`, both pinned (§5.12) |
+| activation | tanh, ReLU, GELU (§5.14) |
+| normalisation / initialisation | none+Xavier, layernorm, batchnorm, He, plain (this section) |
+
+**The axis list is frozen here.** Further axes are added only if a reviewer asks for one; the marginal
+value of another one is lower than the value of writing up the six (see `TODO.md`).
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |
@@ -806,11 +906,12 @@ Ten-seed test-loss means, paired against the tuned-cosine baseline:
 
 ## 8. Defect found and fixed while producing this report
 
-**The three defects of this kind are collected, with the check that caught each one, in
+**The four defects of this kind are collected, with the check that caught each one, in
 [`docs/defect-family.md`](docs/defect-family.md)** — a metric direction that was inverted (found by
 declaring directions), a seed that reached only the data split (found by asserting the seed contract),
-and a tie resolved alphabetically (found by a tie negative control). Two of them are described below;
-the third is in §5.11.
+a tie resolved alphabetically (found by a tie negative control), and gradients of two-hidden-layer
+networks doubled by a refactor (found by a deep suite's pinned number failing, not by a test). Two of
+them are described below; the third is in §5.11 and the fourth in §5.10's correction note.
 
 `config_sha256` was computed from raw file bytes. Because Git on Windows (`core.autocrlf=true`)
 rewrites LF to CRLF at checkout, the *same revision* produced two different hashes — the Windows

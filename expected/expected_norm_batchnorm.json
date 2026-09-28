@@ -1,0 +1,76 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 9166f25495ece439c4022465c234e238d865a239200712a0d8e996af695b549c",
+  "config": "examples/norm-batchnorm.json",
+  "config_sha256": "9166f25495ece439c4022465c234e238d865a239200712a0d8e996af695b549c",
+  "metric": "test_loss",
+  "best": "adamw_constant",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "schedule": "cosine",
+      "min_lr_factor": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.11967868,
+      "epochs_to_target": 5
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.11962998,
+      "epochs_to_target": 5
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.11962998,
+      "epochs_to_target": 5
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.94,
+      "test_loss": 0.11973749,
+      "epochs_to_target": 12
+    },
+    "ademamix": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.11964048,
+      "epochs_to_target": 5
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.94,
+      "test_loss": 0.11986439,
+      "epochs_to_target": 7
+    }
+  },
+  "notes": [
+    "Normalisation robustness check (pre-registered N1-N4): the [32] reference suite with batchnorm on the hidden pre-activations (statistics over the batch, no affine parameter, no running statistics), every arm retuned on the reference grid (examples/norm-batchnorm-sweep.json).",
+    "Predictions N1-N4 were pre-registered in docs/normalization-init-preregistration.md before this run.",
+    "Verdicts come from runs/normalization-verified/batchnorm/seed-sweep-summary.md, not from this single seed."
+  ]
+}

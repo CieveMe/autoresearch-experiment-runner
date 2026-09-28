@@ -1,7 +1,7 @@
 # AutoResearch Lite - one-command reproduction.
 # `make repro` is the entry point quoted in REPRODUCTION.md and TASK.md.
 # On Windows without make, run: python scripts/repro.py
-.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp repro-capacity run verify test sweep thresholds score docker clean
+.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp repro-capacity repro-normalization run verify test sweep thresholds score docker clean
 
 PYTHON ?= python3
 
@@ -14,6 +14,7 @@ help:
 	@echo "make repro-schedule-free - the schedule-free suite (tuned cosine baseline)"
 	@echo "make repro-schedule-free-mlp - the same comparison on the MLP trainer"
 	@echo "make repro-capacity   - the [32] and [8,8] capacity checks"
+	@echo "make repro-normalization - the layernorm/batchnorm/He/plain robustness checks"
 	@echo "make run      - run the experiments only"
 	@echo "make verify   - compare runs/demo/results.json with expected/expected_metrics.json"
 	@echo "make test     - run the unit tests"
@@ -53,6 +54,12 @@ repro-capacity:
 	$(PYTHON) scripts/repro.py --suite activation-relu
 	$(PYTHON) scripts/repro.py --suite activation-gelu
 
+repro-normalization:
+	$(PYTHON) scripts/repro.py --suite norm-layernorm
+	$(PYTHON) scripts/repro.py --suite norm-batchnorm
+	$(PYTHON) scripts/repro.py --suite init-he
+	$(PYTHON) scripts/repro.py --suite init-plain
+
 run:
 	$(PYTHON) -m autoresearch.cli run --config examples/classification.json --output runs/demo
 
@@ -70,6 +77,10 @@ verify:
 	$(PYTHON) scripts/verify_results.py --results runs/capacity-h16x16/results.json --expected expected/expected_capacity_h16x16.json
 	$(PYTHON) scripts/verify_results.py --results runs/activation-relu/results.json --expected expected/expected_activation_relu.json
 	$(PYTHON) scripts/verify_results.py --results runs/activation-gelu/results.json --expected expected/expected_activation_gelu.json
+	$(PYTHON) scripts/verify_results.py --results runs/norm-layernorm/results.json --expected expected/expected_norm_layernorm.json
+	$(PYTHON) scripts/verify_results.py --results runs/norm-batchnorm/results.json --expected expected/expected_norm_batchnorm.json
+	$(PYTHON) scripts/verify_results.py --results runs/init-he/results.json --expected expected/expected_init_he.json
+	$(PYTHON) scripts/verify_results.py --results runs/init-plain/results.json --expected expected/expected_init_plain.json
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v
@@ -89,7 +100,7 @@ sweep:
 	$(PYTHON) -m autoresearch.cli run --config examples/schedule-free-mlp-sweep.json --output runs/schedule-free-mlp-tuning
 
 thresholds:
-	$(PYTHON) scripts/threshold_curve.py --suite optimizers --suite optimizers-mlp --suite schedule-free --suite schedule-free-mlp --suite ademamix --suite ademamix-mlp --suite capacity-h32 --suite capacity-h8x8 --suite capacity-h64 --suite capacity-h16x16 --suite activation-relu --suite activation-gelu
+	$(PYTHON) scripts/threshold_curve.py --suite optimizers --suite optimizers-mlp --suite schedule-free --suite schedule-free-mlp --suite ademamix --suite ademamix-mlp --suite capacity-h32 --suite capacity-h8x8 --suite capacity-h64 --suite capacity-h16x16 --suite activation-relu --suite activation-gelu --suite norm-layernorm --suite norm-batchnorm --suite init-he --suite init-plain
 
 score:
 	$(PYTHON) scripts/score_task.py

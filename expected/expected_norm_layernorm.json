@@ -1,0 +1,76 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 0fd7d766b5349f34822ca006bb93024f7735bc8aa8f00feba6906043df0b3309",
+  "config": "examples/norm-layernorm.json",
+  "config_sha256": "0fd7d766b5349f34822ca006bb93024f7735bc8aa8f00feba6906043df0b3309",
+  "metric": "test_loss",
+  "best": "schedule_free_adamw",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.1,
+      "schedule": "cosine",
+      "min_lr_factor": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12921722,
+      "epochs_to_target": 25
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.03,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12812247,
+      "epochs_to_target": 27
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.03,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12812247,
+      "epochs_to_target": 27
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12782436,
+      "epochs_to_target": 35
+    },
+    "ademamix": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.03,
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12807276,
+      "epochs_to_target": 27
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12414847,
+      "epochs_to_target": 11
+    }
+  },
+  "notes": [
+    "Normalisation robustness check (pre-registered N1-N4): the [32] reference suite with layernorm on the hidden pre-activations (no affine parameter, no running statistics), every arm retuned on the reference grid (examples/norm-layernorm-sweep.json).",
+    "Predictions N1-N4 were pre-registered in docs/normalization-init-preregistration.md before this run.",
+    "Verdicts come from runs/normalization-verified/layernorm/seed-sweep-summary.md, not from this single seed."
+  ]
+}

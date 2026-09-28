@@ -121,6 +121,34 @@ SUITES: Dict[str, Dict[str, str]] = {
         "label": "activation expansion: GELU hidden units (pre-registered A1-A3)",
         "tier": "capacity",
     },
+    "norm-layernorm": {
+        "config": "examples/norm-layernorm.json",
+        "output": "runs/norm-layernorm",
+        "expected": "expected/expected_norm_layernorm.json",
+        "label": "normalisation check: layernorm hidden pre-activations (pre-registered N1-N4)",
+        "tier": "capacity",
+    },
+    "norm-batchnorm": {
+        "config": "examples/norm-batchnorm.json",
+        "output": "runs/norm-batchnorm",
+        "expected": "expected/expected_norm_batchnorm.json",
+        "label": "normalisation check: batchnorm hidden pre-activations (pre-registered N1-N4)",
+        "tier": "capacity",
+    },
+    "init-he": {
+        "config": "examples/init-he.json",
+        "output": "runs/init-he",
+        "expected": "expected/expected_init_he.json",
+        "label": "initialisation check: He scaling (pre-registered N1-N4)",
+        "tier": "capacity",
+    },
+    "init-plain": {
+        "config": "examples/init-plain.json",
+        "output": "runs/init-plain",
+        "expected": "expected/expected_init_plain.json",
+        "label": "initialisation check: plain fixed scaling (pre-registered N1-N4)",
+        "tier": "capacity",
+    },
 }
 
 # Tiers exist to save local iteration time, never to hide coverage. Every report line that

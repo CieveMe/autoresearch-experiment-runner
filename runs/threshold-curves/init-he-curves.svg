@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" font-family="system-ui, sans-serif" font-size="12">
+<rect width="900" height="420" fill="white"/>
+<text x="150" y="22" font-size="14">normalisation/initialisation robustness check, hidden [32], He initialisation (no normalisation): do the two negative results survive? — epochs to reach each threshold</text>
+<line x1="150" y1="370" x2="870" y2="370" stroke="#333"/>
+<line x1="150" y1="40" x2="150" y2="370" stroke="#333"/>
+<line x1="150" y1="370.0" x2="870" y2="370.0" stroke="#eee"/>
+<text x="142" y="374.0" text-anchor="end">0.131</text>
+<line x1="150" y1="304.0" x2="870" y2="304.0" stroke="#eee"/>
+<text x="142" y="308.0" text-anchor="end">0.133</text>
+<line x1="150" y1="238.0" x2="870" y2="238.0" stroke="#eee"/>
+<text x="142" y="242.0" text-anchor="end">0.134</text>
+<line x1="150" y1="172.0" x2="870" y2="172.0" stroke="#eee"/>
+<text x="142" y="176.0" text-anchor="end">0.136</text>
+<line x1="150" y1="106.0" x2="870" y2="106.0" stroke="#eee"/>
+<text x="142" y="110.0" text-anchor="end">0.138</text>
+<line x1="150" y1="40.0" x2="870" y2="40.0" stroke="#eee"/>
+<text x="142" y="44.0" text-anchor="end">0.140</text>
+<line x1="150.0" y1="370" x2="150.0" y2="375" stroke="#333"/>
+<text x="150.0" y="390" text-anchor="middle">0</text>
+<line x1="294.0" y1="370" x2="294.0" y2="375" stroke="#333"/>
+<text x="294.0" y="390" text-anchor="middle">40</text>
+<line x1="438.0" y1="370" x2="438.0" y2="375" stroke="#333"/>
+<text x="438.0" y="390" text-anchor="middle">80</text>
+<line x1="582.0" y1="370" x2="582.0" y2="375" stroke="#333"/>
+<text x="582.0" y="390" text-anchor="middle">120</text>
+<line x1="726.0" y1="370" x2="726.0" y2="375" stroke="#333"/>
+<text x="726.0" y="390" text-anchor="middle">160</text>
+<line x1="870.0" y1="370" x2="870.0" y2="375" stroke="#333"/>
+<text x="870.0" y="390" text-anchor="middle">200</text>
+<text x="510" y="412" text-anchor="middle">epochs to reach the threshold</text>
+<polyline points="751.2,177.5 603.6,150.0 520.8,122.5 459.6,95.0 416.4,67.5 387.6,40.0" fill="none" stroke="#1f77b4" stroke-width="2"/>
+<circle cx="751.2" cy="177.5" r="2" fill="#1f77b4"/>
+<circle cx="603.6" cy="150.0" r="2" fill="#1f77b4"/>
+<circle cx="520.8" cy="122.5" r="2" fill="#1f77b4"/>
+<circle cx="459.6" cy="95.0" r="2" fill="#1f77b4"/>
+<circle cx="416.4" cy="67.5" r="2" fill="#1f77b4"/>
+<circle cx="387.6" cy="40.0" r="2" fill="#1f77b4"/>
+<line x1="14" y1="46" x2="34" y2="46" stroke="#1f77b4" stroke-width="3"/>
+<text x="40" y="50">adamw_cosine</text>
+<polyline points="859.2,342.5 794.4,315.0 733.2,287.5 686.4,260.0 639.6,232.5 596.4,205.0 549.6,177.5 506.4,150.0 463.2,122.5 427.2,95.0 394.8,67.5 376.8,40.0" fill="none" stroke="#d62728" stroke-width="2"/>
+<circle cx="859.2" cy="342.5" r="2" fill="#d62728"/>
+<circle cx="794.4" cy="315.0" r="2" fill="#d62728"/>
+<circle cx="733.2" cy="287.5" r="2" fill="#d62728"/>
+<circle cx="686.4" cy="260.0" r="2" fill="#d62728"/>
+<circle cx="639.6" cy="232.5" r="2" fill="#d62728"/>
+<circle cx="596.4" cy="205.0" r="2" fill="#d62728"/>
+<circle cx="549.6" cy="177.5" r="2" fill="#d62728"/>
+<circle cx="506.4" cy="150.0" r="2" fill="#d62728"/>
+<circle cx="463.2" cy="122.5" r="2" fill="#d62728"/>
+<circle cx="427.2" cy="95.0" r="2" fill="#d62728"/>
+<circle cx="394.8" cy="67.5" r="2" fill="#d62728"/>
+<circle cx="376.8" cy="40.0" r="2" fill="#d62728"/>
+<line x1="14" y1="64" x2="34" y2="64" stroke="#d62728" stroke-width="3"/>
+<text x="40" y="68">adamw_constant</text>
+<polyline points="859.2,342.5 794.4,315.0 733.2,287.5 686.4,260.0 639.6,232.5 596.4,205.0 549.6,177.5 506.4,150.0 463.2,122.5 427.2,95.0 394.8,67.5 376.8,40.0" fill="none" stroke="#2ca02c" stroke-width="2"/>
+<circle cx="859.2" cy="342.5" r="2" fill="#2ca02c"/>
+<circle cx="794.4" cy="315.0" r="2" fill="#2ca02c"/>
+<circle cx="733.2" cy="287.5" r="2" fill="#2ca02c"/>
+<circle cx="686.4" cy="260.0" r="2" fill="#2ca02c"/>
+<circle cx="639.6" cy="232.5" r="2" fill="#2ca02c"/>
+<circle cx="596.4" cy="205.0" r="2" fill="#2ca02c"/>
+<circle cx="549.6" cy="177.5" r="2" fill="#2ca02c"/>
+<circle cx="506.4" cy="150.0" r="2" fill="#2ca02c"/>
+<circle cx="463.2" cy="122.5" r="2" fill="#2ca02c"/>
+<circle cx="427.2" cy="95.0" r="2" fill="#2ca02c"/>
+<circle cx="394.8" cy="67.5" r="2" fill="#2ca02c"/>
+<circle cx="376.8" cy="40.0" r="2" fill="#2ca02c"/>
+<line x1="14" y1="82" x2="34" y2="82" stroke="#2ca02c" stroke-width="3"/>
+<text x="40" y="86">adam</text>
+<circle cx="870.0" cy="40.0" r="2" fill="#9467bd"/>
+<line x1="14" y1="100" x2="34" y2="100" stroke="#9467bd" stroke-width="3"/>
+<text x="40" y="104">adagrad</text>
+<polyline points="866.4,370.0 823.2,342.5 783.6,315.0 754.8,287.5 664.8,260.0 621.6,232.5 578.4,205.0 538.8,177.5 495.6,150.0 456.0,122.5 420.0,95.0 394.8,67.5 376.8,40.0" fill="none" stroke="#ff7f0e" stroke-width="2"/>
+<circle cx="866.4" cy="370.0" r="2" fill="#ff7f0e"/>
+<circle cx="823.2" cy="342.5" r="2" fill="#ff7f0e"/>
+<circle cx="783.6" cy="315.0" r="2" fill="#ff7f0e"/>
+<circle cx="754.8" cy="287.5" r="2" fill="#ff7f0e"/>
+<circle cx="664.8" cy="260.0" r="2" fill="#ff7f0e"/>
+<circle cx="621.6" cy="232.5" r="2" fill="#ff7f0e"/>
+<circle cx="578.4" cy="205.0" r="2" fill="#ff7f0e"/>
+<circle cx="538.8" cy="177.5" r="2" fill="#ff7f0e"/>
+<circle cx="495.6" cy="150.0" r="2" fill="#ff7f0e"/>
+<circle cx="456.0" cy="122.5" r="2" fill="#ff7f0e"/>
+<circle cx="420.0" cy="95.0" r="2" fill="#ff7f0e"/>
+<circle cx="394.8" cy="67.5" r="2" fill="#ff7f0e"/>
+<circle cx="376.8" cy="40.0" r="2" fill="#ff7f0e"/>
+<line x1="14" y1="118" x2="34" y2="118" stroke="#ff7f0e" stroke-width="3"/>
+<text x="40" y="122">ademamix</text>
+<circle cx="852.0" cy="40.0" r="2" fill="#8c564b"/>
+<line x1="14" y1="136" x2="34" y2="136" stroke="#8c564b" stroke-width="3"/>
+<text x="40" y="140">schedule_free_adamw</text>
+</svg>

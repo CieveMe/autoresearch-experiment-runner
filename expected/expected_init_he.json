@@ -1,0 +1,76 @@
+{
+  "schema": "autoresearch-lite/expected-metrics@1",
+  "described_revision": "config sha256 1da336133e6fe169760deb46442b6c28571f229918362460375c807342feedb0",
+  "config": "examples/init-he.json",
+  "config_sha256": "1da336133e6fe169760deb46442b6c28571f229918362460375c807342feedb0",
+  "metric": "test_loss",
+  "best": "ademamix",
+  "dataset": {
+    "train_size": 600,
+    "test_size": 200
+  },
+  "tolerance": {
+    "accuracy_abs": 0.005,
+    "loss_abs": 1e-06,
+    "loss_rel": 1e-06
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "schedule": "cosine",
+      "min_lr_factor": 0.1,
+      "epochs": 200,
+      "test_accuracy": 0.925,
+      "test_loss": 0.12722933,
+      "epochs_to_target": 37
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12321829,
+      "epochs_to_target": 37
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12321829,
+      "epochs_to_target": 37
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 1.0,
+      "epochs": 200,
+      "test_accuracy": 0.935,
+      "test_loss": 0.12455205,
+      "epochs_to_target": 33
+    },
+    "ademamix": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "alpha": 2.0,
+      "beta3": 0.9999,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12306551,
+      "epochs_to_target": 37
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.3,
+      "epochs": 200,
+      "test_accuracy": 0.93,
+      "test_loss": 0.12610458,
+      "epochs_to_target": 11
+    }
+  },
+  "notes": [
+    "Initialisation robustness check (pre-registered N1-N4): the [32] reference suite with He initialisation (sqrt(6/fan_in)), no normalisation, every arm retuned on the reference grid (examples/init-he-sweep.json).",
+    "Predictions N1-N4 were pre-registered in docs/normalization-init-preregistration.md before this run.",
+    "Verdicts come from runs/normalization-verified/he/seed-sweep-summary.md, not from this single seed."
+  ]
+}

@@ -111,6 +111,32 @@ runs/*
 !runs/activation-verified/sweeps/
 !runs/activation-verified/sweeps/relu-sweep-report.md
 !runs/activation-verified/sweeps/gelu-sweep-report.md
+!runs/normalization-verified/
+!runs/normalization-verified/layernorm/
+!runs/normalization-verified/layernorm/results.json
+!runs/normalization-verified/layernorm/report.md
+!runs/normalization-verified/layernorm/seed-sweep-summary.json
+!runs/normalization-verified/layernorm/seed-sweep-summary.md
+!runs/normalization-verified/batchnorm/
+!runs/normalization-verified/batchnorm/results.json
+!runs/normalization-verified/batchnorm/report.md
+!runs/normalization-verified/batchnorm/seed-sweep-summary.json
+!runs/normalization-verified/batchnorm/seed-sweep-summary.md
+!runs/normalization-verified/he/
+!runs/normalization-verified/he/results.json
+!runs/normalization-verified/he/report.md
+!runs/normalization-verified/he/seed-sweep-summary.json
+!runs/normalization-verified/he/seed-sweep-summary.md
+!runs/normalization-verified/plain/
+!runs/normalization-verified/plain/results.json
+!runs/normalization-verified/plain/report.md
+!runs/normalization-verified/plain/seed-sweep-summary.json
+!runs/normalization-verified/plain/seed-sweep-summary.md
+!runs/normalization-verified/sweeps/
+!runs/normalization-verified/sweeps/layernorm-sweep-report.md
+!runs/normalization-verified/sweeps/batchnorm-sweep-report.md
+!runs/normalization-verified/sweeps/he-sweep-report.md
+!runs/normalization-verified/sweeps/plain-sweep-report.md
 
 # Local credentials and editor state
 .env

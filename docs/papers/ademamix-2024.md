@@ -171,6 +171,26 @@ This is a scope correction, not a retraction: the original verdict was measured 
 reference was the strongest AdamW variant, and it holds there. What the new runs remove is the
 generalisation from "no advantage over the baseline" to "no advantage over AdamW".
 
+### The normalisation/initialisation check (§5.15) — and the criterion that failed
+
+The last two never-varied modelling choices were normalisation of the hidden pre-activations and the
+weight-initialisation scaling. The `[32]` capacity was re-run with layernorm, with batchnorm, with He
+initialisation and with a plain fixed 0.05 initialisation, every arm retuned on the reference grid,
+pre-registered N1-N4 (`docs/normalization-init-preregistration.md`).
+
+**The direction of the verdict holds in three of the four variants**: against AdamW at the same rate the
+mean test loss is worse under batchnorm (+0.00006), He (+0.00238) and plain init (+0.00195), and
+marginally better under layernorm (−0.00009). So "no advantage at matched settings" is the reproducible
+part, and nothing here revives the paper's faster-convergence claim.
+
+**The pre-registered win-count criterion is the thing that failed, and it is worth more than the
+hypothesis it tested.** N2 asked for "at most 2/10 seeds better". Under layernorm AdEMAMix is better in
+**8 of 10 seeds** while the mean difference is 0.00009 — three orders of magnitude below the per-seed
+spread (σ ≈ 0.025). A consistent sign and a nil effect; a criterion written in wins alone cannot tell
+those apart. That is the third arrival of the same lesson (A2 in §5.14 and H5 in §5.13 were the other
+two), and it is now a reporting rule in the pre-registration file rather than a footnote: **a win count
+without a magnitude is not evidence.**
+
 The slow EMA is designed to pay off over a long horizon (the paper reports language-model training in
 the hundreds of thousands of steps at lr ≈ 1e-3). This task is a 120-epoch full-batch convex problem
 whose parameters converge in ~20–100 steps; there is simply no long horizon for a second, slower

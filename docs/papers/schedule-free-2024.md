@@ -112,6 +112,17 @@ beats schedule-free AdamW in 9/10 seeds** (mean +0.00703 ± 0.00571).
    **And it is not an artefact of `tanh`**: §5.14 re-ran the `[32]` capacity with ReLU and with GELU
    (pre-registered A1) and schedule-free beat the tuned cosine under both, 8/10 seeds each. The effect now
    rests on three activations, five capacities and both model families.
+   **But it does not survive every normalisation/initialisation choice, and that is the newest scope
+   label on it.** §5.15 varied the last two never-varied modelling choices at the same `[32]` capacity
+   (pre-registered N1-N4, every arm retuned on the reference grid). Under **He initialisation** the
+   effect is *stronger* than at the reference (better than the tuned cosine in 9/10 seeds, +0.00566);
+   under **batchnorm** and under a **plain fixed 0.05 initialisation** it is a coin flip on the seeds
+   (5/10 each) with a mean gap below 0.001, i.e. a tie rather than a win; under **layernorm** it
+   reverses — the tuned cosine wins 7/10 seeds and by 0.00374 on the mean. Both arms moved there, so
+   this is not the §5.14 pattern: schedule-free's own mean got worse (0.13214 → 0.13625) *and* the
+   baseline got better (0.13587 → 0.13251). The statement this card now stands behind is therefore
+   "schedule-free beats a tuned cosine for tanh+Xavier and for He initialisation at these capacities;
+   unproven under batchnorm and plain init; and not reproduced under layernorm."
 1. **"At worst matches" holds; "out-performs" is not established.** The direction of the
    schedule-free-versus-tuned-cosine comparison **flips with the model**: on the logistic head the tuned
    cosine wins 10/10 (by a tiny 0.00032), on the MLP schedule-free wins 9/10 (by 0.00128). Neither is a

@@ -1,0 +1,225 @@
+{
+  "schema": "autoresearch-lite/seed-sweep@1",
+  "metric": "test_loss",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed_count": 10,
+  "base_config": "examples\\init-plain.json",
+  "base_config_sha256": "15eb8d5ab8f4bb921d5db3ae939237008a83be691efba5d50379c87ff681b1fd",
+  "seed_config_sha256": {
+    "seed-0": "61e6018ef5d1d8f0af6a4d9f87fac1e81dfbb5c23d17b0e33c6eba546756c8b7",
+    "seed-1": "710fdd5f7f2160b2454b61d0eb62db43fc6b9b4a60e49f190563ad1cfe88b04d",
+    "seed-2": "761bf01dbf18a3fc0fe1fc23f96d393ed541a0e6ef7f707498c95eb99e3cd17e",
+    "seed-3": "c0437f779e9802d5373f95bb083c0c07b3f70bb355bc179c5f0eceb69846e74f",
+    "seed-4": "dfaf91c1d2d383f82c615130956baae123763cdef5af3e269debf942ca562865",
+    "seed-5": "61e0446fb001dc58ab9c74126b29d97b6cd87f3070f79c58de04014c02746396",
+    "seed-6": "34cdb66f0dee8917b28aacf5a0fb992ea7f4d8a72cd65078e1da0cfc41cf53a0",
+    "seed-7": "15eb8d5ab8f4bb921d5db3ae939237008a83be691efba5d50379c87ff681b1fd",
+    "seed-8": "d2e4dc0a5381c7a93e2e3e0e1d8769119b2dde16cb3c5770bfbe7986bde20245",
+    "seed-9": "b2609fcb1958faf2d96ec2ce1706034a1a361831f4dae03f4c69c5bda316cf02"
+  },
+  "paper": {
+    "title": "Normalisation/initialisation robustness (AdEMAMix 2024, Schedule-Free 2024)",
+    "authors": "see docs/papers/",
+    "year": 2026,
+    "identifier": "internal-normalization-expansion"
+  },
+  "trials": {
+    "adamw_cosine": {
+      "optimizer": "adamw",
+      "learning_rate": 0.1,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.12607403,
+      "metric_stdev": 0.02206524,
+      "metric_min": 0.080648,
+      "metric_max": 0.15965272,
+      "test_accuracy_mean": 0.9445,
+      "test_accuracy_stdev": 0.016741,
+      "wins": 4,
+      "win_rate": 0.4
+    },
+    "adamw_constant": {
+      "optimizer": "adamw",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.13699482,
+      "metric_stdev": 0.03137388,
+      "metric_min": 0.07529784,
+      "metric_max": 0.20089607,
+      "test_accuracy_mean": 0.941,
+      "test_accuracy_stdev": 0.01542,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.13699482,
+      "metric_stdev": 0.03137388,
+      "metric_min": 0.07529784,
+      "metric_max": 0.20089607,
+      "test_accuracy_mean": 0.941,
+      "test_accuracy_stdev": 0.01542,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    "adagrad": {
+      "optimizer": "adagrad",
+      "learning_rate": 1.0,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.13372011,
+      "metric_stdev": 0.02534975,
+      "metric_min": 0.09096551,
+      "metric_max": 0.17395064,
+      "test_accuracy_mean": 0.9415,
+      "test_accuracy_stdev": 0.015102,
+      "wins": 1,
+      "win_rate": 0.1
+    },
+    "ademamix": {
+      "optimizer": "ademamix",
+      "learning_rate": 0.3,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.13894744,
+      "metric_stdev": 0.03240213,
+      "metric_min": 0.07479193,
+      "metric_max": 0.20222834,
+      "test_accuracy_mean": 0.9415,
+      "test_accuracy_stdev": 0.014347,
+      "wins": 1,
+      "win_rate": 0.1
+    },
+    "schedule_free_adamw": {
+      "optimizer": "schedule_free_adamw",
+      "learning_rate": 0.1,
+      "weight_decay": 0.0,
+      "epochs": 200,
+      "reached_in": 10,
+      "metric_mean": 0.12555073,
+      "metric_stdev": 0.02155086,
+      "metric_min": 0.08180586,
+      "metric_max": 0.15996797,
+      "test_accuracy_mean": 0.944,
+      "test_accuracy_stdev": 0.016465,
+      "wins": 4,
+      "win_rate": 0.4
+    }
+  },
+  "paired_improvement": {
+    "adamw_cosine": {
+      "adamw_constant": {
+        "better_in": 1,
+        "worse_in": 9,
+        "incomparable": 0,
+        "mean_improvement": -0.01092079,
+        "stdev_improvement": 0.01228732,
+        "min_improvement": -0.04124335000000001,
+        "max_improvement": 0.005350159999999993
+      },
+      "adam": {
+        "better_in": 1,
+        "worse_in": 9,
+        "incomparable": 0,
+        "mean_improvement": -0.01092079,
+        "stdev_improvement": 0.01228732,
+        "min_improvement": -0.04124335000000001,
+        "max_improvement": 0.005350159999999993
+      },
+      "adagrad": {
+        "better_in": 1,
+        "worse_in": 9,
+        "incomparable": 0,
+        "mean_improvement": -0.00764608,
+        "stdev_improvement": 0.01016195,
+        "min_improvement": -0.027886439999999985,
+        "max_improvement": 0.004976389999999997
+      },
+      "ademamix": {
+        "better_in": 1,
+        "worse_in": 9,
+        "incomparable": 0,
+        "mean_improvement": -0.01287341,
+        "stdev_improvement": 0.0130178,
+        "min_improvement": -0.04257562000000001,
+        "max_improvement": 0.005856069999999991
+      },
+      "schedule_free_adamw": {
+        "better_in": 5,
+        "worse_in": 5,
+        "incomparable": 0,
+        "mean_improvement": 0.0005233,
+        "stdev_improvement": 0.00130929,
+        "min_improvement": -0.0011578599999999967,
+        "max_improvement": 0.003319590000000011
+      }
+    },
+    "schedule_free_adamw": {
+      "adamw_cosine": {
+        "better_in": 5,
+        "worse_in": 5,
+        "incomparable": 0,
+        "mean_improvement": -0.0005233,
+        "stdev_improvement": 0.00130929,
+        "min_improvement": -0.003319590000000011,
+        "max_improvement": 0.0011578599999999967
+      },
+      "adamw_constant": {
+        "better_in": 1,
+        "worse_in": 9,
+        "incomparable": 0,
+        "mean_improvement": -0.01144409,
+        "stdev_improvement": 0.01221597,
+        "min_improvement": -0.04092810000000002,
+        "max_improvement": 0.006508019999999989
+      },
+      "adam": {
+        "better_in": 1,
+        "worse_in": 9,
+        "incomparable": 0,
+        "mean_improvement": -0.01144409,
+        "stdev_improvement": 0.01221597,
+        "min_improvement": -0.04092810000000002,
+        "max_improvement": 0.006508019999999989
+      },
+      "adagrad": {
+        "better_in": 2,
+        "worse_in": 8,
+        "incomparable": 0,
+        "mean_improvement": -0.00816938,
+        "stdev_improvement": 0.00956467,
+        "min_improvement": -0.02801605999999998,
+        "max_improvement": 0.001656799999999986
+      },
+      "ademamix": {
+        "better_in": 1,
+        "worse_in": 9,
+        "incomparable": 0,
+        "mean_improvement": -0.01339671,
+        "stdev_improvement": 0.01319752,
+        "min_improvement": -0.04226037000000002,
+        "max_improvement": 0.007013929999999988
+      }
+    }
+  }
+}

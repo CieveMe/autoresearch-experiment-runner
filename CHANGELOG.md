@@ -129,6 +129,22 @@ All notable changes to this project are documented here. The format follows
   under both), and **A2 refuted in an informative way**: AdEMAMix is a tie against AdamW at the same rate
   but wins against a cosine-scheduled AdamW under ReLU/GELU — because under those activations the
   scheduled baseline is the weakest arm, not AdEMAMix being good.
+- **Selectable hidden normalisation and weight initialisation** (`hidden_norm`: none/layernorm/batchnorm,
+  `init_scheme`: xavier/he/plain). `none` and `xavier` are the defaults and the original arithmetic, so
+  every earlier pinned number still verifies bit for bit. The forward pass became batch-shaped and the
+  backward chain layer-major, because normalisation is where rows stop being independent; the
+  finite-difference check now varies normalisation as well as activation and depth (18 checks).
+- **The normalisation/initialisation robustness check** (pre-registered N1-N4 in
+  `docs/normalization-init-preregistration.md`, committed before the runs): four variants at the `[32]`
+  reference capacity on the reference tuning grid, ten seeds, threshold curves. **N1 is refuted as a
+  general claim** — schedule-free's edge over the tuned cosine is stronger under He init (9/10 seeds),
+  a tie under batchnorm and plain init (5/10 each, mean gap below 0.001) and reverses under layernorm
+  (the cosine wins 7/10); both arms moved, so it is not the §5.14 pattern. **N2's direction holds in 3 of
+  4**, while its pre-registered win-count criterion fails (8/10 "wins" with a mean difference of 9e-5 —
+  a win count without a magnitude is not evidence, the third arrival of that lesson). **N3 confirmed.**
+  **N4 is refuted on mechanism**: no variant lowered the best arm's σ below the reference's 0.0210, so
+  "normalisation reduces the noise floor" is wrong — while the σ/reproducibility correlation of §5.11
+  held again. §5.15 records that this is the **last experimental axis**; the scope table now has six.
 - **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
   the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
   lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).
