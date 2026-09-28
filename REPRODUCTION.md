@@ -607,14 +607,20 @@ is an early minimum, not the final loss.
    does *not* survive is being stated as one number. The repository now reports speed as
    "arm A is faster than arm B at threshold T, in N/10 seeds", which is what the curves, the crossing
    tables and the per-seed tables together support.
-7. **The reproducibility of a ranking tracks the model family's noise level, and the noise is
-   measurable.** Across the ten suites, the only fixed-threshold rankings that reproduced in every seed
-   are the two whose per-seed test-loss standard deviation is lowest (σ ≈ 0.020), while every suite at
-   σ ≥ 0.021 produced two to four different winners across ten seeds. §5.13 then tested this claim by
-   pre-registering it for two new capacities: the direction held and the boundary guessed for it (σ ≈
-   0.03) was refuted, which is the useful outcome — the measurable prerequisite for quoting a
-   fixed-threshold ranking is "run the sweep, check σ, and only then decide whether a winner is stable",
-   not a threshold picked in advance.
+7. ~~**The reproducibility of a ranking tracks the model family's noise level, and the noise is
+   measurable.**~~ **Withdrawn — see the correction below.** This finding claimed that the only
+   fixed-threshold rankings that reproduced in every seed were the two lowest-σ suites (σ ≈ 0.020),
+   while every suite at σ ≥ 0.021 produced two to four different winners. §5.13 then tested it by
+   pre-registering a boundary for it (σ ≈ 0.03), which came out wrong.
+   **The audit in §5.16 shows that the σ values the claim rested on are not reproducible under their own
+   definition** (case 5 in `docs/defect-family.md`): §5.13's column is headed "σ of the best arm" but
+   several rows carry another arm's σ. Computed properly, the relationship is not monotone —
+   `optimizers-mlp` has the second-lowest noise of the corpus (0.02019) and **five** different winners,
+   while the two activation suites sit higher (0.0217) and have **one** winner in all ten seeds. So the
+   noise level is measurable (that half survives) and it does **not** predict reproducibility here. The
+   rule this repository now follows is weaker and checkable: a fixed-threshold ranking has to be shown
+   stable per seed before it is quoted, and the noise statistics of the suite are reported either way
+   (`runs/figures/stability.csv`).
 
 ### 5.12 Which metric ranks the methods? (the two rankings diverge with capacity)
 
@@ -681,7 +687,7 @@ Ten-seed test-loss means, paired against the tuned-cosine baseline:
 | H2 | the schedule-free architecture effect continues | **confirmed** | beats the tuned cosine at both new capacities (9/10 and 10/10 seeds); it now holds at five MLP capacities |
 | H3 | AdEMAMix still has no advantage | **confirmed** | 1/10 and 0/10 seeds better than the AdamW baseline, worse on mean test loss; five capacities and both model families now agree |
 | H4 | train/test divergence keeps growing | **confirmed** | the top-1 differs between the two metrics at both capacities (ademamix → adagrad; ademamix → schedule-free) and five of six arms move at least two places in both |
-| H5 | reproducibility tracks the suite's noise level, with the boundary at σ ≈ 0.03 | **partially refuted** | the direction holds — the three highest-σ suites (0.035, 0.038, 0.065) are all unstable, and the only two suites with a single winner across seeds sit at the bottom of the range — but the pre-registered boundary was too generous: instability appears by σ ≈ 0.021, so the usable statement is "a fixed-threshold ranking reproduced only at the very bottom of the observed noise range (σ ≤ 0.021)", not "below 0.03" |
+| H5 | reproducibility tracks the suite's noise level, with the boundary at σ ≈ 0.03 | **refuted once the σ values were recomputed** (originally reported as partially refuted) | the pre-registered boundary was wrong, and so was the column supporting the direction: see the correction below. With every statistic recomputed from the committed files under a stated definition, the relationship is not monotone — `optimizers-mlp` at σ_best = 0.02019 has five distinct winners, the two activation suites at σ_best ≈ 0.0217 have one each |
 | H6 | Adam is still not the fastest | **confirmed** | at the pinned threshold Adam needs 39 epochs at `[64]` (adaGrad 6, schedule-free 14) and 34 at `[16,16]` (schedule-free 20) |
 
 The per-suite view behind H5 (winner at the suite's pinned threshold, per seed; ten seeds):
@@ -703,6 +709,41 @@ The two columns are the point: **σ and the number of distinct winners move toge
 σ ≥ 0.021 produced between two and four different winners across ten seeds; the only two suites that
 reproduced a single winner are the two with the lowest σ. Whatever the exact cut-off, a reader can
 measure σ before deciding whether a fixed-threshold ranking is quotable.
+
+**Correction (added 2026-09-28, after the audit in §5.16): the σ column above is not reproducible, and
+the sentence you just read is wrong.** The column was assembled by hand; recomputing "per-seed test-loss
+standard deviation of the arm with the lowest mean test loss" from the committed files gives different
+numbers for five of the ten rows, and the published values belong to different arms in different rows
+(for `capacity-h8x8`, 0.0646 is `adamw_constant`'s σ while the best arm is `adagrad` at 0.02271; for
+`capacity-h16x16`, 0.0381 is `adagrad`'s σ while the best arm is `schedule-free` at 0.03697). The
+audited table, with three noise statistics and the winner counts, is
+`runs/figures/stability.csv`, emitted by `scripts/figures.py` and pinned by
+`tests/test_figures.py::test_the_noise_statistics_are_reproducible_and_disagree_with_the_old_table`.
+
+| suite | σ_best (arm) | σ_modal | σ_median | distinct winners | modal winner(s) |
+|---|---:|---:|---:|---:|---|
+| `optimizers` | 0.01993 (rmsprop) | 0.01986 | 0.01971 | 1 | adagrad ×10 |
+| `schedule-free` | 0.02005 (adamw_constant) | 0.02005 | 0.01947 | 2 | adamw_constant ×6 |
+| `optimizers-mlp` | 0.02019 (sgd) | 0.02295 | 0.02295 | **5** | adagrad ×5 |
+| `ademamix` | 0.02050 (adamw) | 0.02055 | 0.02050 | 1 | three-way tie ×10 |
+| `capacity-h32` | 0.02103 (adagrad) | 0.02926 | 0.02851 | 3 | five-way tie ×4 |
+| `capacity-h64` | 0.02109 (adagrad) | 0.02323 | 0.03029 | 3 | schedule-free ×6 |
+| `schedule-free-mlp` | 0.02134 (schedule_free_sgd) | 0.02538 | 0.02460 | 3 | cosine/constant tie ×7 |
+| `init-plain` | 0.02155 (schedule-free) | 0.03172 | 0.02836 | 2 | three-way tie ×5 |
+| `activation-relu` | 0.02172 (adagrad) | 0.02962 | 0.02613 | **1** | adamw_cosine ×10 |
+| `activation-gelu` | 0.02176 (adagrad) | 0.02502 | 0.02256 | **1** | adamw_cosine ×10 |
+| `capacity-h8x8` | 0.02271 (adagrad) | 0.04554 | 0.05728 | 3 | schedule-free ×7 |
+| `ademamix-mlp` | 0.02343 (sgd_momentum) | 0.02343 | 0.02483 | 3 | sgd_momentum ×5 |
+| `norm-layernorm` | 0.02367 (adamw_cosine) | 0.02626 | 0.02496 | 3 | schedule-free ×7 |
+| `init-he` | 0.02772 (adagrad) | 0.03187 | 0.04311 | 3 | schedule-free ×7 |
+| `norm-batchnorm` | 0.03060 (schedule-free) | 0.03122 | 0.03117 | 5 | four-way tie ×4 |
+| `capacity-h16x16` | 0.03697 (schedule-free) | 0.03697 | 0.05882 | 3 | schedule-free ×8 |
+
+Sorted by σ, the winner count does not rise with it: it goes 1, 2, **5**, 1, 3, 3, 3, 2, **1**, **1**,
+3, 3, 3, 3, 5, 3. Two suites with a single winner sit at 0.0217, above five suites that have two to
+five. The honest statement is therefore: *the noise of a suite is measurable, and in this corpus it does
+not tell you whether its fixed-threshold ranking will reproduce.* The pre-registered boundary (σ ≈ 0.03)
+was wrong in the way §5.13 says; the direction it was meant to support was never established either.
 
 **What this changes.** H1 and H5 are scope corrections, not retractions. AdaGrad's strengthening is now
 labelled as holding up to `[64]`; §5.11's noise claim keeps its direction but loses the number that was
@@ -818,7 +859,7 @@ tuned-cosine baseline. The reference column is §5.10's `[32]` suite re-verified
 | N1 | the schedule-free architecture effect survives both change families | **refuted (scope correction)** | it holds under He init (better than the tuned cosine in 9/10 seeds, +0.00566) and is a tie under batchnorm (+0.00094, 5/10) and plain init (+0.00052, 5/10) — but under layernorm the tuned cosine wins in 7/10 seeds (+0.00374 for the cosine). Both arms moved, so this is not the A2 pattern: schedule-free's own mean got worse (0.13214 → 0.13625) *and* the baseline got better (0.13587 → 0.13251) |
 | N2 | AdEMAMix's no-advantage verdict survives both change families | **direction holds in 3 of 4; the pre-registered win-count criterion is refuted** | against AdamW at the same rate it is worse on the mean under batchnorm (+0.00006), He (+0.00238) and plain (+0.00195), and marginally better under layernorm (−0.00009). But it wins 8/10 seeds under layernorm and 3/10 under plain, where the criterion demanded ≤2/10 — see finding 3 |
 | N3 | the metric trap (§5.12) survives | **confirmed** | on the ten-seed means the best arm by training loss differs from the best by test loss in **4 of 4** variants (layernorm: schedule-free → cosine; batchnorm: ademamix → schedule-free; He: ademamix → adagrad; plain: ademamix → schedule-free), with 3/5/5/6 of the six arms moving at least two places. On the *pinned single runs* it appears in only 2 of 4 — see finding 4 |
-| N4 | a variant lowers the per-seed noise, and its fixed-threshold winner then becomes stable | **refuted on the mechanism, confirmed on the correlation** | no variant lowered σ below the reference's 0.0210 (layernorm 0.0237, batchnorm 0.0306, He 0.0277, plain 0.0216, each measured on its best arm). The second half still behaves as §5.11 says: the only variant whose fixed-threshold winner is consistent across ten seeds is plain init, the one with the lowest σ — 2 distinct winners, against 3 for the reference, 3 for layernorm, 5 for batchnorm and 3 for He |
+| N4 | a variant lowers the per-seed noise, and its fixed-threshold winner then becomes stable | **refuted, both halves** (the second half was originally reported as confirmed; see the correction) | no variant lowered σ below the reference's 0.0210 (layernorm 0.0237, batchnorm 0.0306, He 0.0277, plain 0.0216, each measured on its best arm). The second half rests on a correlation that the §5.16 audit withdrew: within this batch no variant has a *single* winner (plain init has 2, against 3 for the reference, 3 for layernorm, 5 for batchnorm and 3 for He), and the `[32]` activation suites — same capacity, higher σ — have one each |
 
 **Findings.**
 
@@ -848,11 +889,12 @@ tuned-cosine baseline. The reference column is §5.10's `[32]` suite re-verified
    recorded as under-specified rather than retro-fitted.
 5. **Normalisation did not lower the noise floor** (N4). The intuition worth testing was that
    normalising the pre-activations makes the per-seed outcome more repeatable. It does not: σ of the best
-   arm moved from 0.0210 to 0.0237/0.0306/0.0277/0.0216. What σ appears to track is the task and the
-   capacity, not the conditioning of the hidden layer. The correlation in §5.11 therefore survives a
-   fifth and sixth test while its most obvious mechanism is refuted — and, as §5.11 already insisted, it
-   remains a tendency at the bottom of the observed range rather than a threshold: σ 0.0210 produced
-   three distinct winners while σ 0.0216 produced two.
+   arm moved from 0.0210 to 0.0237/0.0306/0.0277/0.0216. **The second half of N4 is withdrawn too**: it
+   was written as "the σ/reproducibility correlation held again", and that correlation no longer exists
+   (§5.16's audit; §5.11 finding 7 and §5.13's H5 are corrected in place and the correction is recorded
+   in the next release body). What survives from N4 is the refutation of its mechanism and a negative
+   result about the statistic itself: **the per-seed noise of a suite is measurable and, in this corpus,
+   does not predict whether its fixed-threshold ranking reproduces.**
 
 **The scope table, now complete.** A claim in this repository is stated at the intersection of six axes,
 and this batch closes the last one:
@@ -935,6 +977,17 @@ and the effect is statistically established at the deepest capacity"; "no advant
 advantage detected, bounded by the smallest effect this design can see". The full tables are in
 `runs/paired-tests/paired-tests.md`, the machine-readable version next to it, and `make stats`
 regenerates both.
+
+**5. The figures found a fifth defect, and it is the one that changes a published claim.** Drawing
+`noise-vs-stability` (see `scripts/figures.py` and `runs/figures/`) required computing "the per-seed
+test-loss σ of the best arm" for every suite — and the result disagreed with §5.13's table for five of
+ten rows. That column had been assembled by hand; its values belong to different arms in different rows.
+Recomputed under one stated definition the σ/reproducibility correlation disappears (§5.11 finding 7,
+§5.13's H5 and §5.15's N4 are corrected in place above). It is recorded as **case 5** in
+`docs/defect-family.md`, the family of numbers that came from something other than the experiment, and
+its check is `tests/test_figures.py`'s pinned audit of `runs/figures/stability.csv`. `v0.7.0` and
+`v0.9.0` are published and are not rewritten: the correction is carried in the next release body, the
+same way v0.5.0's wrong sentence was carried into v0.6.0.
 
 ## 6. Deviations from the paper (and why)
 

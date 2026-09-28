@@ -159,6 +159,20 @@ All notable changes to this project are documented here. The format follows
   restated as a **bound** — "no advantage detected, and here is the smallest effect this design could
   have seen" — because a test that fails to reject cannot confirm a null. No pinned number moved and no
   run was repeated.
+- **`scripts/figures.py`** (dependency-free SVG): a forest plot per claim family (median paired
+  difference with its bootstrap interval, the surviving comparison marked) and a dot plot of
+  noise against ranking reproducibility, plus `runs/figures/stability.csv` carrying three noise
+  statistics and the winner counts under stated definitions. `make figures` regenerates them; the
+  figures are deterministic and `tests/test_figures.py` checks the geometry as well as the content.
+- **Correction: §5.13's σ column was not reproducible and the correlation built on it is withdrawn.**
+  Drawing the stability figure required recomputing "per-seed test-loss σ of the best arm" for every
+  suite, and five of the ten published rows disagreed: the hand-assembled column carries different
+  arms' σ in different rows (0.0646 for `capacity-h8x8` is `adamw_constant`; the best arm is `adagrad`
+  at 0.02271). Recomputed under one stated definition the relationship is not monotone —
+  `optimizers-mlp` has the second-lowest noise in the corpus (0.02019) and five different winners, while
+  the two activation suites sit at 0.0217 with one winner each. §5.11 finding 7, §5.13's H5 and §5.15's
+  N4 are corrected in place, recorded as **case 5** in `docs/defect-family.md`, and must be stated as a
+  correction in the next release body (`v0.9.0` is published and is not rewritten).
 - **The schedule-free comparison on the MLP** (`examples/schedule-free-mlp.json`, 15-trial sweep):
   the direction **flips** — schedule-free AdamW beats the tuned cosine in 9/10 seeds here, whereas it
   lost 10/10 on the logistic head — while the constant learning rate still wins on both models (9/10).

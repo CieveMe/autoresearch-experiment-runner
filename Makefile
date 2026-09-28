@@ -1,7 +1,7 @@
 # AutoResearch Lite - one-command reproduction.
 # `make repro` is the entry point quoted in REPRODUCTION.md and TASK.md.
 # On Windows without make, run: python scripts/repro.py
-.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp repro-capacity repro-normalization run verify test sweep thresholds stats score docker clean
+.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp repro-capacity repro-normalization run verify test sweep thresholds stats figures score docker clean
 
 PYTHON ?= python3
 
@@ -21,6 +21,7 @@ help:
 	@echo "make sweep    - 10-seed sweep for the main suite and the optimizer suite"
 	@echo "make thresholds - epochs-to-target curves over the threshold grid (Markdown + CSV + SVG)"
 	@echo "make stats    - exact paired tests, effect sizes and intervals over the committed seed sweeps"
+	@echo "make figures  - the forest plots and the noise/stability dot plot (SVG + stability.csv)"
 	@echo "make score    - task score + negative controls"
 	@echo "make docker   - the same reproduction inside Docker"
 	@echo "make clean    - remove generated runs and caches"
@@ -108,6 +109,9 @@ score:
 
 stats:
 	$(PYTHON) scripts/paired_stats.py
+
+figures:
+	$(PYTHON) scripts/figures.py
 
 docker:
 	docker compose up --build --exit-code-from repro

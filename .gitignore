@@ -140,6 +140,16 @@ runs/*
 !runs/paired-tests/
 !runs/paired-tests/paired-tests.md
 !runs/paired-tests/paired-tests.json
+!runs/figures/
+!runs/figures/forest-schedule-free.svg
+!runs/figures/forest-ademamix.svg
+!runs/figures/noise-vs-stability.svg
+!runs/figures/captions.md
+!runs/figures/stability.csv
+# Raster previews are generated locally with cairosvg (an optional dependency, not part of the
+# repository's tooling) and are deliberately not committed: an artifact the repository cannot
+# regenerate is exactly what docs/defect-family.md case 5 warns about.
+runs/figures/preview-*.png
 
 # Local credentials and editor state
 .env

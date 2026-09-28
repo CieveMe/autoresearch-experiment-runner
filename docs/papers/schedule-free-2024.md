@@ -107,8 +107,13 @@ beats schedule-free AdamW in 9/10 seeds** (mean +0.00703 ± 0.00571).
    **Two capacities were added afterwards, and the architecture effect held at both**: §5.13's
    pre-registered `[64]` and `[16,16]` runs have schedule-free beating the tuned cosine on mean test loss
    by 9/10 and 10/10 seeds respectively, so the effect now holds at five MLP capacities and neither
-   refutes it. The same section also restates the ranking-reproducibility rule this card depends on:
-   a fixed-threshold ranking reproduced only in the suites whose noise floor is lowest (§5.11 finding 7).
+   refutes it. ~~The same section also restates the ranking-reproducibility rule this card depends on:
+   a fixed-threshold ranking reproduced only in the suites whose noise floor is lowest (§5.11 finding 7).~~
+   **That rule is withdrawn** (§5.16's audit, case 5 in `docs/defect-family.md`): the σ column it rested on
+   was assembled by hand and is not reproducible, and with the statistics recomputed the noise level does
+   not predict reproducibility. What this card depends on instead is the weaker, checkable rule the
+   repository now follows — *a fixed-threshold ranking is quoted only after it has been shown stable per
+   seed*, which is why every speed sentence here is either a ten-seed statement or marked as single-seed.
    **And it is not an artefact of `tanh`**: §5.14 re-ran the `[32]` capacity with ReLU and with GELU
    (pre-registered A1) and schedule-free beat the tuned cosine under both, 8/10 seeds each. The effect now
    rests on three activations, five capacities and both model families.

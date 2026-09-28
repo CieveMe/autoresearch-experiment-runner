@@ -1,10 +1,10 @@
-# The defect family: four ways a number came from the tooling instead of the experiment
+# The defect family: five ways a number came from something other than the experiment
 
 This is a named section, not an appendix: it is the part of this repository a reviewer should read
-first, because every empirical claim elsewhere depends on it. Four defects were found here, all of the
-same kind — **a reported number was produced by the harness rather than by the experiment** — and each
-one was caught by a *different* mechanical check. That is the argument for building those checks before
-trusting any result.
+first, because every empirical claim elsewhere depends on it. Five defects were found here, all of the
+same kind — **a reported number was produced by something other than the experiment: the harness, or the
+person assembling the table** — and each one was caught by a *different* mechanical check. That is the
+argument for building those checks before trusting any result.
 
 ## Case 1 — the metric direction was inverted
 
@@ -114,20 +114,64 @@ kind of change that is invisible in a diff review but visible in a number.
 | 2 | ten runs, one initialisation | ten runs, ten seeds | `test_a_multi_seed_sweep_produces_distinct_seeds_not_a_fixed_value` | `tests/test_seed_contract.py` |
 | 3 | a leader produced by alphabetical order | a tie | `test_identical_curves_have_no_crossing` | `tests/test_threshold_curve.py` |
 | 4 | gradients of a deep network doubled by a refactor | gradients of the same network as before | `test_gradients_match_numerical_differences` (two depths) | `tests/test_ademamix.py` |
+| 5 | a table column assembled by hand, not reproducible under its own heading | every statistic produced by a function with its definition named | `test_the_noise_statistics_are_reproducible_and_disagree_with_the_old_table` | `tests/test_figures.py` |
 
-## What the four cases have in common
+## Case 5 — a table column that came from the author, not from a definition
 
-None of the four would have been caught by looking harder at the *results*: all four produced tables that
+**Symptom.** §5.11's "finding 7" and §5.13's H5 made a claim the whole report leaned on: *a suite's
+per-seed noise level predicts whether its fixed-threshold ranking reproduces across ten seeds.* The
+supporting column was headed "test-loss σ of the best arm".
+
+**Cause.** Nobody recomputed that column. When `scripts/figures.py` was written it computed the same
+quantity from the committed files and got different numbers for five of the ten suites. The values turn
+out to belong to *different arms in different rows*: §5.13 reports 0.0646 for `capacity-h8x8`, which is
+`adamw_constant`'s σ (the suite's best arm is `adagrad`, σ = 0.02271), and 0.0381 for `capacity-h16x16`,
+which is `adagrad`'s σ (the best arm is `schedule-free`, 0.03697). There is no single definition under
+which the column is correct.
+
+**How it was found.** Not by a test — by drawing the figure. The first version of the noise/stability
+plot put every labelled suite in a scatter and was unreadable, so it was redrawn as one row per suite
+ordered by noise; the order disagreed with the published table, and checking one row was enough to see
+the column could not be reproduced.
+
+**Consequence.** The correlation does not survive the audit. `optimizers-mlp` has the second-lowest noise
+in the corpus (0.02019) and **five** different winners across ten seeds; the two activation suites sit at
+0.0217 and have **one** winner in all ten. That is a non-monotone relationship, and §5.11's finding 7,
+§5.13's H5 and §5.15's N4 are corrected accordingly in place, with the correction recorded in the next
+release body (`v0.9.0` is already published and is not rewritten).
+
+**Check that catches it.** `tests/test_figures.py`:
+
+* `test_the_noise_statistics_are_reproducible_and_disagree_with_the_old_table` — pins both
+  counterexamples and the `capacity-h8x8` value that the old column got wrong;
+* `test_committed_figures_match_the_generator` — a committed figure that no longer matches the data
+  fails the suite, the same way a stale pinned number does.
+
+**Fix.** Every noise statistic is now emitted by code with its definition written next to it
+(`runs/figures/stability.csv`: `sigma_best`, `sigma_modal`, `sigma_median`, winner counts and the modal
+winner set), and a claim about them has to name which one it means.
+
+**Generalisation.** A number typed into a table is a number with no generator. Every reported statistic
+needs a function that produces it, a definition in prose next to it, and a test that fails when the two
+drift apart — otherwise the number is a memory of the run, not a result of it. This case is also the
+argument for drawing the figures early rather than last: the plot disagreed with the table, and the
+table was wrong.
+
+## What the five cases have in common
+
+None of the five would have been caught by looking harder at the *results*: all five produced tables that
 looked reasonable. What caught them was a check on the *machinery* — a declaration of direction, a
-contract on the seed, a negative control for the tie, and a gradient check that varies with the shape of
-the model. That is the pattern this repository recommends: for every derived number, assert the property
-that makes it a number about the experiment rather than about the code, and prefer a check that fails
-loudly when a new input arrives without a declaration.
+contract on the seed, a negative control for the tie, a gradient check that varies with the shape of the
+model, and a generator for every statistic in a table. That is the pattern this repository recommends:
+for every derived number, assert the property that makes it a number about the experiment rather than
+about the code or the author, and prefer a check that fails loudly when a new input arrives without a
+declaration.
 
-The four also differ in *how* they were found, which is the more useful observation. Cases 1 and 3 were
+The five also differ in *how* they were found, which is the more useful observation. Cases 1 and 3 were
 caught by a purpose-built check; case 2 was caught by re-reading a contract; case 4 was caught by a
-pinned expectation of an *unrelated* suite failing. Only the last of those required nobody to have
-anticipated the bug, which is why the pinned numbers are a safety net and not just a regression test.
+pinned expectation of an *unrelated* suite failing; case 5 was caught by drawing a figure. Cases 4 and 5
+required nobody to have anticipated the problem, which is why the pinned numbers and the plots are a
+safety net and not just regression tests.
 
 ## How to apply it to a new experiment
 
@@ -137,3 +181,7 @@ anticipated the bug, which is why the pinned numbers are a safety net and not ju
 3. If the output contains a ranking, assert what happens when two candidates are equal.
 4. Keep one negative control per new method: a deliberately broken implementation that the pinned
    expectations must reject (see `scripts/score_task.py`, four controls at the time of writing).
+5. Never type a statistic into a table. Emit it from a function with the definition written next to it,
+   and let a test compare the two — a number with no generator is a memory of the run, not a result.
+6. Draw the figures before the prose. Case 5 was found by a plot disagreeing with a published column,
+   and a plot is cheap to make once the numbers already exist.

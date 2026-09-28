@@ -26,6 +26,9 @@
 - [x] 换激活函数完成（ReLU/GELU，`[32]` 容量，各 18 组调参 + 10 种子，预注册 A1–A3）：**A1 确认**（SF 在两种激活下都赢调过的 cosine，8/10）；**A2 按字面被证伪且最有信息量**（对同学习率 AdamW 仍持平，但对"调过 cosine 的 AdamW"反而赢 9/10、7/10 ⇒ **动的是基线**）；**A3 确认**。见 `REPRODUCTION.md` 5.14。
 - [x] 归一化/初始化选择（batchnorm/layernorm、Xavier vs He、固定 0.05）是否会改变那两条负结果（预注册 N1–N4，`docs/normalization-init-preregistration.md`）：**N1 被证伪**（SF 赢调过的 cosine 只在 He 下更强、batchnorm/朴素初始化下是平局、layernorm 下反向）、**N2 方向 3/4 成立但胜场数标准被证伪**（8/10 胜而均值差 9e-5）、**N3 确认**、**N4 被证伪**（没有变体把 σ 降到 0.0210 以下 ⇒ "norm 降低噪声"不成立）。见 `REPRODUCTION.md` §5.15。
 - [x] **实验维度到此冻结（2026-09-28）**：scope 表共六轴——threshold / model family / capacity / metric / activation / normalization-init。除审稿人明确要求，不再加新轴；精力转向 A3 写作与内审。（`REPRODUCTION.md` §5.15 末尾）
+- [x] 结果可视化（`scripts/figures.py`，`make figures`）：两张森林图（族内每个套件的中位数差 + bootstrap 区间，标出唯一通过族校正的 `capacity-h16x16`）+ 一张噪声/可复现性点图；纯标准库 SVG、确定性输出、几何与内容都有测试，图注见 `runs/figures/captions.md`。
+- [x] **画图时抓到第五例缺陷（并撤回一条已发布的结论）**：把"best arm 的 σ"按统一定义重算后，§5.13 那一列有五行对不上（手写、不同行属于不同 arm）⇒ **σ 与"固定阈值排名可复现性"的相关性不成立**（`optimizers-mlp` σ=0.02019 却有 5 个胜者；两个激活套件 σ≈0.0217 各只有 1 个）。§5.11 finding 7 / §5.13 H5 / §5.15 N4 已在正文就地更正，记为 `docs/defect-family.md` **case 5**，审计表 `runs/figures/stability.csv` 由代码生成并被测试钉住；**v0.7.0 与 v0.9.0 已发布不改写，更正写进下一版正文**。
+- [ ] 是否提高种子数（当前 10 种子只能检出 ≈0.99 σ_d 的效应，§5.16 已把它写进限制）：属"重复次数"而非新实验轴，若要做得重跑全部套件，成本高，等 A3 写作需要时再定。
 - [ ] 增加失败实验重试、断点恢复和超时控制。
 - [ ] 增加 PyTorch 适配器，同时保持标准库示例可离线运行。
 - [ ] 增加实验结果可视化和 HTML 报告导出。
