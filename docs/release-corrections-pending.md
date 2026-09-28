@@ -53,6 +53,22 @@ correction.
 * **What the next release body must say:** one sentence, naming the commit, as v0.9.0's body already
   does — keep it in the queue until the next body is written so it is not lost.
 
+## Carried forward: to be stated in the next body (not corrections, but not silent either)
+
+### Metadata hygiene: the version fields were stale at `0.2.0`
+
+* **What was wrong:** `pyproject.toml`, `autoresearch/__init__.py`, `CITATION.cff` and the README's
+  citation line all still described version `0.2.0`, eight releases after it. In `CITATION.cff` that
+  field is what a human reads when deciding what they are citing, so it is not decoration; the README
+  listed only v0.2.0's version DOI, which reads as if that were the current archive.
+* **When it was fixed:** after v0.10.0 was published, in its own commit — deliberately **not** folded
+  into the corrections release, and the `v0.10.0` tag was not touched.
+* **What the next release body must say:** one "also carried" line naming the commit and the four files,
+  so the change is visible rather than discovered in a diff.
+* **Still stale, and left alone on purpose:** `.zenodo.json`'s `notes` text still describes version
+  `0.2.0` (it is read by Zenodo on deposit, and the Zenodo side is the project owner's half), and
+  `docs/release-checklist.md`'s title still says "(v0.2.0)" while its body is version-agnostic.
+
 ## Rules for the person writing the next body
 
 1. Every item above gets an explicit line in the release body, with the section it corrects.
