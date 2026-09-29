@@ -265,9 +265,16 @@ class NegativeControlTests(unittest.TestCase):
         Two deliberate deviations from plain set equality, both of which would otherwise fail on legitimate
         states: a working tree may hold untracked files that are neither published nor ignored (a source
         file mid-edit), and the copy keeps only the analysis families under `runs/` while other `runs/`
-        output is local scratch. Equality would flag both; these two assertions do not, and they still
-        catch every way the filter can be wrong — including a `.svg` silently added to the filter, which
-        the four hand-picked samples above could have missed.
+        output is local scratch. Equality would flag both; these two assertions do not.
+
+        What this **cannot** catch, which is why the named samples above are still there: a filter that
+        drops a *published* artifact. `expected` is derived from the same policy the copy is built with, so
+        a policy that wrongly excludes a tracked file shrinks `expected` in step with `actual` and the two
+        still agree. Measured, not assumed: with `.svg` added to `SKIP_SUFFIXES`,
+        `runs/figures/noise-vs-stability.svg` leaves the copy and this returns `0 missing, 0 leaked`, while
+        the sample assertion on that file is the one that goes red. The two checks reference different
+        things — a path *named* as published versus git's tracked and ignored sets — so neither subsumes
+        the other.
         """
         if not (ROOT / ".git").exists():
             return [], []  # no git metadata (the container image): there is nothing to compare against

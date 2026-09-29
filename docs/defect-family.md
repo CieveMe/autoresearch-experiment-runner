@@ -239,6 +239,20 @@ the reader's list for the copy would drop the committed SVG artifacts, which `.g
 precisely because they are published. Writing down why the two lists differ is worth more than making them
 the same; each list now says so above itself.
 
+**A general assertion does not subsume the named samples — measured, after assuming otherwise.** The test
+now *also* compares the copy's whole path set against **git** rather than against the filter: every tracked
+file the declared exclusions do not remove must be present, and no git-ignored file may be present. It
+earned its place on the first run by finding `runs/ablation-verified/` — four files produced for the
+T-ADAM-01C ablation suite that were in every copy but had never been committed, because the `.gitignore`
+whitelist entries its sibling `*-verified` directories have were never added. Those four files are tracked
+now. What it does **not** do is replace the hand-picked names, and the reason is measurable: `expected` is
+derived from the same policy the copy is built with, so a filter that wrongly drops a published artifact
+shrinks `expected` in step with `actual` and the comparison stays silent. With `.svg` appended to
+`SKIP_SUFFIXES`, `runs/figures/noise-vs-stability.svg` leaves the copy, the set comparison reports
+**0 missing, 0 leaked**, and the named sample is the assertion that fails. ⇒ A check that *names* published
+content and a check that references git's tracked/ignored sets answer two different questions; keep both,
+and do not read "the copy equals the published tree minus policy" as "nothing can hide in the policy".
+
 **Generalisation for the pair.** A guard has to be able to show that it is live: presence of a fragment is
 not liveness of a mutation, and a copy is not the thing it claims to score. Both members were invisible to
 static checks and obvious the moment the machinery was executed end to end, which is the same lesson as
@@ -388,8 +402,9 @@ that case seen from the other end.
    and a plot is cheap to make once the numbers already exist.
 7. Make every guard demonstrate its own liveness (case 6a). A mutation that lands in dead code, or a
    fragment that is only *present*, produces a green check over an untested implementation.
-8. Make anything the harness copies isomorphic to the repository it claims to score (case 6b), and prove
-   it by running the repository's own suite inside the copy.
+8. Make anything the harness copies isomorphic to the repository it claims to score (case 6b): assert both
+   directions, prove it by running the repository's own suite inside the copy, and keep a *named* published
+   artifact as a second reference — a set comparison drawn from the policy cannot see the policy drop one.
 9. Run the task itself. Cases 4, 5 and 6 were all found by executing the machinery rather than reading
    it, and none of them was visible to a static check that was already green.
 10. Run it somewhere else. Case 7 was invisible locally by construction: a check whose tolerance is below
