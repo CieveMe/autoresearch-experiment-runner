@@ -183,6 +183,13 @@ class NegativeControlTests(unittest.TestCase):
             # this suite intermittently red before the copy filter was aligned with .gitignore.
             for cache in (".pytest_cache", ".mypy_cache", "__pycache__"):
                 self.assertFalse((copy / cache).exists(), f"the scored copy carries {cache}")
+            # …and the other direction, asserted rather than assumed: the copy must still contain the
+            # committed artifacts, including the binaries a suffix-based filter would be tempted to drop.
+            # Both directions of isomorphism need their own assertion — "nothing extra" and "nothing
+            # missing" fail in ways that look nothing like each other.
+            for kept in ("runs/figures/noise-vs-stability.svg", "runs/paired-tests/paired-tests.json",
+                         "runs/seed-sweep-optimizers/seed-0/results.json", "runs/demo-verified/results.json"):
+                self.assertTrue((copy / kept).exists(), f"the scored copy is missing {kept}")
             environment = dict(os.environ, AUTORESEARCH_COPY_CHECK="1")
             result = subprocess.run(
                 [sys.executable, "-m", "unittest", "discover", "-s", "tests"],

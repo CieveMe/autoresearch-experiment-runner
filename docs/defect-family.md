@@ -230,6 +230,15 @@ really is a prefix (`seed-sweep-<suite>`). The lesson is one line: **a copy has 
 published tree in both directions** — nothing missing, and nothing extra — and a fix aimed at one direction
 can quietly break the other.
 
+**Both directions need an assertion, not one assertion and one assumption.** The case-6b test now checks
+the "nothing extra" direction (a copy must not carry tool caches) *and* the "nothing missing" direction (a
+copy must still contain named committed artifacts, including binaries). That second half is easy to lose:
+the copy filter and the privacy-hygiene scanner carry two tables that look almost identical and **must not
+be merged** — one asks whether a file can be copied, the other whether it can be read as text, and using
+the reader's list for the copy would drop the committed SVG artifacts, which `.gitignore` whitelists
+precisely because they are published. Writing down why the two lists differ is worth more than making them
+the same; each list now says so above itself.
+
 **Generalisation for the pair.** A guard has to be able to show that it is live: presence of a fragment is
 not liveness of a mutation, and a copy is not the thing it claims to score. Both members were invisible to
 static checks and obvious the moment the machinery was executed end to end, which is the same lesson as

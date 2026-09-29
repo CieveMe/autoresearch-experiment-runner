@@ -19,7 +19,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Files and directories that are not part of the repository's content.
+# Files and directories that are not worth reading as text.
+#
+# **Do not merge this table with `scripts/score_task.py`'s copy filter.** The directory parts overlap and
+# the suffix parts are deliberately different, because the questions differ: that filter asks "can this be
+# *copied* into the copy?" (generated artifacts and tool caches: no), while this one asks "can this be *read
+# as text*?" (binaries such as PDF, PNG and SVG: no). Using this list for the copy would drop the committed
+# SVG artifacts, i.e. published content, and that is case 6b's missing-file direction.
 SKIP_DIRECTORIES = {".git", "__pycache__", ".npm-cache", "node_modules", ".venv", "venv",
                     ".pytest_cache", ".mypy_cache", ".ruff_cache", "dist", "build"}
 SKIP_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".zip", ".gz", ".whl", ".pyc", ".svg"}

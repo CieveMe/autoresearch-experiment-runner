@@ -38,6 +38,14 @@ from scripts.verify_results import DEFAULT_EXPECTED, verify  # noqa: E402
 # not the published tree, and on Windows a cache held open by a concurrently running tool makes
 # `shutil.copytree` fail outright — `WinError 5` on `.pytest_cache`, which turned a green suite red
 # intermittently until the log (see `docs/release-checklist.md` rule 6) caught it with its traceback.
+#
+# **Do not merge this table with the one in `tests/test_privacy_hygiene.py`.** They look alike and the
+# suffix sets are deliberately different, because they answer different questions: this one asks "can this
+# be *copied* into the copy?" (generated artifacts and tool caches: no), while that one asks "can this be
+# *read as text*?" (binaries such as PDF and SVG: no). Aligning them would drop committed SVG artifacts —
+# `runs/figures/*.svg`, `runs/threshold-curves/*-curves.svg`, which `.gitignore` whitelists precisely
+# because they are published — from every scored copy. That is case 6b's *missing file* direction, the
+# mirror of the bug this table was just fixed for.
 SKIP_NAMES = frozenset({
     ".git", ".github", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".coverage", ".DS_Store",
     "__pycache__", ".venv", "venv", "dist", "build", "node_modules", ".npm-cache",
