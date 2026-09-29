@@ -64,6 +64,14 @@ owner's accounts, so they are not automated.
    *failure*** (measured: the same raising test prints `FAILED (errors=1)`), while `pytest` reports both as
    `failed`. Which word you see therefore tells you which runner produced the output — and, in the
    unittest case, that something raised rather than asserted.
+   Two consequences of that episode worth carrying: **a gate run is not the only thing happening in a
+   working tree.** The flake above was triggered by another session running `pytest` in the same checkout
+   at the same time — its cache directory was held open, and the copy tried to copy it. That is why tool
+   caches now stay out of every copy (and out of the hygiene scan), and why whoever needs to run tests
+   somewhere they do not own should say so first, and turn the cache off (`-p no:cacheprovider`) when it
+   is not theirs to write to. And: **a refuted explanation is a search direction, not a dead end.** The
+   first guess at this flake was wrong, and saying so out loud — rather than quietly narrowing the
+   candidate set — is what left the copy path in scope long enough to be examined.
 7. **Verify the CI's *later* steps too, not just the first one.** A job that fails at step 5 never runs
    steps 6–13, so a repo can be red for weeks with everyone assuming the failure is "the known one".
    Those steps may be **split into parallel jobs** to keep the wall clock down — they must not be removed,
