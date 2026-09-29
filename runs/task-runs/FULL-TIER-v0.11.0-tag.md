@@ -9,8 +9,8 @@ away by a later push. This file records that run.
 | run | [#45](https://github.com/CieveMe/autoresearch-experiment-runner/actions/runs/45), workflow `repro` |
 | trigger | `push` on `refs/tags/v0.11.0` |
 | commit | `d72633f` (the commit `v0.11.0` points at) |
-| result | **five of six jobs green, and the three jobs that reproduce the corpus all report 474/474** |
-| the sixth job | `score the task and its negative controls (python 3.12)` — still running when this file was written; its line is appended below when it lands |
+| result | **all six jobs green**; the run itself is `completed / success` |
+| the scorer job | `score the task and its negative controls (python 3.12)`, job `109312424917` — finished green, output quoted below |
 
 ## What the tag run verified, quoted from the job logs
 
@@ -59,10 +59,19 @@ the job conclusion rather than a line of output.
 
 `score the task and its negative controls (python 3.12)` runs `scripts/score_task.py --tier full`, which
 reproduces the corpus five times (the submission plus four mutated copies) and is therefore the longest
-job. At the time of writing it was still running; when it completes, its score line and the four control
-verdicts belong here.
+job. It finished green, and this is its output, verbatim:
 
-Until then, the equivalent line already in the repository is the one quoted in the v0.11.0 body — the
-Windows run at `0f3ce2f`, `100.0/100 (tier=full (all suites)) (474/474 checks, exit 0)` with all four
-controls detected (`runs/task-runs/FULL-TIER-ci-fix.md`). That run was on a branch, which is exactly why
-this file exists: the tag run is the one a later push cannot cancel.
+```
+submission score: 100.0/100 (tier=full (all suites)) (474/474 checks, exit 0)
+control[no-bias-correction]: detected (score 75.3/100, exit 1)
+control[no-adaptive-scaling]: detected (score 77.0/100, exit 1)
+control[ademamix-without-slow-ema]: detected (score 94.9/100, exit 1)
+control[schedule-free-without-averaging]: detected (score 92.4/100, exit 1)
+TASK RESULT: PASS
+```
+
+**This is the line a release body should quote**, and it is the one the next version's body can use
+without any qualifier: it comes from the tag, it is a `full`-tier run, the tier label is in the line, and
+no later push can cancel it. The equivalent line in the v0.11.0 body — the Windows run at `0f3ce2f`,
+same score with controls `74.9 / 77.0 / 94.9 / 92.8` — was on a *branch*, which is exactly why that body
+had to label it "the run recorded in the repository, not the run on this tag".
