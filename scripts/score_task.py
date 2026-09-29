@@ -52,8 +52,12 @@ def _ignore(directory: str, names: List[str]) -> set[str]:
     if Path(directory).name == "runs":
         skip.update(
             name for name in names
+            # `seed-sweep` is a prefix (the directories are `seed-sweep-<suite>`); the analysis
+            # artifacts are exact names, because a prefix match also swept up local scratch files such
+            # as `paired-tests-raw.txt`, and those are not part of what the repository publishes.
             if not (name.endswith("-verified")
-                    or name.startswith(("seed-sweep", "paired-tests", "figures")))
+                    or name.startswith("seed-sweep")
+                    or name in {"paired-tests", "figures"})
         )
     if Path(directory).name == "figures":
         # Raster previews are local conveniences (cairosvg is not a repository dependency).

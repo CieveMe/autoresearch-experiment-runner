@@ -224,10 +224,13 @@ class NegativeControlTests(unittest.TestCase):
                       if re.search(rf'["\']({re.escape(name)})["\']', sources)}
         referenced.update(name for name in re.findall(r'ROOT\s*/\s*"([^"/]+)"', sources)
                           if name in entries)
-        # `runs/` is supplied by the compose mount; the build recipe itself and the ignore files are not
-        # things the suite reads from inside the image.
-        for excluded in ("runs", "Dockerfile", ".dockerignore", ".gitignore", "compose.yaml"):
+        # `runs/` is supplied by the compose mount; the build recipe itself is not something the suite
+        # reads from inside the image; and dot-entries (`.git`, `.github`, `.gitignore`, ...) are
+        # repository plumbing. The rule is derived from the test sources, so a name that appears in them
+        # only as plumbing must be excluded explicitly rather than by not mentioning it.
+        for excluded in ("runs", "Dockerfile", "compose.yaml", ".dockerignore", ".gitignore", ".git"):
             referenced.discard(excluded)
+        referenced = {name for name in referenced if not name.startswith(".")}
         return sorted(referenced)
 
     def _missing_from_image(self, dockerfile: str, required):
