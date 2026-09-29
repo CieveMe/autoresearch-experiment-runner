@@ -1,0 +1,93 @@
+{
+  "schema": "autoresearch-lite/seed-sweep@1",
+  "metric": "epochs_to_target",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed_count": 10,
+  "base_config": "examples\\ablation-adam-no-first-moment.json",
+  "base_config_sha256": "27392c22f2dc2f258d9e5d52d5b857efb84c5258cb9584763005aef4cc232f55",
+  "seed_config_sha256": {
+    "seed-0": "7a9cf3a1f6a2c31c127cbf4c368494c9e6b983b60cde1552c7775ee8eeef84c0",
+    "seed-1": "3a7756b939b0e448cf08c841dece155b4d41ebec18ff4177f1e1f725fb0c0fdd",
+    "seed-2": "0d5831feb46b8db387b972394e3dd7e24553ee1ada019df82185465401da7e33",
+    "seed-3": "b306f0e70e938996ed9e37f7be29f4dfb8b43b6c2f6fdea5b0f694a58af32ec4",
+    "seed-4": "3c4553ecc790ed221716c8914038578b63554a3b306626b789adce0a6736c7ea",
+    "seed-5": "292a114f10035906ba1e051c147599a8f0e7b8455480e0d2d75249148dc557d7",
+    "seed-6": "9256e0462fd47c2a4fc1bcaca43c2576b95403e0b1a7495827e27d0b4657e56c",
+    "seed-7": "5042d30a5a66c058cb1dbfaadbea6a7191d9de324e0c84d9864cf8fad6093646",
+    "seed-8": "c07b70342ad0cee98ff66e4be04d4e48d76c569ceafee683c0cc7afe75945b84",
+    "seed-9": "09c96a6e67bc27769b77738a00429a148a0a4a3469e1b23194cda855e13d96d9"
+  },
+  "paper": {
+    "title": "Adam (Kingma & Ba 2014) - momentum ablation on the pinned optimizer suite",
+    "authors": "see docs/papers/",
+    "year": 2026,
+    "identifier": "internal-ablation-first-moment"
+  },
+  "trials": {
+    "adam": {
+      "optimizer": "adam",
+      "learning_rate": 0.4,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 22.6,
+      "metric_stdev": 6.39791633,
+      "metric_min": 15,
+      "metric_max": 33,
+      "test_accuracy_mean": 0.943,
+      "test_accuracy_stdev": 0.017353,
+      "wins": 10,
+      "win_rate": 1.0
+    },
+    "adam_beta1_0": {
+      "optimizer": "adam",
+      "learning_rate": 0.4,
+      "weight_decay": 0.0,
+      "epochs": 120,
+      "reached_in": 10,
+      "metric_mean": 41.1,
+      "metric_stdev": 12.77541041,
+      "metric_min": 25,
+      "metric_max": 61,
+      "test_accuracy_mean": 0.944,
+      "test_accuracy_stdev": 0.016465,
+      "wins": 0,
+      "win_rate": 0.0
+    }
+  },
+  "paired_improvement": {
+    "adam": {
+      "adam_beta1_0": {
+        "better_in": 0,
+        "worse_in": 10,
+        "incomparable": 0,
+        "mean_improvement": -18.5,
+        "stdev_improvement": 6.41612552,
+        "min_improvement": -28.0,
+        "max_improvement": -10.0
+      }
+    },
+    "adam_beta1_0": {
+      "adam": {
+        "better_in": 10,
+        "worse_in": 0,
+        "incomparable": 0,
+        "mean_improvement": 18.5,
+        "stdev_improvement": 6.41612552,
+        "min_improvement": 10.0,
+        "max_improvement": 28.0
+      }
+    }
+  }
+}

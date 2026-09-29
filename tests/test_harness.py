@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from autoresearch.runner import config_sha256
-from scripts.score_task import NEGATIVE_CONTROLS, _ignore as scored_copy_ignore
+from scripts.score_task import (NEGATIVE_CONTROLS, SKIP_NAMES, SKIP_SUFFIXES,
+                                _ignore as scored_copy_ignore)
 from scripts.seed_sweep import _aggregate, parse_seeds
 from scripts.verify_results import DEFAULT_EXPECTED, verify
 
@@ -190,6 +191,9 @@ class NegativeControlTests(unittest.TestCase):
             for kept in ("runs/figures/noise-vs-stability.svg", "runs/paired-tests/paired-tests.json",
                          "runs/seed-sweep-optimizers/seed-0/results.json", "runs/demo-verified/results.json"):
                 self.assertTrue((copy / kept).exists(), f"the scored copy is missing {kept}")
+            missing, leaked = self._copy_versus_repository(copy)
+            self.assertEqual(missing, [], "the scored copy is missing published files:\n" + "\n".join(missing))
+            self.assertEqual(leaked, [], "the scored copy carries files git ignores:\n" + "\n".join(leaked))
             environment = dict(os.environ, AUTORESEARCH_COPY_CHECK="1")
             result = subprocess.run(
                 [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
@@ -248,6 +252,60 @@ class NegativeControlTests(unittest.TestCase):
     def _missing_from_image(self, dockerfile: str, required):
         copied = self._image_copy_sources(dockerfile)
         return [name for name in required if name not in copied]
+
+    def _copy_versus_repository(self, copy: Path):
+        """Compare a scored copy against the repository, with **git** as the reference.
+
+        The reference is deliberately not the filter itself, which would only prove that the filter agrees
+        with itself. Git supplies two independent sets: the files it tracks (what the repository publishes
+        at this revision) and the files it ignores (what the repository declares not to publish). The copy
+        must contain every tracked file the declared exclusions do not remove, and must contain no ignored
+        file at all — which is the two directions of isomorphism in two statements rather than one.
+
+        Two deliberate deviations from plain set equality, both of which would otherwise fail on legitimate
+        states: a working tree may hold untracked files that are neither published nor ignored (a source
+        file mid-edit), and the copy keeps only the analysis families under `runs/` while other `runs/`
+        output is local scratch. Equality would flag both; these two assertions do not, and they still
+        catch every way the filter can be wrong — including a `.svg` silently added to the filter, which
+        the four hand-picked samples above could have missed.
+        """
+        if not (ROOT / ".git").exists():
+            return [], []  # no git metadata (the container image): there is nothing to compare against
+
+        def git(*args):
+            result = subprocess.run(["git", *args], cwd=str(ROOT), stdout=subprocess.PIPE,
+                                    stderr=subprocess.DEVNULL)
+            if result.returncode != 0:
+                return None
+            return [name for name in result.stdout.decode("utf-8", "replace").split("\0") if name]
+
+        tracked = git("ls-files", "-z")
+        ignored = git("ls-files", "-z", "--others", "--ignored", "--exclude-standard")
+        if tracked is None or ignored is None:
+            return [], []
+
+        def kept_by_policy(path: str) -> bool:
+            parts = Path(path).parts
+            if any(part in SKIP_NAMES for part in parts):
+                return False
+            if path.endswith(SKIP_SUFFIXES):
+                return False
+            if parts and parts[0] == "runs":
+                # Stated policy: under `runs/` the copy carries the verified runs, the per-seed sweeps and
+                # the two analysis artefacts; everything else there is local scratch.
+                under = parts[1] if len(parts) > 1 else ""
+                if not (any(part.endswith("-verified") for part in parts)
+                        or under.startswith("seed-sweep")
+                        or under in {"paired-tests", "figures"}):
+                    return False
+            return True
+
+        expected = {path for path in tracked if kept_by_policy(path)}
+        actual = {str(path.relative_to(copy)).replace("\\", "/")
+                  for path in copy.rglob("*") if path.is_file()}
+        missing = sorted(expected - actual)
+        leaked = sorted(actual & set(ignored))
+        return missing, leaked
 
     def _check_control_liveness(self):
         """Presence is not enough: the fragment has to be in the code that runs.

@@ -138,6 +138,11 @@ runs/*
 !runs/normalization-verified/sweeps/batchnorm-sweep-report.md
 !runs/normalization-verified/sweeps/he-sweep-report.md
 !runs/normalization-verified/sweeps/plain-sweep-report.md
+!runs/ablation-verified/
+!runs/ablation-verified/results.json
+!runs/ablation-verified/report.md
+!runs/ablation-verified/seed-sweep-summary.json
+!runs/ablation-verified/seed-sweep-summary.md
 !runs/paired-tests/
 !runs/paired-tests/paired-tests.md
 !runs/paired-tests/paired-tests.json
