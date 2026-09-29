@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+**v0.11.0 closes the correction series** (body: `docs/release-notes-v0.11.0.published.md`). It restates the
+σ-correlation withdrawal (case 5, first carried in v0.10.0), the checker that stopped checking and the two
+copies that were not the repository (case 6a/6b, including the container image that never carried
+`TODO.md`), and the pin whose tolerance was below its own reproducibility together with the CI work that
+found it (case 7, the parallel jobs and the concurrency rule). Version metadata moved to `0.11.0` as part
+of it.
+
 **v0.10.0 is a corrections release.** Its body is
 `docs/release-notes-v0.10.0.published.md`: it withdraws §5.11's finding 7 and §5.13's H5 (case 5, the
 hand-assembled σ column) and the second half of §5.15's N4, adds the exact paired tests (§5.16), the

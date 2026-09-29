@@ -24,6 +24,9 @@ correction.
 
 ### Citation checklist for the next release body (three items, none optional)
 
+> **Status 2026-09-29:** all three are stated in `docs/release-notes-v0.11.0.published.md`, and the
+> checklist stays here as the record of what was owed and where it was paid.
+
 Written down because the next body has to carry all three and they live in different places; a reader of
 the file should not have to reconstruct the list from the sections below.
 
