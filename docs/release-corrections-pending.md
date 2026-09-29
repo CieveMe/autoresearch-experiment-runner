@@ -120,6 +120,18 @@ never cancelled by the concurrency rule), otherwise the run recorded in `runs/ta
 
 ### Metadata hygiene: the version fields were stale at `0.2.0`
 
+### A footnote on negative claims (to be stated in the next body, one line)
+
+Recorded after v0.11.0 was tagged, so it belongs to the next version's body rather than to that one.
+While checking a reference, a query returned nothing and the note written said "no registry has it". The
+direct lookup had the record — OpenAlex resolves `10.2307/4615733` to Holm (1979), *Scandinavian Journal
+of Statistics* **6:65–70** — and Crossref genuinely lacks that DOI (404), with the journal's whole 1979
+volume unsurprisingly undeposited. The observation was true; the inference was not. Rule now written into
+`docs/defect-family.md` as a footnote (no case number, as requested): **a negative claim is "I ran this
+query and it returned this", never "it does not exist"** — the second form cannot be reproduced and turns
+a limitation of the query into a fact about the world. The next body should state this in one line, since
+the footnote is part of the tree.
+
 * **What was wrong:** `pyproject.toml`, `autoresearch/__init__.py`, `CITATION.cff` and the README's
   citation line all still described version `0.2.0`, eight releases after it. In `CITATION.cff` that
   field is what a human reads when deciding what they are citing, so it is not decoration; the README

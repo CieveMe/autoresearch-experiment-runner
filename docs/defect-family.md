@@ -314,6 +314,22 @@ that the artifact still owns the count and a third that the live documents still
 guard immediately failed the *other* guard from case 6b, because the artifact it reads was not yet copied
 into the scored tree — the family checking itself, which is the most useful thing it does.
 
+**A footnote on negative claims (deliberately not a case).** While checking a reference for the methods
+paper, this repository's own disease appeared in miniature, in the checking rather than in the experiment.
+A query returned nothing and what got recorded was "no registry has it". The right query mode had the
+record: `https://api.openalex.org/works/doi:10.2307/4615733` resolves to Holm (1979), *A Simple
+Sequentially Rejective Multiple Test Procedure*, **Scandinavian Journal of Statistics 6:65–70** — while
+Crossref genuinely has no record of that DOI (404), and that journal's whole 1979 volume has zero
+deposits. So the negative *observation* was true and the *inference* was false, because a search endpoint
+and a direct lookup are different questions.
+
+The rule, and it is the same rule as case 5 applied to absence: **a negative claim must be written as "I
+ran this query and it returned this", never as "it does not exist"**. The second form cannot be
+reproduced, and it silently converts a limitation of the query into a fact about the world — which is how
+a reader ends up unable to tell "nobody has this" from "my query couldn't see it". Where a record cannot be
+reached programmatically at all (Wiley's table of contents answered 403, JSTOR's page was an empty shell),
+say that too, and leave the field to be filled from a source a human can actually open.
+
 ## How to apply it to a new experiment
 
 1. Name the metric and declare its direction in one place.
