@@ -141,6 +141,18 @@ query and it returned this", never "it does not exist"** — the second form can
 a limitation of the query into a fact about the world. The next body should state this in one line, since
 the footnote is part of the tree.
 
+### A second footnote: "which copy is in play" (also one line in the next body)
+
+Recorded after v0.11.0, so it belongs to the next version's body as well. Three failures of one shape
+turned up in a single afternoon, all of them about *which artefact was being read* rather than about the
+experiment: a count typed into prose while the generator said otherwise; a script edited in its source tree
+while a scheduled task ran a deployed copy; a handoff file written to disk while a different block reached
+the other side. The shared repair is the family's own rule — **make the copy that is in play able to say so
+itself** (quote the generator; hash-check the deployed copy; name the file on the first line of the
+handoff). Written into `docs/defect-family.md` as a footnote without a case number, because these are
+process failures of the project rather than defects of this repository. The next body states it in one
+line.
+
 * **What was wrong:** `pyproject.toml`, `autoresearch/__init__.py`, `CITATION.cff` and the README's
   citation line all still described version `0.2.0`, eight releases after it. In `CITATION.cff` that
   field is what a human reads when deciding what they are citing, so it is not decoration; the README

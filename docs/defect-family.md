@@ -330,6 +330,30 @@ a reader ends up unable to tell "nobody has this" from "my query couldn't see it
 reached programmatically at all (Wiley's table of contents answered 403, JSTOR's page was an empty shell),
 say that too, and leave the field to be filled from a source a human can actually open.
 
+**A second footnote, on "which copy is in play" (also deliberately not a case).** Three failures of the
+same shape turned up in the project around this repository in a single afternoon, none of them in the
+experiment and none of them in the code under test — they were failures of *which artefact was being
+read*:
+
+| # | the copy that was looked at | the copy that was actually in play | what it cost |
+|---|---|---|---|
+| 1 | a count typed into a prose summary | the generator's output | the summary said 78 while the corpus had reached 79 — the member of the family described above |
+| 2 | a script that had been edited in its source tree | the copy a scheduled task actually runs | "it is automated now" was false for one cycle, and a timestamp never got written |
+| 3 | a handoff file that had been written to disk | the text that actually reached the other side | an entire increment was lost, and the receiving side reasonably read the stale block as a duplicate |
+
+The three share one repair, and it is the same repair as the rest of this document: **make the copy that
+is in play able to say so itself**, rather than relying on anybody remembering which one it is. In
+practice: prose quotes the generator's output instead of restating it; a deployed copy is accompanied by a
+hash check and the source script warns when the copy has fallen behind; and a handoff begins with the name
+of the file that carries it, so both sides can match a round without comparing prose. The general shape is
+worth stating because it is easy to miss: **the artefact you are looking at is not necessarily the
+artefact that is in play**, and the gap between them is invisible from either side alone.
+
+These are process failures of the project rather than defects of this repository, which is why they carry
+no case numbers — the same treatment as the footnote above. They are recorded here because they are the
+family's rule turned on its own tooling: case 5 is "a number with no generator", and instance 1 above is
+that case seen from the other end.
+
 ## How to apply it to a new experiment
 
 1. Name the metric and declare its direction in one place.
