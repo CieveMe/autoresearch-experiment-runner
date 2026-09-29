@@ -414,8 +414,11 @@ revision of a handoff note was reported to one session as `4,315` and to the oth
 correct readings of `wiki/hot-cache.md` at `3dc96e3` — the first counts characters, the second bytes — and
 the disagreement was the missing unit. The residue afterwards was a single character — the other reading
 was `4,314`, exactly the same blob minus its final newline — so even there the file agreed and the
-*convention* differed. That is case 5 once more, with the generator's output present and its scale absent;
-the repair is the one already stated above: name the instrument, not the impression.
+*convention* differed. The line count behaves the same way: splitting that blob on newlines yields 99
+elements where the text has 98 lines, and which one a tool reports depends on whether it keeps the empty
+element after the final newline. Three readings, three conventions, one file — which is why the rule now
+reads "name the instrument **and its convention**". That is case 5 once more, with the generator's output
+present and its scale absent; the repair is the one already stated above.
 
 A third reading from the same exchange did **not** reproduce at first: `6,643 bytes / 88 lines` matched no
 revision of that file among the ten most recent commits that touch it, whose sizes run from 7,233 to 11,179
