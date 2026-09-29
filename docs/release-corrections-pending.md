@@ -153,6 +153,16 @@ handoff). Written into `docs/defect-family.md` as a footnote without a case numb
 process failures of the project rather than defects of this repository. The next body states it in one
 line.
 
+### And one more line for the next body: the mirror image of 6b (a code defect, not a process one)
+
+Recorded after v0.11.0. `scripts/score_task.py`'s copy filter kept the committed analysis inputs **by
+prefix**, which also copied gitignored scratch files such as `runs/paired-tests-raw.txt` into every scored
+tree — a copy that contains something the repository never published. It was introduced by the fix for 6b
+itself (which added those names to the filter) and caught by the privacy-hygiene guard added later
+(`tests/test_privacy_hygiene.py`). Unlike the two footnotes above, this is a defect of this repository's own
+code, so it is filed **inside case 6b** rather than as a process footnote, with the rule *a copy must be
+isomorphic to the published tree in both directions*. The next body states it in one line.
+
 * **What was wrong:** `pyproject.toml`, `autoresearch/__init__.py`, `CITATION.cff` and the README's
   citation line all still described version `0.2.0`, eight releases after it. In `CITATION.cff` that
   field is what a human reads when deciding what they are citing, so it is not decoration; the README

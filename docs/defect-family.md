@@ -219,6 +219,17 @@ in the submission. (The same class of bug would have hit any fresh clone: the da
 
 **Fix.** The 7.4 MB of per-seed sweeps are committed, and the copy filter keeps them (`scripts/score_task.py`).
 
+**The same member has a mirror image, and the fix above caused it.** The filter that keeps the committed
+analysis inputs matched them **by prefix** — `name.startswith(("seed-sweep", "paired-tests", "figures"))` —
+which also swept local scratch files such as `runs/paired-tests-raw.txt` into every scored copy. That file
+is gitignored and was never published, so the copy was again not the repository: this time it contained
+something the repository does not. It was found by the privacy-hygiene guard added later, which fails when a
+scored copy is able to run the suite and still carries strings the public tree must not have. The repair is
+exact names for the two analysis artefacts (`paired-tests`, `figures`) and the prefix only where the name
+really is a prefix (`seed-sweep-<suite>`). The lesson is one line: **a copy has to be isomorphic to the
+published tree in both directions** — nothing missing, and nothing extra — and a fix aimed at one direction
+can quietly break the other.
+
 **Generalisation for the pair.** A guard has to be able to show that it is live: presence of a fragment is
 not liveness of a mutation, and a copy is not the thing it claims to score. Both members were invisible to
 static checks and obvious the moment the machinery was executed end to end, which is the same lesson as
