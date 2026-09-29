@@ -87,6 +87,13 @@ correction.
   the reproduction step on every run since #33), so the steps after it — the scorer, the sweeps, the
   threshold curves — were only ever exercised locally. The next body should say whether they ran green in
   the equivalent environment.
+* **And one line about the workflow split.** Those later steps are now separate parallel jobs (`scorer`,
+  `sweeps`, `thresholds`, alongside the `repro` matrix and `docker`), because as one job the wall clock was
+  their sum — 1.5–2 hours on a two-core runner, which is how three pushes can look like a red queue.
+  Nothing was removed and no tier was lowered: the same commands run at the same tier, `thresholds` keeps
+  its dependency on `repro` by taking that job's artifacts instead of re-running suites, and lowering
+  `main` to the core tier stays off the table because that is exactly the misreading hard rule 2 exists to
+  prevent.
 
 ### Metadata hygiene: the version fields were stale at `0.2.0`
 

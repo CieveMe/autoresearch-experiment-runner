@@ -1036,6 +1036,19 @@ is what it corrects.
 Zero of these numbers required a new experiment: they are a second platform, one extra run there, and a
 one-ULP perturbation on the first.
 
+**And a third copy of case 6b's problem, found while fixing the first two.** With the tolerance repaired,
+the CI's `docker` job was still red — and it failed for a different reason: the image ran
+`scripts/repro.py`, which ends by running the repository's own test suite, but the Dockerfile never copied
+`TODO.md`, which the live-document guard reads. Locally that is
+`FileNotFoundError: '/tmp/.../scored/TODO.md'`; in CI it is just a red job. The image now copies `TODO.md`
+and the build recipe itself, and a new guard derives the required file list **from the test sources** —
+any top-level entry the tests name, by literal or by path join — and fails if the recipe does not copy it.
+That guard carries its own negative control: it checks that it reports a missing `TODO.md` when one is
+removed from the recipe, because a check that cannot fail is exactly what case 6a is about. The same
+lesson in one line: **every place that runs the suite — the scorer's copy, the container image, and
+whatever comes next — has to be isomorphic to the repository**, and each of those copies needs its own
+guard rather than a promise.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |

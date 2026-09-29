@@ -50,6 +50,8 @@ owner's accounts, so they are not automated.
    tolerance is below the quantity's own reproducibility: the check measures which machine ran it.
 6. **Verify the CI's *later* steps too, not just the first one.** A job that fails at step 5 never runs
    steps 6–13, so a repo can be red for weeks with everyone assuming the failure is "the known one".
+   Those steps may be **split into parallel jobs** to keep the wall clock down — they must not be removed,
+   and their tier must not be lowered.
 
 ```bash
 python scripts/repro.py --tier full   # every suite, 0 failures, exit 0

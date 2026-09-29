@@ -10,6 +10,15 @@ on:
 permissions:
   contents: read
 
+# These jobs used to be steps inside one long job. Nothing was removed to make them faster: the same
+# commands still run at the same tier, but the scorer (five full reproductions), the sweeps and the
+# threshold curves no longer queue behind the reproduction step. The wall clock used to be the sum of
+# those steps; now it is the longest single job.
+#
+# `thresholds` is the one job that cannot stand alone: it reads `runs/<suite>/results.json`, which the
+# reproduction job regenerates. It therefore takes that job's artifact instead of re-running suites, and
+# the split costs no coverage.
+
 jobs:
   repro:
     name: reproduce (python ${{ matrix.python }})
@@ -31,31 +40,6 @@ jobs:
       - name: Verify the Makefile entry point
         if: matrix.python == '3.12'
         run: make repro
-      - name: Verify the task scorer and negative controls
-        if: matrix.python == '3.12'
-        run: python scripts/score_task.py --tier ${{ steps.tier.outputs.tier }}
-      - name: Regenerate the multi-seed aggregate
-        if: matrix.python == '3.12'
-        run: make sweep
-      - name: Regenerate the learning-rate sweep curves
-        if: matrix.python == '3.12'
-        run: python -m autoresearch.cli run --config examples/optimizers-sweep.json --output runs/lr-sweep
-      - name: Regenerate the AdEMAMix tuning curves
-        if: matrix.python == '3.12'
-        run: python -m autoresearch.cli run --config examples/ademamix-sweep.json --output runs/ademamix-tuning
-      - name: Regenerate the MLP tuning curves
-        if: matrix.python == '3.12'
-        run: |
-          python -m autoresearch.cli run --config examples/optimizers-mlp-sweep.json --output runs/optimizers-mlp-tuning
-          python -m autoresearch.cli run --config examples/ademamix-mlp-sweep.json --output runs/ademamix-mlp-tuning
-      - name: Regenerate the schedule-free tuning curves
-        if: matrix.python == '3.12'
-        run: |
-          python -m autoresearch.cli run --config examples/schedule-free-sweep.json --output runs/schedule-free-tuning
-          python -m autoresearch.cli run --config examples/schedule-free-mlp-sweep.json --output runs/schedule-free-mlp-tuning
-      - name: Regenerate the threshold curves
-        if: matrix.python == '3.12'
-        run: make thresholds
       - name: Upload reproduction artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -63,29 +47,101 @@ jobs:
           path: |
             runs/demo
             runs/optimizers
-            runs/seed-sweep
-            runs/seed-sweep-optimizers
-            runs/lr-sweep
             runs/ademamix
-            runs/seed-sweep-ademamix
-            runs/ademamix-tuning
             runs/optimizers-mlp
             runs/ademamix-mlp
-            runs/seed-sweep-optimizers-mlp
-            runs/seed-sweep-ademamix-mlp
-            runs/optimizers-mlp-tuning
-            runs/ademamix-mlp-tuning
             runs/schedule-free
-            runs/seed-sweep-schedule-free
-            runs/schedule-free-tuning
             runs/schedule-free-mlp
-            runs/seed-sweep-schedule-free-mlp
-            runs/schedule-free-mlp-tuning
+            runs/capacity-h32
+            runs/capacity-h8x8
             runs/capacity-h64
             runs/capacity-h16x16
             runs/activation-relu
             runs/activation-gelu
-            runs/threshold-curves
+            runs/norm-layernorm
+            runs/norm-batchnorm
+            runs/init-he
+            runs/init-plain
+            runs/ablation-adam-no-first-moment
+
+  scorer:
+    name: score the task and its negative controls (python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Choose the tier
+        id: tier
+        run: echo "tier=${{ github.event_name == 'pull_request' && 'core' || 'full' }}" >> "$GITHUB_OUTPUT"
+      - name: Verify the task scorer and negative controls
+        run: python scripts/score_task.py --tier ${{ steps.tier.outputs.tier }}
+
+  sweeps:
+    name: regenerate the sweeps and tuning curves (python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Regenerate the multi-seed aggregate
+        run: make sweep
+      - name: Regenerate the learning-rate sweep curves
+        run: python -m autoresearch.cli run --config examples/optimizers-sweep.json --output runs/lr-sweep
+      - name: Regenerate the AdEMAMix tuning curves
+        run: python -m autoresearch.cli run --config examples/ademamix-sweep.json --output runs/ademamix-tuning
+      - name: Regenerate the MLP tuning curves
+        run: |
+          python -m autoresearch.cli run --config examples/optimizers-mlp-sweep.json --output runs/optimizers-mlp-tuning
+          python -m autoresearch.cli run --config examples/ademamix-mlp-sweep.json --output runs/ademamix-mlp-tuning
+      - name: Regenerate the schedule-free tuning curves
+        run: |
+          python -m autoresearch.cli run --config examples/schedule-free-sweep.json --output runs/schedule-free-tuning
+          python -m autoresearch.cli run --config examples/schedule-free-mlp-sweep.json --output runs/schedule-free-mlp-tuning
+      - name: Upload sweep artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sweep-artifacts
+          path: |
+            runs/seed-sweep-optimizers
+            runs/seed-sweep-ademamix
+            runs/seed-sweep-optimizers-mlp
+            runs/seed-sweep-ademamix-mlp
+            runs/seed-sweep-schedule-free
+            runs/seed-sweep-schedule-free-mlp
+            runs/lr-sweep
+            runs/ademamix-tuning
+            runs/optimizers-mlp-tuning
+            runs/ademamix-mlp-tuning
+            runs/schedule-free-tuning
+            runs/schedule-free-mlp-tuning
+
+  thresholds:
+    name: regenerate the threshold curves (python 3.12)
+    runs-on: ubuntu-latest
+    needs: repro
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Take the suite runs from the reproduction job
+        uses: actions/download-artifact@v4
+        with:
+          name: repro-artifacts-3.12
+          # upload-artifact stores the tree below the least common ancestor of the listed paths, which
+          # is `runs/` here, so the download has to put it back under `runs/` or `make thresholds`
+          # would look for `runs/<suite>/results.json` in an empty directory and fail.
+          path: runs
+      - name: Regenerate the threshold curves
+        run: make thresholds
+      - name: Upload threshold-curve artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: threshold-curves
+          path: runs/threshold-curves
 
   docker:
     name: reproduce (docker)
