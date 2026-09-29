@@ -86,6 +86,33 @@ git push github vX.Y.Z
 
 The tag must point at the commit whose CI run is green; check the Actions tab before announcing it.
 
+### Publishing the release — and what the current script guarantees
+
+The release is published by a script rather than by hand
+(`scripts/papers/publish_github_release.py`, which lives in this project's automation and not in this
+repository — so what is written here is the **contract**, and the script is one implementation of it):
+
+1. resolve `git/ref/tags/<tag>` and dereference an annotated tag to its commit;
+2. read `docs/release-notes-<tag>.published.md` **from that commit** (not from the working tree, not from
+   the default branch);
+3. create the release with exactly that text, taking the title from the commit subject.
+
+**What that enforces mechanically: hard rule 1.** If the body is not in the repository at the tagged
+commit, step 2 fails and no release is created — so "save the body before publishing it" stops being a
+thing somebody has to remember. It also cannot create a second release for the same tag (GitHub rejects
+the duplicate), and it prints `notes_chars` and `body_chars` from the two sides so the published body can
+be compared against the file in one glance.
+
+**What it does not enforce, and still needs a human:**
+
+* **hard rule 2** — that the body quotes a full-tier run. The script copies text; it does not read it.
+* **hard rule 3** — that a published body is never edited afterwards. The script never edits, but nothing
+  stops an edit in the web UI; that is why the body is read from the *tag* and why the correction goes
+  into the next version.
+* One more consequence worth knowing: because publishing needs only the tag and the file, the release can
+  be published before the tag's CI has finished. Quote the tag's run once it is green, and for a `full`
+  claim (rule 2) quote a run that has a verdict — a cancelled or still-running one has none.
+
 ## 3. Zenodo (owner action — needs the Zenodo account)
 
 1. Sign in to Zenodo with GitHub, open **Settings → GitHub**, and toggle the switch for
