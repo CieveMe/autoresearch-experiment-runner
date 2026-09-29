@@ -78,6 +78,11 @@ correction.
 * **What the next release body must say:** one section — the CI went red for six runs because one pin's
   tolerance was below its own reproducibility; here is the measured spread and the basis for the new
   tolerance; the full-tier gate now passes, quoted in full; and `v0.10.0` is not touched.
+  **The runs to quote are in `runs/task-runs/FULL-TIER-ci-fix.md`:** the Windows full scorer at `0f3ce2f`
+  (`100.0/100 (tier=full (all suites)) (474/474 checks, exit 0)`, all four controls detected —
+  `schedule-free-without-averaging` still at 92.8/100, i.e. the widened tolerance did not disarm it), the
+  Linux container `repro --tier full` (`474 checks, 0 failures`, against 4 failures before the fix), and
+  the fresh-clone `docker compose up --build` (`RESULT: PASS`, compose exit 0).
 * **Also worth one line in that body:** the CI jobs had never reached their later steps (they stopped at
   the reproduction step on every run since #33), so the steps after it — the scorer, the sweeps, the
   threshold curves — were only ever exercised locally. The next body should say whether they ran green in
