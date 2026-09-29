@@ -409,6 +409,19 @@ no case numbers — the same treatment as the footnote above. They are recorded 
 family's rule turned on its own tooling: case 5 is "a number with no generator", and instance 1 above is
 that case seen from the other end.
 
+**A third footnote, on numbers without units (also deliberately not a case).** On 2026-09-30 the same
+revision of a handoff note was reported to one session as `4,315` and to the other as `7,233`. Both are
+correct readings of `wiki/hot-cache.md` at `3dc96e3` — the first counts characters, the second bytes — and
+the whole disagreement was the missing unit. That is case 5 once more, with the generator's output present
+and its scale absent; it cost two messages to settle. The repair is the one already stated above: name the
+instrument, not the impression.
+
+A third reading from the same exchange did **not** reproduce: `6,643 bytes / 88 lines` matches no revision
+of that file among the ten most recent commits that touch it, whose sizes run from 7,233 to 11,179 bytes
+(`git log -10 -- wiki/hot-cache.md`, then `git cat-file blob <rev>:wiki/hot-cache.md`). Put the way the
+negative-claims footnote above requires: *that is what those two commands returned* — not "the number is
+wrong". The reporter's command is the missing piece, and until it is known the figure should not be quoted.
+
 ## How to apply it to a new experiment
 
 1. Name the metric and declare its direction in one place.

@@ -44,8 +44,11 @@ owner's accounts, so they are not automated.
    archive would disagree; the archive is the tag's repository snapshot, so text in the tree at that tag
    is archived regardless; and silently repairing a published version destroys the evidence that this
    repository corrects itself in public.
-4. **Any statistic a conclusion quotes has a generator, a definition and a test** before it is written
-   into a table (`docs/defect-family.md` case 5).
+4. **Any statistic a conclusion quotes has a generator, a definition, a unit and a test** before it is
+   written into a table (`docs/defect-family.md` case 5). The unit is not decoration: on 2026-09-30 the
+   same revision of `wiki/hot-cache.md` (`3dc96e3`) was reported to two sessions as `4,315` and as `7,233`
+   — both correct, one counting characters and the other bytes. A size without its unit is the same defect
+   as a number without its generator, and it is settled the same way, by naming the instrument.
 5. **A check may not be deleted or skipped to make CI green, and a tolerance may not be widened without a
    measured basis.** If a pin fails only on another platform, the repair is to measure the spread
    (`scripts/perturbation_probe.py` measures it on one machine; a container run measures it across
