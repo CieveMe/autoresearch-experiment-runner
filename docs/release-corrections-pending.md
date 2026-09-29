@@ -22,6 +22,20 @@ correction.
 
 ## Queue
 
+### Citation checklist for the next release body (three items, none optional)
+
+Written down because the next body has to carry all three and they live in different places; a reader of
+the file should not have to reconstruct the list from the sections below.
+
+| # | what the next body must state | where the material is |
+|---|---|---|
+| ① | **case 5** — §5.11 finding 7 and §5.13's H5 are withdrawn (the hand-assembled σ column), and the second half of §5.15's N4 with them; "no advantage detected" is stated as a bound | item 1 below; `docs/defect-family.md` case 5; §5.16 |
+| ② | **case 6a and 6b** — the liveness failure (a 100/100 implementation that had moved the controls' mutation points into dead code) and the copy that was not the repository; including 6b's third copy, the container image that never carried `TODO.md` | `docs/defect-family.md` case 6; `runs/task-runs/README.md`; §5.17's closing passage |
+| ③ | **case 7 + the CI change** — the pin whose tolerance was below its own reproducibility (with the measured spread and the basis for 0.005), and the CI work: the parallel jobs and the concurrency rule that cancels superseded branch runs | the CI entry below; §5.17; `runs/task-runs/FULL-TIER-ci-fix.md` |
+
+And per hard rule 2: quote a **full-tier** run, preferably the one CI produced **on the tag** (tag runs are
+never cancelled by the concurrency rule), otherwise the run recorded in `runs/task-runs/`.
+
 > **Status 2026-09-28:** both items below are stated in
 > `docs/release-notes-v0.10.0.published.md` and are therefore no longer pending. They stay here as the
 > record of what was owed and where it was paid, and the next entry will be added below them.

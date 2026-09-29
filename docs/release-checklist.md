@@ -34,6 +34,10 @@ owner's accounts, so they are not automated.
    gone from the git history.
 2. **A release body quotes a full-tier run.** `python scripts/score_task.py --tier full`, with the tier
    label visible, so a core-tier number can never be read as full coverage.
+   Quote the run **on the tag** when CI produced one — tag runs are never cancelled by the
+   `concurrency` rule in `.github/workflows/repro.yml` — or, if the body is written before the tag exists,
+   the full-tier run recorded in the repository (`runs/task-runs/`). **A branch run that a later push
+   superseded may have been cancelled, and a cancelled run has no verdict, so it may not be quoted.**
 3. **A published release body and a pushed tag are never edited.** Corrections go into the next
    version's body and into the section that carries the wrong statement; `docs/release-corrections-pending.md`
    is the queue. Reasons, in order: editing the body does not re-trigger archival, so GitHub and the
