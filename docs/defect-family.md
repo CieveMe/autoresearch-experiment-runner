@@ -412,15 +412,21 @@ that case seen from the other end.
 **A third footnote, on numbers without units (also deliberately not a case).** On 2026-09-30 the same
 revision of a handoff note was reported to one session as `4,315` and to the other as `7,233`. Both are
 correct readings of `wiki/hot-cache.md` at `3dc96e3` — the first counts characters, the second bytes — and
-the whole disagreement was the missing unit. That is case 5 once more, with the generator's output present
-and its scale absent; it cost two messages to settle. The repair is the one already stated above: name the
-instrument, not the impression.
+the disagreement was the missing unit. The residue afterwards was a single character — the other reading
+was `4,314`, exactly the same blob minus its final newline — so even there the file agreed and the
+*convention* differed. That is case 5 once more, with the generator's output present and its scale absent;
+the repair is the one already stated above: name the instrument, not the impression.
 
-A third reading from the same exchange did **not** reproduce: `6,643 bytes / 88 lines` matches no revision
-of that file among the ten most recent commits that touch it, whose sizes run from 7,233 to 11,179 bytes
-(`git log -10 -- wiki/hot-cache.md`, then `git cat-file blob <rev>:wiki/hot-cache.md`). Put the way the
-negative-claims footnote above requires: *that is what those two commands returned* — not "the number is
-wrong". The reporter's command is the missing piece, and until it is known the figure should not be quoted.
+A third reading from the same exchange did **not** reproduce at first: `6,643 bytes / 88 lines` matched no
+revision of that file among the ten most recent commits that touch it, whose sizes run from 7,233 to 11,179
+bytes (`git log -10 -- wiki/hot-cache.md`, then `git cat-file blob <rev>:wiki/hot-cache.md`). The reporting
+session then supplied what had been missing, and it was not a command but a *state*: the figure came from
+the working tree — after the rewrite, before the merge commit, and before two later edits — that is, "a
+reading of some state" written down as though it were "a reading of that revision". It is the second
+footnote in different clothes, and it has the same repair: **say which copy is in play**, here which
+revision and which instrument. What made that closing possible is worth keeping: the first version of this
+paragraph recorded only *what two commands returned*, never that the number was wrong, so it could be
+finished with a question instead of a retraction.
 
 ## How to apply it to a new experiment
 
