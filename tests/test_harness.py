@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -186,6 +187,52 @@ class NegativeControlTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0,
                              "the scored copy cannot run the repository's own tests:\n"
                              + result.stdout[-2000:])
+
+    def test_the_container_image_contains_everything_the_suite_reads(self):
+        """Case 6b's second copy: the image that runs `repro.py` must carry what the suite reads.
+
+        `scripts/repro.py` ends with `unittest discover`, so the container image is a third place where
+        the repository's own suite runs — and it failed there for a whole CI run because `TODO.md`, which
+        the live-document guard reads, was never copied into the image. The required list is derived from
+        the test sources rather than written by hand, so a test that starts reading a new file fails here
+        instead of in the CI docker job, where the traceback is the only symptom.
+        """
+        dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+        required = self._top_level_entries_the_suite_touches()
+        missing = self._missing_from_image(dockerfile, required)
+        self.assertEqual(missing, [], f"the Dockerfile does not copy: {missing}")
+        # Negative control for this guard: without TODO.md it must say so. A check that cannot fail is
+        # the thing this family exists to prevent (case 6a).
+        crippled = "\n".join(line for line in dockerfile.splitlines() if "TODO.md" not in line)
+        self.assertIn("TODO.md", self._missing_from_image(crippled, required))
+
+    @staticmethod
+    def _image_copy_sources(dockerfile: str):
+        copied = set()
+        for line in dockerfile.splitlines():
+            tokens = line.split()
+            if tokens and tokens[0].upper() == "COPY" and len(tokens) >= 3:
+                copied.update(tokens[1:-1])
+        return copied
+
+    def _top_level_entries_the_suite_touches(self):
+        """Top-level repository entries the test sources name, whether via a path join or a literal."""
+        entries = {path.name for path in ROOT.iterdir()}
+        sources = "\n".join(path.read_text(encoding="utf-8")
+                            for path in sorted((ROOT / "tests").glob("test_*.py")))
+        referenced = {name for name in entries
+                      if re.search(rf'["\']({re.escape(name)})["\']', sources)}
+        referenced.update(name for name in re.findall(r'ROOT\s*/\s*"([^"/]+)"', sources)
+                          if name in entries)
+        # `runs/` is supplied by the compose mount; the build recipe itself and the ignore files are not
+        # things the suite reads from inside the image.
+        for excluded in ("runs", "Dockerfile", ".dockerignore", ".gitignore", "compose.yaml"):
+            referenced.discard(excluded)
+        return sorted(referenced)
+
+    def _missing_from_image(self, dockerfile: str, required):
+        copied = self._image_copy_sources(dockerfile)
+        return [name for name in required if name not in copied]
 
     def _check_control_liveness(self):
         """Presence is not enough: the fragment has to be in the code that runs.
