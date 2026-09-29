@@ -55,6 +55,34 @@ correction.
 
 ## Carried forward: to be stated in the next body (not corrections, but not silent either)
 
+### Correction target: **the public repository's CI state** — six red runs, one tolerance too tight
+
+* **Correction target:** not a release body. The thing that was wrong is the **state of
+  `CieveMe/autoresearch-experiment-runner`'s public CI**, which had been failing on every run since
+  `main` #33 (and on the `v0.10.0` tag run #32), on all three jobs. The repository's most valuable sentence
+  is "every number is pinned and checked by one command"; a reader arriving at the repo saw red crosses
+  first. `v0.10.0`'s tag and body stay untouched — that tag's CI run is red forever and that is honest.
+* **What was wrong:** one expectation, `trial[schedule_free_adamw].test_loss` in `schedule-free-mlp`
+  (and three more of the same arm in `norm-layernorm`, `init-he`, `capacity-h32`), was pinned with a
+  1e-6 tolerance while the quantity itself is only reproducible to ≈1e-3 across platforms. The other 470
+  assertions matched on both platforms. Measured: Linux 0.12526376 against the pinned 0.12506323
+  (+2.0e-4), and a one-ULP nudge to `exp/sqrt/tanh/erf` on a single machine moves the same arm by up to
+  9.8e-4 while every other arm moves by exactly 0 (`scripts/perturbation_probe.py`). Full measurements and
+  the mechanism are in `REPRODUCTION.md` §5.17; the case is **case 7** in `docs/defect-family.md`.
+* **The fix:** that one trial now carries a per-trial `loss_abs = 0.005` — five times the largest measured
+  movement — while every other expectation in the same files keeps `1e-6`; the verifier prints the
+  tolerance it used, and `tests/test_harness.py::test_a_trial_tolerance_widens_that_trial_and_nothing_else`
+  pins the scope from both sides. No check was deleted or skipped. The residual cost is stated: a
+  regression below 5e-3 in that arm's final loss is no longer caught by that expectation, and is still
+  caught by its integer speed pin, its accuracy pin and the schedule-free negative control.
+* **What the next release body must say:** one section — the CI went red for six runs because one pin's
+  tolerance was below its own reproducibility; here is the measured spread and the basis for the new
+  tolerance; the full-tier gate now passes, quoted in full; and `v0.10.0` is not touched.
+* **Also worth one line in that body:** the CI jobs had never reached their later steps (they stopped at
+  the reproduction step on every run since #33), so the steps after it — the scorer, the sweeps, the
+  threshold curves — were only ever exercised locally. The next body should say whether they ran green in
+  the equivalent environment.
+
 ### Metadata hygiene: the version fields were stale at `0.2.0`
 
 * **What was wrong:** `pyproject.toml`, `autoresearch/__init__.py`, `CITATION.cff` and the README's

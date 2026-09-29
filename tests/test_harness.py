@@ -61,6 +61,44 @@ class VerifyTests(unittest.TestCase):
             failures, _ = verify(tampered, DEFAULT_EXPECTED)
         self.assertTrue(any("trial[adam_reproduction].test_loss" in failure for failure in failures))
 
+    def _verify_with_shifted_loss(self, expected_name: str, results_path: Path, arm: str, shift: float):
+        payload = json.loads(results_path.read_text(encoding="utf-8"))
+        for item in payload["results"]:
+            if item["name"] == arm:
+                item["test_loss"] = round(item["test_loss"] + shift, 8)
+        with tempfile.TemporaryDirectory() as directory:
+            tampered = Path(directory) / "results.json"
+            tampered.write_text(json.dumps(payload), encoding="utf-8")
+            return verify(tampered, ROOT / "expected" / expected_name)
+
+    def test_a_trial_tolerance_widens_that_trial_and_nothing_else(self):
+        """Case 7's repair has to be scoped: one arm, measured basis, everything else still tight.
+
+        The schedule-free AdamW arm amplifies last-bit libm differences, so its `test_loss` carries a
+        wider tolerance. This test pins the scope from both sides: a shift inside the widened band is
+        accepted for that arm, a shift outside it is rejected, and a shift 10x smaller is still rejected
+        for a *different* arm in the same file.
+        """
+        results = ROOT / "runs" / "schedule-free-mlp" / "results.json"
+        if not results.exists():
+            results = ROOT / "runs" / "schedule-free-verified" / "mlp" / "results.json"
+        if not results.exists():
+            self.skipTest("no schedule-free MLP results in this working tree")
+
+        _, checks = self._verify_with_shifted_loss(
+            "expected_schedule_free_mlp.json", results, "schedule_free_adamw", 0.001)
+        self.assertTrue(any("tolerance 0.005" in line for line in checks),
+                        "the widened tolerance must be visible in the check output")
+
+        failures, _ = self._verify_with_shifted_loss(
+            "expected_schedule_free_mlp.json", results, "schedule_free_adamw", 0.02)
+        self.assertTrue(any("schedule_free_adamw" in failure for failure in failures),
+                        "a shift well outside the measured band must still fail")
+
+        failures, _ = self._verify_with_shifted_loss(
+            "expected_schedule_free_mlp.json", results, "adamw_cosine", 1e-5)
+        self.assertTrue(any("adamw_cosine" in failure for failure in failures),
+                        "another arm in the same file must keep the 1e-6 tolerance")
 
 class SeedSweepTests(unittest.TestCase):
     def test_parse_seeds_accepts_ranges_and_lists(self):

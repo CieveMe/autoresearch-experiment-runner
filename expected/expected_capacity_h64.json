@@ -65,12 +65,16 @@
       "epochs": 200,
       "test_accuracy": 0.935,
       "test_loss": 0.12391022,
-      "epochs_to_target": 14
+      "epochs_to_target": 14,
+      "tolerance": {
+        "loss_abs": 0.005
+      }
     }
   },
   "notes": [
     "Capacity expansion to 64 hidden units; every arm retuned for it (examples/capacity-h64-sweep.json, 17 trials), hypotheses pre-registered in docs/capacity-expansion-preregistration.md.",
     "Seed 7: adagrad is best on test loss (0.12268) and fastest to the target (6 epochs); schedule-free is second on both; ademamix has the lowest training loss (0.13579) and one of the worst test losses (0.12833).",
-    "Verdicts for H1-H6 come from runs/capacity-expansion-verified/h64/seed-sweep-summary.md, not from this single seed."
+    "Verdicts for H1-H6 come from runs/capacity-expansion-verified/h64/seed-sweep-summary.md, not from this single seed.",
+    "trial[schedule_free_adamw].test_loss carries its own tolerance (loss_abs = 0.005) because that arm alone amplifies last-bit libm differences between platforms; every other expectation in this file stays at loss_abs = 1e-6. Basis, measured rather than tuned: (a) the same suite run under Linux in python:3.12-slim differs from the Windows pin by up to 2.0e-4 across the twelve suites that pin this arm (this file: see the numbers in REPRODUCTION.md 5.17); (b) nudging math.exp/sqrt/tanh/erf by one ULP on a single machine moves this arm by up to 9.8e-4 (scripts/perturbation_probe.py), while every other arm in the same suites moves by exactly 0. The tolerance is 5x the largest movement observed by either method. Compensating checks this file keeps exact: the arm epochs_to_target pin (an integer, stable across platforms and in the ULP probe), its test_accuracy pin, and the schedule-free negative control, which must still detect a broken averaging step."
   ]
 }

@@ -992,6 +992,50 @@ its check is `tests/test_figures.py`'s pinned audit of `runs/figures/stability.c
 `v0.9.0` are published and are not rewritten: the correction is carried in the next release body, the
 same way v0.5.0's wrong sentence was carried into v0.6.0.
 
+### 5.17 Platform sensitivity, measured: which pins reproduced somewhere else, and by how much
+
+The public CI ran the full tier under Linux and came back red on four expectations while the same commit was
+green on Windows. Every one of the four was the **same arm**, `schedule_free_adamw`, and every other one of
+the 474 assertions matched on both platforms:
+
+| suite | pinned (Windows) | measured under Linux | difference |
+|---|---:|---:|---:|
+| `schedule-free-mlp` | 0.12506323 | 0.12526376 | **+2.01e-4** |
+| `norm-layernorm` | 0.12414847 | 0.12409491 | −5.36e-5 |
+| `init-he` | 0.12610458 | 0.12612148 | +1.69e-5 |
+| `capacity-h32` | 0.12452343 | 0.12452196 | −1.47e-6 |
+
+The mechanism is not threading or BLAS — this is pure Python with no BLAS in the path — it is the platform's
+`libm`. `scripts/perturbation_probe.py` isolates it on a single machine: nudging `math.exp`, `sqrt`, `tanh`
+and `erf` by **one ULP** moves the schedule-free AdamW arm by up to **9.8e-4**, while every other arm in
+the same suites moves by exactly 0:
+
+| suite | one-ULP movement of `schedule_free_adamw` | every other arm |
+|---|---:|---:|
+| `norm-layernorm` | **−9.78e-4** | 0.000e+00 |
+| `schedule-free-mlp` | +2.02e-4 | 0.000e+00 |
+| `capacity-h32` | −2.50e-5 | 0.000e+00 |
+| `init-he` | +1.30e-5 | 0.000e+00 |
+
+So that arm's *test loss* is reproducible only to about 1e-3, two to three orders of magnitude coarser than
+the 1e-6 the other 470-odd pins hold to. Its trajectory (the `x`/`y`/`z` recursion) has a positive
+divergence rate, so ULP-level noise is amplified over 200 epochs; the divergence only becomes visible in
+the last ~25 epochs, which is why it looks like an abrupt difference rather than a drift.
+
+**The tolerance fix, with its basis.** That trial now carries `loss_abs = 0.005` — five times the largest
+movement seen by either method — while every other expectation in the same files keeps `1e-6`. The verifier
+prints the tolerance it used, and a test pins the scope from both sides
+(`tests/test_harness.py::test_a_trial_tolerance_widens_that_trial_and_nothing_else`). Environment pinning
+was rejected because the probe reproduces the effect on one machine; dropping the check was never
+considered. The cost is stated rather than hidden: a regression smaller than 5e-3 in *this one arm's* final
+loss would no longer be caught by that one expectation — it is still caught by the arm's integer
+`epochs_to_target` pin, by its accuracy pin, and by the schedule-free negative control, none of which moved
+on either platform. It is recorded as **case 7** in `docs/defect-family.md`, and the public CI's red state
+is what it corrects.
+
+Zero of these numbers required a new experiment: they are a second platform, one extra run there, and a
+one-ULP perturbation on the first.
+
 ## 6. Deviations from the paper (and why)
 
 | # | Deviation | Reason | Risk to validity |
@@ -1029,7 +1073,10 @@ same way v0.5.0's wrong sentence was carried into v0.6.0.
   version; it is not one of the six scope axes and it re-runs nothing already published.
 - **Cross-platform tolerance.** `math.exp`/`math.sqrt` may differ by a few ULP across libm builds,
   hence explicit tolerances (`expected/expected_metrics.json`): loss 1e-6, accuracy 0.005 (one test
-  sample). `duration_ms` is excluded from verification.
+  sample). `duration_ms` is excluded from verification. **One arm amplifies that difference rather than
+  absorbing it**: `schedule_free_adamw`'s test loss is only reproducible to ≈1e-3 across platforms, so
+  that one expectation carries a measured `loss_abs = 0.005` while every other pin stays at 1e-6 — the
+  measurements, the basis, and the cost of the widening are in §5.17.
 
 ## 8. Defect found and fixed while producing this report
 

@@ -51,7 +51,7 @@ difference at this budget*, **never** as "no difference", and the closed set of 
 enforced in code and tested
 (`tests/test_paired_stats.py::test_every_verdict_comes_from_the_closed_set_of_phrasings`).
 
-## 2. The defect family: six cases, each with the check that caught it
+## 2. The defect family: seven cases, each with the check that caught it
 
 One row per case, `docs/defect-family.md` is the prose, and every check name below was verified against
 the tree (`rg -n "def <name>" tests`).
@@ -65,6 +65,7 @@ the tree (`rg -n "def <name>" tests`).
 | 5 | a table column assembled by hand, not reproducible under its own heading | every statistic produced by a function with its definition named | `test_the_noise_statistics_are_reproducible_and_disagree_with_the_old_table` | `tests/test_figures.py:80` |
 | 6a | four "detected" verdicts produced by fragments that had moved into dead code | a control that demonstrably changes the code that runs | `test_every_control_fragment_changes_the_numbers_it_mutates` | `tests/test_harness.py:117` |
 | 6b | "exit 1, two controls missed" produced by a copier that dropped the inputs | a scored copy isomorphic to the repository it claims to score | `test_the_scored_copy_can_run_the_repositorys_own_tests` | `tests/test_harness.py:128` |
+| 7 | a green local run and a red CI run from the same code | a tolerance at or above the quantity's measured cross-platform reproducibility | `test_a_trial_tolerance_widens_that_trial_and_nothing_else` | `tests/test_harness.py` (see `rg -n`) |
 
 **How each case was found** (the column a reviewer will like, because it is where the cases differ):
 
@@ -76,6 +77,7 @@ the tree (`rg -n "def <name>" tests`).
 | 5 | drawing a figure that disagreed with a published column |
 | 6a | running the T-ADAM-01B variant and seeing 100/100 next to two missed controls |
 | 6b | the same tree scoring `exit 0` with `--skip-controls` and `exit 1` with them |
+| 7 | somebody else's machine — the public CI — which is the one detector this project cannot run locally |
 
 **The one-sentence form of each generalisation** (from `docs/defect-family.md`):
 
@@ -85,7 +87,23 @@ the tree (`rg -n "def <name>" tests`).
 4. a check that covers one shape covers one shape;
 5. a number typed into a table has no generator;
 6. **a check that can be satisfied without changing what runs is not a check** (6a), and a copy is not
-   the thing it claims to score (6b).
+   the thing it claims to score (6b);
+7. a tolerance below the quantity's own reproducibility measures the machine, not the code.
+
+**Case 7's numbers, for §6's platform section** (full table and mechanism in `REPRODUCTION.md` §5.17):
+
+| suite | pinned (Windows) | Linux | difference | one-ULP probe, same machine |
+|---|---:|---:|---:|---:|
+| `schedule-free-mlp` | 0.12506323 | 0.12526376 | +2.01e-4 | +2.02e-4 |
+| `norm-layernorm` | 0.12414847 | 0.12409491 | −5.36e-5 | **−9.78e-4** |
+| `init-he` | 0.12610458 | 0.12612148 | +1.69e-5 | +1.30e-5 |
+| `capacity-h32` | 0.12452343 | 0.12452196 | −1.47e-6 | −2.50e-5 |
+| every other arm, every suite | — | identical | 0 | **0.000e+00** |
+
+Chosen tolerance: `loss_abs = 0.005` for that one trial in the twelve files that pin the arm — five times
+the largest movement seen by either method — with every other pin left at 1e-6. The honest sentence for a
+paper is the one in §5.17: this arm's *test loss* is reproducible only to about 1e-3 across `libm` builds,
+so the repository pins it coarsely and pins its integer speed and its accuracy exactly.
 
 **The family note in miniature** (worth one sentence in §5, not a case): the release checklist's own
 line telling the releaser to confirm three files "all say `0.2.0`" became false the moment those files

@@ -65,13 +65,17 @@
       "epochs": 200,
       "test_accuracy": 0.935,
       "test_loss": 0.12452343,
-      "epochs_to_target": 9
+      "epochs_to_target": 9,
+      "tolerance": {
+        "loss_abs": 0.005
+      }
     }
   },
   "notes": [
     "Capacity check with 32 hidden units; every arm retuned for this model (examples/capacity-h32-sweep.json, 21 trials).",
     "adam and adamw_constant are identical here because the suite uses no weight decay, which is the same consistency check as AdEMAMix's alpha=0 ablation.",
     "AdEMAMix has the lowest TRAIN loss (0.13758) but one of the worst TEST losses (0.12932): at this capacity train-loss and test-loss rankings diverge, which is why both are reported.",
-    "Schedule-free AdamW is fastest to the target (9 epochs) and second-best on test loss; the verdicts come from runs/capacity-verified/h32/seed-sweep-summary.md."
+    "Schedule-free AdamW is fastest to the target (9 epochs) and second-best on test loss; the verdicts come from runs/capacity-verified/h32/seed-sweep-summary.md.",
+    "trial[schedule_free_adamw].test_loss carries its own tolerance (loss_abs = 0.005) because that arm alone amplifies last-bit libm differences between platforms; every other expectation in this file stays at loss_abs = 1e-6. Basis, measured rather than tuned: (a) the same suite run under Linux in python:3.12-slim differs from the Windows pin by up to 2.0e-4 across the twelve suites that pin this arm (this file: see the numbers in REPRODUCTION.md 5.17); (b) nudging math.exp/sqrt/tanh/erf by one ULP on a single machine moves this arm by up to 9.8e-4 (scripts/perturbation_probe.py), while every other arm in the same suites moves by exactly 0. The tolerance is 5x the largest movement observed by either method. Compensating checks this file keeps exact: the arm epochs_to_target pin (an integer, stable across platforms and in the ULP probe), its test_accuracy pin, and the schedule-free negative control, which must still detect a broken averaging step."
   ]
 }

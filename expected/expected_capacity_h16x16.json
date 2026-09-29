@@ -65,12 +65,16 @@
       "epochs": 200,
       "test_accuracy": 0.94,
       "test_loss": 0.11777748,
-      "epochs_to_target": 20
+      "epochs_to_target": 20,
+      "tolerance": {
+        "loss_abs": 0.005
+      }
     }
   },
   "notes": [
     "Capacity expansion to two 16-unit hidden layers; every arm retuned (examples/capacity-h16x16-sweep.json, 17 trials).",
     "Overfitting dominates: ademamix reaches the lowest training loss (0.09444) and the worst test loss (0.18107), while schedule-free reaches the best test loss (0.11778) and the fastest target arrival (20 epochs).",
-    "This is the capacity where the train-versus-test divergence predicted by H4 is largest; verdicts come from runs/capacity-expansion-verified/h16x16/seed-sweep-summary.md."
+    "This is the capacity where the train-versus-test divergence predicted by H4 is largest; verdicts come from runs/capacity-expansion-verified/h16x16/seed-sweep-summary.md.",
+    "trial[schedule_free_adamw].test_loss carries its own tolerance (loss_abs = 0.005) because that arm alone amplifies last-bit libm differences between platforms; every other expectation in this file stays at loss_abs = 1e-6. Basis, measured rather than tuned: (a) the same suite run under Linux in python:3.12-slim differs from the Windows pin by up to 2.0e-4 across the twelve suites that pin this arm (this file: see the numbers in REPRODUCTION.md 5.17); (b) nudging math.exp/sqrt/tanh/erf by one ULP on a single machine moves this arm by up to 9.8e-4 (scripts/perturbation_probe.py), while every other arm in the same suites moves by exactly 0. The tolerance is 5x the largest movement observed by either method. Compensating checks this file keeps exact: the arm epochs_to_target pin (an integer, stable across platforms and in the ULP probe), its test_accuracy pin, and the schedule-free negative control, which must still detect a broken averaging step."
   ]
 }

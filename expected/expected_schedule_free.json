@@ -39,7 +39,10 @@
       "epochs": 200,
       "test_accuracy": 0.935,
       "test_loss": 0.12395906,
-      "epochs_to_target": 154
+      "epochs_to_target": 154,
+      "tolerance": {
+        "loss_abs": 0.005
+      }
     },
     "sgd_cosine": {
       "optimizer": "sgd",
@@ -64,6 +67,7 @@
     "The schedule-free rule is a transliteration of adamw_schedulefree_reference.py and is cross-checked against a literal re-implementation of that reference in tests/test_schedule_free.py.",
     "Reported metrics use the averaged sequence (x), which is what the reference implementation's eval() mode evaluates; measuring at the training point would flatter the method.",
     "The cosine baseline is tuned over both learning rate and min_lr_factor (examples/schedule-free-sweep.json, 21 trials), because an untuned baseline would make the paper's claim untestable.",
-    "Seed 7: schedule-free matches the tuned cosine on final test loss (0.12395906 vs 0.12381987, 0.1% apart) but takes about twice as long to reach the target (154 vs 80 epochs), and a plain constant learning rate is better than both on final loss (0.12228349)."
+    "Seed 7: schedule-free matches the tuned cosine on final test loss (0.12395906 vs 0.12381987, 0.1% apart) but takes about twice as long to reach the target (154 vs 80 epochs), and a plain constant learning rate is better than both on final loss (0.12228349).",
+    "trial[schedule_free_adamw].test_loss carries its own tolerance (loss_abs = 0.005) because that arm alone amplifies last-bit libm differences between platforms; every other expectation in this file stays at loss_abs = 1e-6. Basis, measured rather than tuned: (a) the same suite run under Linux in python:3.12-slim differs from the Windows pin by up to 2.0e-4 across the twelve suites that pin this arm (this file: see the numbers in REPRODUCTION.md 5.17); (b) nudging math.exp/sqrt/tanh/erf by one ULP on a single machine moves this arm by up to 9.8e-4 (scripts/perturbation_probe.py), while every other arm in the same suites moves by exactly 0. The tolerance is 5x the largest movement observed by either method. Compensating checks this file keeps exact: the arm epochs_to_target pin (an integer, stable across platforms and in the ULP probe), its test_accuracy pin, and the schedule-free negative control, which must still detect a broken averaging step."
   ]
 }

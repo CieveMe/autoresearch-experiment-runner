@@ -42,6 +42,14 @@ owner's accounts, so they are not automated.
    repository corrects itself in public.
 4. **Any statistic a conclusion quotes has a generator, a definition and a test** before it is written
    into a table (`docs/defect-family.md` case 5).
+5. **A check may not be deleted or skipped to make CI green, and a tolerance may not be widened without a
+   measured basis.** If a pin fails only on another platform, the repair is to measure the spread
+   (`scripts/perturbation_probe.py` measures it on one machine; a container run measures it across
+   `libm` builds), scope the new tolerance to that one expectation, print it in the verifier's output, and
+   state what sensitivity the widening costs. Case 7 in `docs/defect-family.md` is what happens when the
+   tolerance is below the quantity's own reproducibility: the check measures which machine ran it.
+6. **Verify the CI's *later* steps too, not just the first one.** A job that fails at step 5 never runs
+   steps 6–13, so a repo can be red for weeks with everyone assuming the failure is "the known one".
 
 ```bash
 python scripts/repro.py --tier full   # every suite, 0 failures, exit 0

@@ -1,9 +1,10 @@
-# The defect family: six ways a number came from something other than the experiment
+# The defect family: seven ways a number came from something other than the experiment
 
 This is a named section, not an appendix: it is the part of this repository a reviewer should read
-first, because every empirical claim elsewhere depends on it. Six defects were found here, all of the
+first, because every empirical claim elsewhere depends on it. Seven defects were found here, all of the
 same kind — **a reported number, or a reported verdict, was produced by something other than the
-experiment: the harness, the person assembling the table, or the checker that stopped checking** — and
+experiment: the harness, the person assembling the table, the checker that stopped checking, or a
+tolerance tighter than the measurement's own reproducibility** — and
 each one was caught by a *different* mechanical check. That is the argument for building those checks
 before trusting any result.
 
@@ -118,6 +119,7 @@ kind of change that is invisible in a diff review but visible in a number.
 | 5 | a table column assembled by hand, not reproducible under its own heading | every statistic produced by a function with its definition named | `test_the_noise_statistics_are_reproducible_and_disagree_with_the_old_table` | `tests/test_figures.py` |
 | 6a | four "detected" verdicts produced by fragments that had moved into dead code | a control that demonstrably changes the code that runs | `test_every_control_fragment_changes_the_numbers_it_mutates` | `tests/test_harness.py` |
 | 6b | a score of "exit 1, two controls missed" produced by a copier that dropped the inputs | a scored copy that is isomorphic to the repository it claims to score | `test_the_scored_copy_can_run_the_repositorys_own_tests` | `tests/test_harness.py` |
+| 7 | a green local run and a red CI run, from the same code | a tolerance at or above the quantity's measured cross-platform reproducibility | `test_a_trial_tolerance_widens_that_trial_and_nothing_else` | `tests/test_harness.py` |
 
 ## Case 5 — a table column that came from the author, not from a definition
 
@@ -222,9 +224,58 @@ not liveness of a mutation, and a copy is not the thing it claims to score. Both
 static checks and obvious the moment the machinery was executed end to end, which is the same lesson as
 case 5 — the audit has to be run, not asserted.
 
-## What the six cases have in common
+## Case 7 — the pin was tighter than the thing it pinned could reproduce
 
-None of the six would have been caught by looking harder at the *results*: all six produced tables, or
+**Symptom.** The public repository's CI had been red for six consecutive runs. Locally the same commit was
+green. The failing check was one expectation:
+
+```
+FAIL  trial[schedule_free_adamw].test_loss: expected 0.12506323, got 0.12526376
+FAILED: 1 expectation(s) not met in suite `schedule-free-mlp`
+```
+
+Every other one of the 474 assertions passed, on both platforms. The difference was 2.0e-4 and the
+tolerance was 1e-6.
+
+**Cause.** Only the schedule-free AdamW arm is numerically unstable across platforms, and it is unstable
+for a mechanical reason: its trajectory (the `x`/`y`/`z` recursion) has a positive divergence rate, so the
+last-bit differences between two `libm` builds — MSVCRT on Windows, glibc in the CI container — are
+amplified over the 200 epochs. Everything else in the repository is contracting at that scale: every
+other arm in every suite reproduced to the printed decimal, and the same held for the schedule-free *SGD*
+arm.
+
+**How it was found and confirmed.** By running the suite under Linux in a container
+(`docker run … python:3.12-slim`), which reproduced the CI number exactly: 0.12526376, and turned up three
+more of the same kind. The mechanism was then isolated without needing a second platform: nudging
+`math.exp/sqrt/tanh/erf` by **one ULP** on a single machine moves this arm by up to **9.8e-4** while every
+other arm moves by exactly 0 (`scripts/perturbation_probe.py`). So the difference is neither threading nor
+BLAS — the code is pure Python with no BLAS calls — and it is not "CI magic".
+
+**Fix, and why this one.** Of the three options considered, environment pinning was refuted by the probe
+(there is no thread count or BLAS backend to pin, and a same-machine ULP nudge reproduces the effect);
+deleting or skipping the check was never on the table. The chosen fix widens **that one trial's**
+tolerance to a value with a measured basis — 0.005, five times the largest movement seen by either method
+— while every other expectation in those files keeps `loss_abs = 1e-6`. The widening is printed by the
+verifier, and it is scoped by a test that also checks a 10× smaller shift still fails for a different arm
+in the same file. Compensating checks stay exact: the arm's integer `epochs_to_target` pin, its accuracy
+pin, and the schedule-free negative control, which must still detect a broken averaging step.
+
+**Check that catches it.** `tests/test_harness.py`:
+
+* `test_a_trial_tolerance_widens_that_trial_and_nothing_else` — pins the scope from both sides and
+  requires the widened tolerance to be visible in the output.
+
+**Generalisation.** A pinned number is a claim about reproducibility, and a tolerance is part of that
+claim. If the tolerance is below the quantity's own reproducibility — across platforms, across `libm`
+builds, across runs — then the check is not measuring the code, it is measuring which machine ran it, and
+it will go red the moment somebody else runs it. The honest repair is not to widen until it is green, but
+to **measure the spread, say where the tolerance comes from, and keep every other pin tight**; and to
+report the residual cost, which here is that a regression smaller than 5e-3 in this one arm's final loss
+would no longer be caught by this one expectation.
+
+## What the seven cases have in common
+
+None of the seven would have been caught by looking harder at the *results*: all seven produced tables, or
 verdicts, that looked reasonable. What caught them was a check on the *machinery* — a declaration of
 direction, a contract on the seed, a negative control for the tie, a gradient check that varies with the
 shape of the model, a generator for every statistic in a table, and a liveness probe for every guard.
@@ -232,12 +283,13 @@ That is the pattern this repository recommends: for every derived number, assert
 it a number about the experiment rather than about the code or the author, and prefer a check that fails
 loudly when a new input arrives without a declaration.
 
-The six also differ in *how* they were found, which is the more useful observation. Cases 1 and 3 were
+The seven also differ in *how* they were found, which is the more useful observation. Cases 1 and 3 were
 caught by a purpose-built check; case 2 was caught by re-reading a contract; case 4 was caught by a
 pinned expectation of an *unrelated* suite failing; case 5 was caught by drawing a figure; case 6 was
-caught by running the task end to end. Cases 4–6 required nobody to have anticipated the problem, which
-is why the pinned numbers, the plots and an actual run of the harness are a safety net and not just
-regression tests.
+caught by running the task end to end; case 7 was caught by *somebody else's machine* — the public CI —
+which is the one detector this project cannot run locally. Cases 4–7 required nobody to have anticipated
+the problem, which is why the pinned numbers, the plots, an actual run of the harness and a second
+platform are a safety net and not just regression tests.
 
 **A corollary, and the smallest member of the family.** Case 5's disease is "the same fact maintained in
 two places", and it does not need a table to show itself: the release checklist told the releaser to
@@ -280,3 +332,7 @@ into the scored tree — the family checking itself, which is the most useful th
    it by running the repository's own suite inside the copy.
 9. Run the task itself. Cases 4, 5 and 6 were all found by executing the machinery rather than reading
    it, and none of them was visible to a static check that was already green.
+10. Run it somewhere else. Case 7 was invisible locally by construction: a check whose tolerance is below
+    the platform spread is green on the machine that produced the number and red on every other one. If a
+    quantity cannot be reproduced across platforms, measure by how much — `scripts/perturbation_probe.py`
+    is the cheap way to find out — and put that measurement in the tolerance's justification.

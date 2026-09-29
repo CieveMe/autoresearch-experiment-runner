@@ -84,15 +84,25 @@ def verify(results_path: Path, expected_path: Path) -> Tuple[List[str], List[str
             checks.append(f"FAIL  trial[{name}]: missing from results.json")
             failures.append(f"trial[{name}] missing")
             continue
+        # A trial may carry its own tolerance. That exists for one measured reason: an arm whose
+        # trajectory amplifies last-bit libm differences between platforms (see
+        # docs/defect-family.md case 7) cannot be pinned to 1e-6, and widening the whole file would
+        # weaken every other arm in it. The check prints the tolerance it used, so a widening is
+        # visible in the output rather than hidden in a fixture.
+        trial_tolerance = want.get("tolerance", {})
+        accuracy_tol_here = float(trial_tolerance.get("accuracy_abs", accuracy_tol))
+        loss_abs_here = float(trial_tolerance.get("loss_abs", loss_abs))
+        loss_rel_here = float(trial_tolerance.get("loss_rel", loss_rel))
         check(
             f"trial[{name}].test_accuracy",
-            _close(got.get("test_accuracy", -1), want["test_accuracy"], accuracy_tol, 0.0),
+            _close(got.get("test_accuracy", -1), want["test_accuracy"], accuracy_tol_here, 0.0),
             f"expected {want['test_accuracy']}, got {got.get('test_accuracy')}",
         )
         check(
             f"trial[{name}].test_loss",
-            _close(got.get("test_loss", -1), want["test_loss"], loss_abs, loss_rel),
-            f"expected {want['test_loss']}, got {got.get('test_loss')}",
+            _close(got.get("test_loss", -1), want["test_loss"], loss_abs_here, loss_rel_here),
+            f"expected {want['test_loss']}, got {got.get('test_loss')}"
+            + (f", tolerance {loss_abs_here:g}" if "loss_abs" in trial_tolerance else ""),
         )
         if "epochs" in want:
             check(

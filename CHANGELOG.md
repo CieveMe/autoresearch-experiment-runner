@@ -42,6 +42,18 @@ was moved to keep the release body self-contained.
 
 ### Changed
 
+- **Per-trial tolerances in the expected files** (`scripts/verify_results.py`). The twelve files that pin
+  `schedule_free_adamw` now give that one trial `loss_abs = 0.005` — five times the largest measured
+  movement — while every other expectation in them keeps `1e-6`. The verifier prints the tolerance it used,
+  and `tests/test_harness.py::test_a_trial_tolerance_widens_that_trial_and_nothing_else` pins the scope
+  from both sides. This is the repair for six consecutive red CI runs: that arm's test loss is only
+  reproducible to ≈1e-3 across `libm` builds (measurements in `REPRODUCTION.md` §5.17). No check was
+  deleted or skipped, and the residual cost is stated: a regression below 5e-3 in that arm's final loss is
+  no longer caught by that one expectation, though its integer speed pin, its accuracy pin and the
+  schedule-free negative control all still are.
+- **`scripts/perturbation_probe.py`** — measures how far one ULP of `math.exp/sqrt/tanh/erf` moves each arm
+  of a suite, the cheapest local stand-in for a second platform. On it, `schedule_free_adamw` moves by up
+  to 9.8e-4 while **every other arm moves by exactly 0**.
 - `scripts/repro.py` runs **five** suites (121 asserted checks, ~18 s); `scripts/score_task.py`
   aggregates over all suites and its negative controls now name the file they mutate.
 
