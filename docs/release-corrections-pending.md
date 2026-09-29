@@ -94,6 +94,12 @@ correction.
   its dependency on `repro` by taking that job's artifacts instead of re-running suites, and lowering
   `main` to the core tier stays off the table because that is exactly the misreading hard rule 2 exists to
   prevent.
+* **Plus one line about concurrency.** Superseded runs on a branch are now cancelled
+  (`concurrency.cancel-in-progress` is true for pushes to non-tag refs and false for tags), so three quick
+  commits no longer leave three long runs queued — which is how a green repository had looked red. The
+  workflow states the rule that goes with it: **a cancelled run is not evidence and may not be cited
+  outward**; what may be cited is a run on a tag, or the run quoted verbatim in the release body, and
+  neither is ever cancelled. That keeps the concurrency setting inside hard rule 2 instead of next to it.
 
 ### Metadata hygiene: the version fields were stale at `0.2.0`
 

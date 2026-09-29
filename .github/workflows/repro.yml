@@ -10,6 +10,19 @@ on:
 permissions:
   contents: read
 
+# Superseded runs on the same branch are cancelled; tag runs never are. This exists because the jobs
+# below are long (the scorer reproduces five times) and pushing three commits in a row used to leave
+# three runs queued, which reads like a permanently red repository.
+#
+# Relation to `docs/release-checklist.md` hard rule 2, stated here so the two cannot drift apart:
+# **a cancelled run is not evidence.** It has no verdict, so it may not be quoted anywhere outward.
+# What may be cited is the run on a **tag**, or the one quoted verbatim in a release body — both of
+# which are never cancelled by this rule. Cancelling a superseded branch run costs nothing that rule 2
+# protects; lowering a branch run's tier, or deleting a step, would.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }}
+
 # These jobs used to be steps inside one long job. Nothing was removed to make them faster: the same
 # commands still run at the same tier, but the scorer (five full reproductions), the sweeps and the
 # threshold curves no longer queue behind the reproduction step. The wall clock used to be the sum of
