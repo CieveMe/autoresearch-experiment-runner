@@ -72,6 +72,14 @@ owner's accounts, so they are not automated.
    is not theirs to write to. And: **a refuted explanation is a search direction, not a dead end.** The
    first guess at this flake was wrong, and saying so out loud — rather than quietly narrowing the
    candidate set — is what left the copy path in scope long enough to be examined.
+   **Keep the log, but do not expect it to be enough.** A log written by this tree records *this tree's*
+   runs; the other half of the flake above lived in another session's process space — its own sandbox
+   `HOME` and `TEMP`, its own held-open cache — so no file under this tree could have contained it.
+   Logging is therefore necessary and not sufficient: it tells you what your own run did, and it can never
+   tell you who else is running. The two sentences that cover the episode are *if you are unsure about your
+   own output, keep a log; if you are unsure about somebody else's process, ask first.* And when a failure
+   needs two halves to happen, it needs **two repairs** — fixing only the half you own leaves the other to
+   reproduce it exactly, which reads as "the fix did not work".
 7. **Verify the CI's *later* steps too, not just the first one.** A job that fails at step 5 never runs
    steps 6–13, so a repo can be red for weeks with everyone assuming the failure is "the known one".
    Those steps may be **split into parallel jobs** to keep the wall clock down — they must not be removed,
