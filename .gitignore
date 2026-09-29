@@ -155,6 +155,7 @@ runs/*
 !runs/task-runs/variants.json
 !runs/task-runs/FULL-TIER.md
 !runs/task-runs/FULL-TIER-ci-fix.md
+!runs/task-runs/FULL-TIER-v0.11.0-tag.md
 # Raster previews are generated locally with cairosvg (an optional dependency, not part of the
 # repository's tooling) and are deliberately not committed: an artifact the repository cannot
 # regenerate is exactly what docs/defect-family.md case 5 warns about.
