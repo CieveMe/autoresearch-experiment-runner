@@ -52,9 +52,11 @@ owner's accounts, so they are not automated.
    `libm` builds), scope the new tolerance to that one expectation, print it in the verifier's output, and
    state what sensitivity the widening costs. Case 7 in `docs/defect-family.md` is what happens when the
    tolerance is below the quantity's own reproducibility: the check measures which machine ran it.
-6. **Keep the output of every gate run.** `make test-log` (or the same command piped into
-   `runs/test-last.log`; on Windows, `... | Tee-Object -FilePath runs\test-last.log`) — `runs/` is ignored
-   by git, so the log stays local. This is written down because it was learned the hard way: a full suite
+6. **Keep the output of every gate run, and make the log say what produced it.** `make test-log` runs the
+   suite through `scripts/test_log.py`, which writes `runs/test-last.log` with a header naming the exact
+   command, the runner, the start time, the platform and the interpreter version — the log therefore
+   explains itself instead of requiring the reader to infer the runner from a word. (`runs/` is ignored by
+   git, so the log stays local.) This is written down because it was learned the hard way: a full suite
    was run and committed **in the same command**, one run reported `errors=1`, and the output was never
    kept; two green runs afterwards then left nothing to diagnose from. "It has not recurred" is not "it did
    not happen", and a red run should leave a scene. One fact worth having when reading those logs:

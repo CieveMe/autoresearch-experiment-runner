@@ -94,7 +94,7 @@ test:
 	$(PYTHON) -m unittest discover -s tests -v
 
 test-log:
-	$(PYTHON) -m unittest discover -s tests -v 2>&1 | tee runs/test-last.log
+	$(PYTHON) scripts/test_log.py
 
 sweep:
 	$(PYTHON) scripts/seed_sweep.py --seeds 0-9 --output runs/seed-sweep
