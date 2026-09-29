@@ -48,6 +48,15 @@ So the next release body may quote that line **directly**. The sentence "the run
 repository, not the run on this tag" was true of **v0.11.0's own body only**, because that body had to be
 committed before its tag existed; it is not a standing caveat and must not be copied forward.
 
+> **Corrected 2026-09-30: "no qualifier needed" was true for one moment and read as a standing rule.**
+> It holds only while `main` equals the tag being quoted. Every *later* body is again written before *its
+> own* tag exists (hard rule 1), so it must say which run it quotes — the previous tag's CI run, and/or
+> the full-tier run recorded in `runs/task-runs/` — and it must state the diff between that run's commit
+> and the commit the body is written against. Two commands decide whether quoting an older run's verdict
+> is licensed: `git diff --name-only <tag>..<commit>` (the list the body has to state) and
+> `git diff --name-only <tag>..<commit> -- expected/`, which must be **empty**. Measured while writing
+> v0.12.0's body: 16 files differ from `v0.11.0` and the `expected/` diff is empty.
+
 > **Status 2026-09-28:** both items below are stated in
 > `docs/release-notes-v0.10.0.published.md` and are therefore no longer pending. They stay here as the
 > record of what was owed and where it was paid, and the next entry will be added below them.
@@ -153,6 +162,28 @@ handoff). Written into `docs/defect-family.md` as a footnote without a case numb
 process failures of the project rather than defects of this repository. The next body states it in one
 line.
 
+### A third footnote: a number carries its unit and its convention (one line in the next body)
+
+Recorded 2026-09-30, so it belongs to the next body. The same revision of one file was reported to two
+sessions as `4,315` and as `7,233` — characters and bytes, **both correct** — and the one-character residue
+afterwards was the file's final newline (`4,314`), while the line count carries the same ambiguity (99
+elements when the blob is split on newlines, 98 lines of text). Nothing about the file was in dispute; the
+missing piece was the convention. The rule written into `docs/defect-family.md` is therefore *name the
+instrument **and its convention***, and `docs/release-checklist.md`'s hard rule 4 now reads
+**generator, definition, unit, test**. The next body states it in one line, next to the other two
+footnotes, because all three are one claim seen from three sides.
+
+### The intermittent red, and the rule that a gate run leaves a log (one line in the next body)
+
+Recorded 2026-09-30. `make test-log` (→ `scripts/test_log.py` → `runs/test-last.log`) now writes the
+command, the runner, the start time, the platform and the interpreter version into the log it keeps, and a
+test pins that header so the runner no longer has to be inferred from a word. It was added after a suite run
+was made and committed **in the same command** and its output was never kept: the one red run of that
+afternoon then left nothing to diagnose from, and two green runs afterwards could not bring it back. The
+log paid for itself on its first use — it reproduced the cause immediately (a `.pytest_cache` the copy
+tried to copy, `WinError 5`), which is a copy-filter bug, and it also produced the rule that a working tree
+is a shared resource. The next body states this in one line.
+
 ### And one more line for the next body: the mirror image of 6b (a code defect, not a process one)
 
 Recorded after v0.11.0. `scripts/score_task.py`'s copy filter kept the committed analysis inputs **by
@@ -163,6 +194,19 @@ itself (which added those names to the filter) and caught by the privacy-hygiene
 code, so it is filed **inside case 6b** rather than as a process footnote, with the rule *a copy must be
 isomorphic to the published tree in both directions*. The next body states it in one line.
 
+### Case 6b's guard now has four references, and one of them is the intent (one line in the next body)
+
+Recorded 2026-09-30, so it belongs to the next version. The copy is now audited from four places, each
+answering a different question: **git**'s tracked and ignored sets (nothing published is missing, nothing
+unpublished is carried), a hand-written list of what the policy is *allowed* to leave out
+(`INTENTIONAL_DROPS` — `.github/`, `runs/task-runs/`, `runs/threshold-curves/`), and the published `runs/`
+files the test sources name. Writing the intent list down immediately found two families that were leaving
+every copy **by side effect of a rule** rather than by decision — 73 tracked files in three families — and
+the four hand-picked names stay written out because two of them are read behind `skipTest` guards, so
+running the suite inside the copy reports a *skip* rather than a missing file. The next body states this in
+one line as an **extension** of case 6b, not a correction: no published sentence claimed the copy was
+already audited from these angles.
+
 * **What was wrong:** `pyproject.toml`, `autoresearch/__init__.py`, `CITATION.cff` and the README's
   citation line all still described version `0.2.0`, eight releases after it. In `CITATION.cff` that
   field is what a human reads when deciding what they are citing, so it is not decoration; the README
@@ -171,6 +215,10 @@ isomorphic to the published tree in both directions*. The next body states it in
   into the corrections release, and the `v0.10.0` tag was not touched.
 * **What the next release body must say:** one "also carried" line naming the commit and the four files,
   so the change is visible rather than discovered in a diff.
+  > **Named 2026-09-30:** the two commits are `0497634` (the version fields moved off the stale `0.2.0`)
+  > and `74ca558` (the duplicated version numbers deleted rather than refreshed). v0.11.0's body described
+  > the change and named neither, which is why the next body states both — four commits later, and the
+  > delay is the argument for not letting a queue entry wait longer than it has to.
 * **Still stale, and left alone on purpose:** `.zenodo.json`'s `notes` text still describes version
   `0.2.0` (it is read by Zenodo on deposit, and the Zenodo side is the project owner's half), and
   `docs/release-checklist.md`'s title still says "(v0.2.0)" while its body is version-agnostic.
