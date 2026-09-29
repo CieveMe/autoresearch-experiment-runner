@@ -1,7 +1,7 @@
 # AutoResearch Lite - one-command reproduction.
 # `make repro` is the entry point quoted in REPRODUCTION.md and TASK.md.
 # On Windows without make, run: python scripts/repro.py
-.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp repro-capacity repro-normalization run verify test sweep thresholds stats figures score docker clean
+.PHONY: help repro repro-main repro-optimizers repro-ademamix repro-mlp repro-schedule-free repro-schedule-free-mlp repro-capacity repro-normalization run verify test test-log sweep thresholds stats figures score docker clean
 
 PYTHON ?= python3
 
@@ -19,6 +19,7 @@ help:
 	@echo "make run      - run the experiments only"
 	@echo "make verify   - compare runs/demo/results.json with expected/expected_metrics.json"
 	@echo "make test     - run the unit tests"
+	@echo "make test-log - the same, keeping the output in runs/test-last.log"
 	@echo "make sweep    - 10-seed sweep for the main suite and the optimizer suite"
 	@echo "make thresholds - epochs-to-target curves over the threshold grid (Markdown + CSV + SVG)"
 	@echo "make stats    - exact paired tests, effect sizes and intervals over the committed seed sweeps"
@@ -91,6 +92,9 @@ verify:
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v
+
+test-log:
+	$(PYTHON) -m unittest discover -s tests -v 2>&1 | tee runs/test-last.log
 
 sweep:
 	$(PYTHON) scripts/seed_sweep.py --seeds 0-9 --output runs/seed-sweep

@@ -52,7 +52,17 @@ owner's accounts, so they are not automated.
    `libm` builds), scope the new tolerance to that one expectation, print it in the verifier's output, and
    state what sensitivity the widening costs. Case 7 in `docs/defect-family.md` is what happens when the
    tolerance is below the quantity's own reproducibility: the check measures which machine ran it.
-6. **Verify the CI's *later* steps too, not just the first one.** A job that fails at step 5 never runs
+6. **Keep the output of every gate run.** `make test-log` (or the same command piped into
+   `runs/test-last.log`; on Windows, `... | Tee-Object -FilePath runs\test-last.log`) — `runs/` is ignored
+   by git, so the log stays local. This is written down because it was learned the hard way: a full suite
+   was run and committed **in the same command**, one run reported `errors=1`, and the output was never
+   kept; two green runs afterwards then left nothing to diagnose from. "It has not recurred" is not "it did
+   not happen", and a red run should leave a scene. One fact worth having when reading those logs:
+   **`python -m unittest` calls an exception in a test body an *error* and an assertion failure a
+   *failure*** (measured: the same raising test prints `FAILED (errors=1)`), while `pytest` reports both as
+   `failed`. Which word you see therefore tells you which runner produced the output — and, in the
+   unittest case, that something raised rather than asserted.
+7. **Verify the CI's *later* steps too, not just the first one.** A job that fails at step 5 never runs
    steps 6–13, so a repo can be red for weeks with everyone assuming the failure is "the known one".
    Those steps may be **split into parallel jobs** to keep the wall clock down — they must not be removed,
    and their tier must not be lowered.
