@@ -39,6 +39,15 @@ the file should not have to reconstruct the list from the sections below.
 And per hard rule 2: quote a **full-tier** run, preferably the one CI produced **on the tag** (tag runs are
 never cancelled by the concurrency rule), otherwise the run recorded in `runs/task-runs/`.
 
+**The tag's record is now complete, so the next body needs no qualifier.** CI run **36539858168**
+(`refs/tags/v0.11.0`, commit `d72633f`, **6/6 jobs, run-level success**) is written out in
+`runs/task-runs/FULL-TIER-v0.11.0-tag.md`: three full-tier reproductions — CPython 3.12 twice (once through
+`make repro`), CPython 3.10, and the container image — each `474 checks, 0 failures`, plus the scorer's
+verbatim `100.0/100 (tier=full (all suites)) (474/474 checks, exit 0)` with all four controls detected.
+So the next release body may quote that line **directly**. The sentence "the run recorded in the
+repository, not the run on this tag" was true of **v0.11.0's own body only**, because that body had to be
+committed before its tag existed; it is not a standing caveat and must not be copied forward.
+
 > **Status 2026-09-28:** both items below are stated in
 > `docs/release-notes-v0.10.0.published.md` and are therefore no longer pending. They stay here as the
 > record of what was owed and where it was paid, and the next entry will be added below them.

@@ -56,6 +56,12 @@ owner's accounts, so they are not automated.
    steps 6–13, so a repo can be red for weeks with everyone assuming the failure is "the known one".
    Those steps may be **split into parallel jobs** to keep the wall clock down — they must not be removed,
    and their tier must not be lowered.
+   **What that costs, measured on the v0.11.0 tag** (run `36539858168`, 6/6 jobs): the whole run took
+   **1 h 06 m 59 s** and the scorer alone took **1 h 06 m 55 s** — 99.9% of it, because it reproduces the
+   corpus five times (the submission plus four mutated copies). Everything else finished inside 34 minutes
+   and ran in parallel; the threshold-curves job is nine seconds of work and only waits for the
+   reproduction artifact. So "the CI takes about an hour" is a statement about the scorer, and any future
+   attempt to shorten it has to argue about that job specifically rather than about the workflow.
 
 ```bash
 python scripts/repro.py --tier full   # every suite, 0 failures, exit 0

@@ -7,10 +7,32 @@ away by a later push. This file records that run.
 | field | value |
 |---|---|
 | run | [#45](https://github.com/CieveMe/autoresearch-experiment-runner/actions/runs/45), workflow `repro` |
+| run id | `36539858168` (the HTML page shows run number 45) |
 | trigger | `push` on `refs/tags/v0.11.0` |
 | commit | `d72633f` (the commit `v0.11.0` points at) |
 | result | **all six jobs green**; the run itself is `completed / success` |
 | the scorer job | `score the task and its negative controls (python 3.12)`, job `109312424917` — finished green, output quoted below |
+
+## What it cost, measured rather than estimated
+
+Read from the API's `started_at` / `completed_at` fields, so this replaces the "≈1 h" that was an estimate
+before:
+
+| job | duration | window (UTC) |
+|---|---:|---|
+| run wall-clock | **1 h 06 m 59 s** | 07:58:44 → 09:05:43 |
+| `score the task and its negative controls` | **1 h 06 m 55 s** | 07:58:47 → 09:05:42 |
+| `reproduce (python 3.12)` | 33 m 56 s | 07:58:46 → 08:32:42 |
+| `reproduce (python 3.10)` | 18 m 31 s | 07:58:46 → 08:17:17 |
+| `reproduce (docker)` | 18 m 22 s | 07:58:47 → 08:17:09 |
+| `regenerate the sweeps and tuning curves` | 13 m 47 s | 07:58:46 → 08:12:33 |
+| `regenerate the threshold curves` | 9 s | 08:32:45 → 08:32:54 |
+
+**The scorer is 99.9% of the wall clock**, which is the measured form of the statement the workflow split
+was built around: the parallel jobs removed the *sum*, and what remains is one job that reproduces the
+corpus five times. The threshold-curves job is nine seconds of work that starts only when the
+reproduction artifact lands — that is the `needs: repro` dependency doing exactly what it was written to
+do, and it is worth knowing that its own runtime is negligible next to the wait.
 
 ## What the tag run verified, quoted from the job logs
 
