@@ -20,7 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 # Files and directories that are not part of the repository's content.
-SKIP_DIRECTORIES = {".git", "__pycache__", ".npm-cache", "node_modules", ".venv", "venv"}
+SKIP_DIRECTORIES = {".git", "__pycache__", ".npm-cache", "node_modules", ".venv", "venv",
+                    ".pytest_cache", ".mypy_cache", ".ruff_cache", "dist", "build"}
 SKIP_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".zip", ".gz", ".whl", ".pyc", ".svg"}
 
 PATTERNS = {

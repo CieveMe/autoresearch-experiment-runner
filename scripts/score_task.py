@@ -33,6 +33,18 @@ if str(ROOT) not in sys.path:
 from scripts.repro import SUITES, suites_for_tier, tier_label  # noqa: E402
 from scripts.verify_results import DEFAULT_EXPECTED, verify  # noqa: E402
 
+# Directories and suffixes that are not part of a submission. This mirrors `.gitignore`'s tool-generated
+# entries, and the reason it is written down here is a reproducible failure: a copy that includes them is
+# not the published tree, and on Windows a cache held open by a concurrently running tool makes
+# `shutil.copytree` fail outright — `WinError 5` on `.pytest_cache`, which turned a green suite red
+# intermittently until the log (see `docs/release-checklist.md` rule 6) caught it with its traceback.
+SKIP_NAMES = frozenset({
+    ".git", ".github", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".coverage", ".DS_Store",
+    "__pycache__", ".venv", "venv", "dist", "build", "node_modules", ".npm-cache",
+})
+SKIP_SUFFIXES = (".pyc", ".pyo", ".egg-info")
+
+
 def _ignore(directory: str, names: List[str]) -> set[str]:
     """Copy the repository without generated artifacts, but *with* the committed ones.
 
@@ -48,7 +60,8 @@ def _ignore(directory: str, names: List[str]) -> set[str]:
     property by building this copy and running the suite inside it, so the next input that gets dropped
     fails the suite instead of quietly changing a verdict.
     """
-    skip = {name for name in names if name in {".git", ".github", "__pycache__"} or name.endswith(".pyc")}
+    skip = {name for name in names
+            if name in SKIP_NAMES or name.endswith(SKIP_SUFFIXES)}
     if Path(directory).name == "runs":
         skip.update(
             name for name in names

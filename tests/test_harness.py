@@ -178,6 +178,11 @@ class NegativeControlTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             copy = Path(temporary) / "scored"
             shutil.copytree(ROOT, copy, ignore=scored_copy_ignore)
+            # Tool caches are neither part of a submission nor reliably copyable: on Windows a cache held
+            # open by a concurrently running tool makes copytree raise `WinError 5`, which is what turned
+            # this suite intermittently red before the copy filter was aligned with .gitignore.
+            for cache in (".pytest_cache", ".mypy_cache", "__pycache__"):
+                self.assertFalse((copy / cache).exists(), f"the scored copy carries {cache}")
             environment = dict(os.environ, AUTORESEARCH_COPY_CHECK="1")
             result = subprocess.run(
                 [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
