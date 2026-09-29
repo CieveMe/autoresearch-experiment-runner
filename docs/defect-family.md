@@ -265,6 +265,15 @@ its skip table must not be merged with the hygiene scanner's. The lesson general
 rule and a check share an input, the check cannot audit that input — write down what the rule is allowed to
 remove, somewhere the rule does not compute.**
 
+**The fourth reference is bottom-up, and it is the only one that can see a *new* name.** The published
+`runs/` files the test sources name are taken from the sources rather than listed by hand
+(`_published_files_the_suite_names`), so a test that starts reading a file inside one of the intentionally
+dropped families — the residual the top-down list cannot cover, since it only bounds what the policy may
+remove — turns red with that path. Measured: a line in the test sources naming a file under one of those
+families fails the guard with exactly that path, while the git comparison, the intent list and the four
+pinned names all stay green. The four stay pinned on top of it for a different reason: two of them are read
+behind `skipTest` guards, so running the suite inside the copy reports a *skip* rather than a missing file.
+
 **Generalisation for the pair.** A guard has to be able to show that it is live: presence of a fragment is
 not liveness of a mutation, and a copy is not the thing it claims to score. Both members were invisible to
 static checks and obvious the moment the machinery was executed end to end, which is the same lesson as

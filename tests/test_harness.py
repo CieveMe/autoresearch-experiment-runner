@@ -198,10 +198,23 @@ class NegativeControlTests(unittest.TestCase):
             # …and the other direction, asserted rather than assumed: the copy must still contain the
             # committed artifacts, including the binaries a suffix-based filter would be tempted to drop.
             # Both directions of isomorphism need their own assertion — "nothing extra" and "nothing
-            # missing" fail in ways that look nothing like each other.
+            # missing" fail in ways that look nothing like each other. These four are exactly what the
+            # derived list below returns today; they stay written out because two of them are read behind
+            # `skipTest` guards (`test_figures`, and `VerifyTests` here), so the suite running green inside
+            # the copy cannot report them — the skip hides the missing file instead.
             for kept in ("runs/figures/noise-vs-stability.svg", "runs/paired-tests/paired-tests.json",
                          "runs/seed-sweep-optimizers/seed-0/results.json", "runs/demo-verified/results.json"):
                 self.assertTrue((copy / kept).exists(), f"the scored copy is missing {kept}")
+            # …and the same statement derived instead of listed, because the interesting case is a *new*
+            # name: a test that starts reading a published file inside a family the copy policy drops on
+            # purpose. None of the other checks can see that one — the policy removes the file from the
+            # git comparison's `expected` set in step with the copy, `INTENTIONAL_DROPS` declares the drop
+            # deliberate, and the four names above are simply not it.
+            named = self._published_files_the_suite_names()
+            self.assertTrue(named, "the derived read list came back empty, which would make this vacuous")
+            absent = sorted(path for path in named if not (copy / path).exists())
+            self.assertEqual(absent, [],
+                             "the scored copy is missing files the test sources name:\n" + "\n".join(absent))
             missing, leaked, unplanned = self._copy_versus_repository(copy)
             self.assertEqual(missing, [], "the scored copy is missing published files:\n" + "\n".join(missing))
             self.assertEqual(leaked, [], "the scored copy carries files git ignores:\n" + "\n".join(leaked))
@@ -270,6 +283,27 @@ class NegativeControlTests(unittest.TestCase):
     def _missing_from_image(self, dockerfile: str, required):
         copied = self._image_copy_sources(dockerfile)
         return [name for name in required if name not in copied]
+
+    def _published_files_the_suite_names(self):
+        """The published `runs/` files the test sources name — derived, not chosen.
+
+        This is the mechanical form of the four names the copy test lists by hand, and today it returns
+        exactly those four. Deriving it is worth the two lines because the case that matters is a name
+        that does not exist yet: a test that starts reading a file inside one of the families the copy
+        policy drops on purpose (`INTENTIONAL_DROPS`) fails only inside every scored copy, and if it
+        guards the read with `skipTest` it does not even fail there — it skips, which is why the copy's
+        suite run cannot be the only evidence.
+
+        Two narrowings, both deliberate. Existence is checked against the repository, so a path a test
+        *writes* does not become a requirement, and only files count, so naming the family directory
+        itself is not a requirement either (the intent list names two such directories). The literals are
+        read from the test sources including their prose, so the one trap left is that naming a published
+        file in a comment here creates a requirement for it — write examples accordingly.
+        """
+        sources = "\n".join(path.read_text(encoding="utf-8")
+                            for path in sorted((ROOT / "tests").glob("test_*.py")))
+        named = set(re.findall(r"runs/[A-Za-z0-9_./-]+", sources))
+        return sorted(path for path in named if (ROOT / path).is_file())
 
     def _copy_versus_repository(self, copy: Path):
         """Compare a scored copy against the repository, with **git** as the reference.
