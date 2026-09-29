@@ -19,6 +19,17 @@ from scripts.verify_results import DEFAULT_EXPECTED, verify
 
 VERIFIED_RESULTS = ROOT / "runs" / "demo-verified" / "results.json"
 
+# The copy is built to be *scored*, not to mirror the repository, so leaving tracked files out is fine —
+# but it has to be a **decision**, listed here, rather than a side effect of a filter. Measured while
+# writing this: the policy drops exactly these three families and nothing else (73 files, 2026-09-29).
+# The point of writing them down is the *fourth* one — a suffix added to `SKIP_SUFFIXES` shrinks the
+# policy's `expected` set in step with the copy, so only a list that lives outside the policy can see it.
+INTENTIONAL_DROPS = (
+    ".github/",                # CI configuration: the scorer runs the suite, not the workflow
+    "runs/task-runs/",         # the gate records; documentation of past runs, not an input to any test
+    "runs/threshold-curves/",  # regenerated analysis output; no test reads these files, only numbers
+)
+
 
 class ConfigHashTests(unittest.TestCase):
     def test_newline_style_does_not_change_the_config_hash(self):
@@ -191,9 +202,16 @@ class NegativeControlTests(unittest.TestCase):
             for kept in ("runs/figures/noise-vs-stability.svg", "runs/paired-tests/paired-tests.json",
                          "runs/seed-sweep-optimizers/seed-0/results.json", "runs/demo-verified/results.json"):
                 self.assertTrue((copy / kept).exists(), f"the scored copy is missing {kept}")
-            missing, leaked = self._copy_versus_repository(copy)
+            missing, leaked, unplanned = self._copy_versus_repository(copy)
             self.assertEqual(missing, [], "the scored copy is missing published files:\n" + "\n".join(missing))
             self.assertEqual(leaked, [], "the scored copy carries files git ignores:\n" + "\n".join(leaked))
+            # One added suffix can drop hundreds of files; the count is the verdict, the first few are the
+            # scene. A message that takes a screen to scroll is a message nobody reads.
+            self.assertEqual(
+                unplanned, [],
+                f"the copy policy drops {len(unplanned)} tracked files nobody decided to drop:\n"
+                + "\n".join(unplanned[:20])
+                + ("\n… truncated" if len(unplanned) > 20 else ""))
             environment = dict(os.environ, AUTORESEARCH_COPY_CHECK="1")
             result = subprocess.run(
                 [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
@@ -275,9 +293,18 @@ class NegativeControlTests(unittest.TestCase):
         the sample assertion on that file is the one that goes red. The two checks reference different
         things — a path *named* as published versus git's tracked and ignored sets — so neither subsumes
         the other.
+
+        The third reference is what closes that hole without picking examples: the *intent*, written as
+        ``INTENTIONAL_DROPS``. The policy may leave tracked files out only if what it leaves out is a
+        subset of that short list, so a suffix or a name added to the filter turns this red even though
+        nothing in the policy disagrees with itself. Enumerating the list found two families nobody had
+        decided to drop — `runs/task-runs/` and `runs/threshold-curves/`, the latter including the
+        committed `*-curves.svg` artefacts that the copy filter's own comment cites as the reason its
+        table must not be merged with the hygiene scanner's. They do leave every copy, on purpose, and
+        that is now written here instead of being an emergent property of the `runs/` family rule.
         """
         if not (ROOT / ".git").exists():
-            return [], []  # no git metadata (the container image): there is nothing to compare against
+            return [], [], []  # no git metadata (the container image): nothing to compare against
 
         def git(*args):
             result = subprocess.run(["git", *args], cwd=str(ROOT), stdout=subprocess.PIPE,
@@ -289,7 +316,7 @@ class NegativeControlTests(unittest.TestCase):
         tracked = git("ls-files", "-z")
         ignored = git("ls-files", "-z", "--others", "--ignored", "--exclude-standard")
         if tracked is None or ignored is None:
-            return [], []
+            return [], [], []
 
         def kept_by_policy(path: str) -> bool:
             parts = Path(path).parts
@@ -312,7 +339,9 @@ class NegativeControlTests(unittest.TestCase):
                   for path in copy.rglob("*") if path.is_file()}
         missing = sorted(expected - actual)
         leaked = sorted(actual & set(ignored))
-        return missing, leaked
+        unplanned = sorted(path for path in tracked
+                           if not kept_by_policy(path) and not path.startswith(INTENTIONAL_DROPS))
+        return missing, leaked, unplanned
 
     def _check_control_liveness(self):
         """Presence is not enough: the fragment has to be in the code that runs.

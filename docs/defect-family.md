@@ -253,6 +253,18 @@ shrinks `expected` in step with `actual` and the comparison stays silent. With `
 content and a check that references git's tracked/ignored sets answer two different questions; keep both,
 and do not read "the copy equals the published tree minus policy" as "nothing can hide in the policy".
 
+**The hole closes with a third reference — the *intent*, not the policy.** The copy is allowed to leave
+tracked files out, but only ones that appear on a list written by hand, short enough to read and to
+justify: `.github/`, `runs/task-runs/`, `runs/threshold-curves/` (`INTENTIONAL_DROPS` in
+`tests/test_harness.py`). The check is `dropped ⊆ INTENTIONAL_DROPS`, so a suffix or a name added to the
+filter turns it red while the filter is still perfectly consistent with itself. Writing the list down
+immediately showed it was doing more than documenting: two of the three families were leaving every copy
+*by side effect of the `runs/` rule*, nobody had decided they should, and one of them is the committed
+`runs/threshold-curves/*-curves.svg` family that `scripts/score_task.py` itself cites when it explains why
+its skip table must not be merged with the hygiene scanner's. The lesson generalises past copies: **when a
+rule and a check share an input, the check cannot audit that input — write down what the rule is allowed to
+remove, somewhere the rule does not compute.**
+
 **Generalisation for the pair.** A guard has to be able to show that it is live: presence of a fragment is
 not liveness of a mutation, and a copy is not the thing it claims to score. Both members were invisible to
 static checks and obvious the moment the machinery was executed end to end, which is the same lesson as
@@ -403,8 +415,10 @@ that case seen from the other end.
 7. Make every guard demonstrate its own liveness (case 6a). A mutation that lands in dead code, or a
    fragment that is only *present*, produces a green check over an untested implementation.
 8. Make anything the harness copies isomorphic to the repository it claims to score (case 6b): assert both
-   directions, prove it by running the repository's own suite inside the copy, and keep a *named* published
-   artifact as a second reference — a set comparison drawn from the policy cannot see the policy drop one.
+   directions, prove it by running the repository's own suite inside the copy, keep a *named* published
+   artifact as a second reference, and write down what the policy is allowed to leave out as its own short
+   list — a comparison drawn from the policy cannot see the policy drop a published file, and a list drawn
+   from the policy cannot see it invent an exclusion.
 9. Run the task itself. Cases 4, 5 and 6 were all found by executing the machinery rather than reading
    it, and none of them was visible to a static check that was already green.
 10. Run it somewhere else. Case 7 was invisible locally by construction: a check whose tolerance is below

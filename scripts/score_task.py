@@ -42,10 +42,13 @@ from scripts.verify_results import DEFAULT_EXPECTED, verify  # noqa: E402
 # **Do not merge this table with the one in `tests/test_privacy_hygiene.py`.** They look alike and the
 # suffix sets are deliberately different, because they answer different questions: this one asks "can this
 # be *copied* into the copy?" (generated artifacts and tool caches: no), while that one asks "can this be
-# *read as text*?" (binaries such as PDF and SVG: no). Aligning them would drop committed SVG artifacts —
-# `runs/figures/*.svg`, `runs/threshold-curves/*-curves.svg`, which `.gitignore` whitelists precisely
-# because they are published — from every scored copy. That is case 6b's *missing file* direction, the
-# mirror of the bug this table was just fixed for.
+# *read as text*?" (binaries such as PDF and SVG: no). Aligning them would drop the committed SVG the copy
+# is required to carry — `runs/figures/noise-vs-stability.svg`, which `.gitignore` whitelists precisely
+# because it is published — from every scored copy. That is case 6b's *missing file* direction, the mirror
+# of the bug this table was just fixed for. (The other committed SVGs, `runs/threshold-curves/*-curves.svg`,
+# never reach a copy in the first place: the `runs/` family rule below leaves that tree out on purpose, so
+# the suffix tables are not what stands between them and a copy. `tests/test_harness.py` now lists what the
+# copy is allowed to leave out, as `INTENTIONAL_DROPS`, instead of leaving it implicit in the rule.)
 SKIP_NAMES = frozenset({
     ".git", ".github", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".coverage", ".DS_Store",
     "__pycache__", ".venv", "venv", "dist", "build", "node_modules", ".npm-cache",
