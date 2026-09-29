@@ -50,21 +50,30 @@ def iter_text_files():
     if (ROOT / ".git").exists():
         result = subprocess.run(["git", "ls-files", "-z"], cwd=str(ROOT), stdout=subprocess.PIPE,
                                 stderr=subprocess.DEVNULL)
-        candidates = [ROOT / name for name in result.stdout.decode("utf-8", "replace").split("\0") if name]
+        if result.returncode == 0:
+            candidates = [ROOT / name for name in result.stdout.decode("utf-8", "replace").split("\0") if name]
+        else:
+            # Fail closed: if the tracked-file list cannot be read, scan everything rather than nothing.
+            # A guard that silently checks no files is the failure mode this file exists to avoid.
+            candidates = sorted(ROOT.rglob("*"))
     else:
         candidates = sorted(ROOT.rglob("*"))
     for path in candidates:
-        if not path.is_file():
-            continue
-        if any(part in SKIP_DIRECTORIES for part in path.parts):
-            continue
-        if path.suffix.lower() in SKIP_SUFFIXES:
-            continue
-        if path.stat().st_size > 8 * 1024 * 1024:
-            continue
         try:
+            # Files can appear and disappear while a scan runs — `__pycache__` entries are rewritten by
+            # the very suite that calls this — so every filesystem step is inside the guard. One run of
+            # this suite failed once, without a reproducible cause, before this; the scan must not be the
+            # thing that decides whether a run goes green.
+            if not path.is_file():
+                continue
+            if any(part in SKIP_DIRECTORIES for part in path.parts):
+                continue
+            if path.suffix.lower() in SKIP_SUFFIXES:
+                continue
+            if path.stat().st_size > 8 * 1024 * 1024:
+                continue
             yield path, path.read_text(encoding="utf-8", errors="replace")
-        except OSError:  # pragma: no cover - unreadable file, not a leak
+        except OSError:  # pragma: no cover - unreadable or vanished file, not a leak
             continue
 
 
