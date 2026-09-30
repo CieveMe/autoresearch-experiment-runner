@@ -123,6 +123,14 @@ git push github vX.Y.Z
 
 The tag must point at the commit whose CI run is green; check the Actions tab before announcing it.
 
+> **A tag archives what the remote has, not what your working copy has.** If the push fails, the remedy is
+> not to tag anyway: the body and the queue live in the tree the tag points at, and Zenodo archives that
+> snapshot, so a tag created before the push lands archives a tree **without** the correction the body
+> describes. Confirm with `git ls-remote <remote> refs/heads/main` that the commit you are about to tag is
+> the commit the remote actually has, and only then create the tag. This is not hypothetical: on
+> 2026-09-30 a body was committed locally, the push failed on a route problem that had nothing to do with
+> the repository, and the tag was deliberately held until the commit was confirmed on the remote.
+
 ### Publishing the release — and what the current script guarantees
 
 The release is published by a script rather than by hand
