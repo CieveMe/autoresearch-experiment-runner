@@ -180,6 +180,13 @@ be compared against the file in one glance.
 
 ## 4. After the DOI exists
 
+- **Put the version DOI into the README's citation line — the release is not finished until the chain in
+  `README.md` names it.** Until it does, the newest entry keeps reading "归档中" and a reader citing the
+  repository is pointed at a DOI that does not exist. This is not hypothetical: v0.10.0's DOI was still
+  missing from the README at the `v0.11.0` tag and had to be recovered in a later commit, which is the
+  family rule (a fact kept in two places rots in one of them) applied to the DOI chain itself. The two
+  halves live in different repositories and neither one is finished until *its own* file says so: the README
+  is this repository's file, the ledger row (`wiki/sources/…-zenodo-doi.md`) belongs to the project owner.
 - Re-run `python scripts/repro.py` and commit any regenerated artifact, so the released numbers and the
   committed numbers stay identical.
 - If a later release is made, Zenodo mints a new version DOI and keeps the concept DOI stable; cite the
