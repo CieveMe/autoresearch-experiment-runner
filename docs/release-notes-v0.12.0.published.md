@@ -113,11 +113,13 @@ TASK RESULT: PASS
 rule 1 requires, so this body quotes the most complete record that exists at the time of writing: the CI
 run **on the v0.11.0 tag** (`36539858168`, `refs/tags/v0.11.0`, commit `d72633f`, six jobs, run-level
 success — a tag run cannot be cancelled by the concurrency rule), recorded verbatim in
-`runs/task-runs/FULL-TIER-v0.11.0-tag.md`. Between that commit and the commit this body is written
-against, **16 files differ** — tests, documentation, the gate-log script, the scorer's copy filter, and one
-newly tracked archive under `runs/` — and `git diff --name-only v0.11.0..<commit> -- expected/` is **empty**,
-so no pinned number and no tolerance moved. This release's own tag run is produced by CI after the tag;
-this body is not edited afterwards.
+`runs/task-runs/FULL-TIER-v0.11.0-tag.md`. Between that commit and the commit this body is published with,
+**22 files differ** — tests, documentation, the container recipe, the gate-log script, the scorer's copy
+filter, the four version and metadata fields, and one newly tracked archive under `runs/` — and
+`git diff --name-only v0.11.0..<commit> -- expected/` is **empty**, so no pinned number and no tolerance
+moved. (The count was 16 when this paragraph was first written; the commit that corrected the version
+fields added no new file, so the number is now stable for the commit being tagged.) This release's own tag
+run is produced by CI after the tag; this body is not edited afterwards.
 
 ### Known limitations
 
