@@ -20,6 +20,36 @@ The precedent is v0.5.0: its release notes quote a sentence about a threshold cr
 shown to be produced by a tie-break bug. v0.5.0 was not touched; v0.6.0's body opens with the explicit
 correction.
 
+## Deferred: the queue is holding a prepared v0.12.0 (decided 2026-09-30)
+
+An inventory of this file found the open items below, and `docs/release-notes-v0.12.0.published.md` — written
+and committed on 2026-09-30 — carries every one of them. The decision is to **hold**, not to release:
+nothing that has been published is wrong, so nobody is being misled while this waits, and publishing a
+release is the owner's action. What makes waiting safe is that none of the items lives only in a
+conversation; each is a section of this file or a paragraph of that body.
+
+**Release on a trigger, not on a mood.** Any one of these ends the deferral:
+
+| trigger | what it means in practice |
+|---|---|
+| **a claim-changing correction** | anything that makes a published statement wrong. This outranks the deferral completely: it is released on its own, with the correction first in the body |
+| **the A3 preprint becomes public** | the owner wants the repository to cite it — one added line, the rest of the body unchanged |
+| **a reviewer or a third party asks for something on this list** | the queue exists in order to be citable |
+| **14 days pass (2026-10-14), or this file gains three more open sections** | whichever comes first. A queue with no deadline grows until it is wrong in several places at once, which is how the 78→79 rot started |
+
+If the deadline passes and the release still waits, the reason is written here rather than remembered.
+
+**Before the tag**, whichever trigger fires, re-run the checks the citation section names:
+
+```bash
+git diff --name-only v0.11.0..<commit>              # the list the body must state
+git diff --name-only v0.11.0..<commit> -- expected/ # must print nothing
+python scripts/test_log.py                          # runs/test-last.log
+```
+
+The prepared body names the commit it was written against, so a body that no longer matches the tree is
+rewritten **before** the tag, never after it. The body is not edited once the release is published.
+
 ## Queue
 
 ### Citation checklist for the next release body (three items, none optional)

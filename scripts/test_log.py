@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import datetime
+import os
 import platform
 import subprocess
 import sys
@@ -52,9 +53,17 @@ def main(argv: list | None = None) -> int:
     command = f"python -m unittest discover -s {pattern} -v"
     started = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
     text = header(command, started, sys.platform, platform.python_version())
+    # The log is UTF-8, but the console it is echoed to is whatever Windows is set to (GBK here), and a
+    # character the console cannot encode used to end this script with a traceback — after writing the log,
+    # so the evidence survived, but before reporting the exit code it exists to report. Two fixes: let the
+    # child speak UTF-8 so paths in the log are readable rather than mojibake, and let the echo degrade
+    # instead of raising.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
     result = subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", pattern, "-v"],
                             cwd=str(ROOT), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-                            encoding="utf-8", errors="replace")
+                            encoding="utf-8", errors="replace",
+                            env=dict(os.environ, PYTHONIOENCODING="utf-8"))
     text += result.stdout or ""
     DEFAULT_LOG.parent.mkdir(parents=True, exist_ok=True)
     DEFAULT_LOG.write_text(text, encoding="utf-8")

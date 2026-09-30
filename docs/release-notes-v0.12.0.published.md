@@ -1,3 +1,16 @@
+> **Status at the time of writing (2026-09-30): prepared, not yet tagged.** This is the body that will be
+> published **verbatim** with the `v0.12.0` tag. Hard rule 1 asks for the body to be in the repository
+> before the release is published, so it is written and committed ahead of the tag on purpose. Two
+> consequences, both written down rather than assumed:
+>
+> 1. **The provenance paragraph below is date-dependent.** It names the commit this body was written
+>    against and the diff between that commit and the `v0.11.0` tag. Re-run the two commands in the queue's
+>    top section (`docs/release-corrections-pending.md`) before tagging; if those numbers moved, the body
+>    is corrected **before** the tag, never after it.
+> 2. **This file is not evidence that the version exists.** Its name asserts a release, and while no tag
+>    exists the text has to carry this note; `tests/test_release_docs.py` enforces exactly that, in one
+>    direction only, so publishing never requires editing the body afterwards.
+
 This version carries **no correction to a published statement**, and it says so first because that is the
 fact a reader needs in order to judge it. Everything below was already true in the tree; what was owed was
 the statement itself. The three footnotes and the one extension have the same subject, which is why they

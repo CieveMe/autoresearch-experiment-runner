@@ -6,6 +6,7 @@ WORKDIR /app
 # copied here, and `tests/test_harness.py::test_the_container_image_contains_everything_the_suite_reads`
 # derives the required list from the test sources so a new file cannot be forgotten silently.
 COPY autoresearch ./autoresearch
+COPY docs ./docs
 COPY examples ./examples
 COPY expected ./expected
 COPY tests ./tests
@@ -14,6 +15,10 @@ COPY README.md TODO.md pyproject.toml ./
 # The build recipe is copied in as well, so the image can say which recipe produced it — and so the check
 # that the image carries what the suite reads can run *inside* the image instead of being skipped there.
 COPY Dockerfile ./Dockerfile
+# `docs/` is here because a test reads it: `tests/test_release_docs.py` compares the release bodies against
+# the tag set, and that guard derives its requirement from the test sources like every other one. Copying
+# the directory is also what keeps that guard blunt — the alternative was an exclusion, which is how a file
+# gets forgotten later.
 
 ENV PYTHONPATH=/app
 CMD ["python", "scripts/repro.py"]
