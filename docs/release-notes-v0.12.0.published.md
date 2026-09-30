@@ -1,6 +1,8 @@
 > **Status at the time of writing (2026-09-30): prepared, not yet tagged.** This is the body that will be
 > published **verbatim** with the `v0.12.0` tag. Hard rule 1 asks for the body to be in the repository
-> before the release is published, so it is written and committed ahead of the tag on purpose. Two
+> before the release is published, so it is written and committed ahead of the tag on purpose. The version
+> fields in this tree (`pyproject.toml`, `autoresearch/__init__.py`, `CITATION.cff`) now read `0.12.0`, and
+> the README lists v0.12.0 as "归档中" because no version DOI exists until Zenodo archives the tag. Two
 > consequences, both written down rather than assumed:
 >
 > 1. **The provenance paragraph below is date-dependent.** It names the commit this body was written
