@@ -31,7 +31,7 @@
 - [ ] 是否提高种子数（当前 10 种子只能检出 ≈0.99 σ_d 的效应，§5.16 已把它写进限制）：属"重复次数"而非新实验轴，若要做得重跑全部套件，成本高，等 A3 写作需要时再定。
 - [ ] 增加失败实验重试、断点恢复和超时控制。
 - [ ] 增加 PyTorch 适配器，同时保持标准库示例可离线运行。
-- [ ] 增加 HTML 报告导出（SVG 可视化已完成，见 `scripts/figures.py` 和上面的结果可视化条目）。
+- [x] 增加离线单次运行 HTML 报告导出（`scripts/html_report.py`、`make html-report`）：读取既有 `results.json`，表格、训练曲线、配置/来源哈希与逐方案种子；不重训、不自动证明数值验收或统计显著性。跨套件统计 SVG 仍由 `scripts/figures.py` 生成。
 - [x] 增加 CI，在干净环境中运行配置校验、单元测试和确定性检查（`.github/workflows/repro.yml`，Python 3.10/3.12 + 容器）。
 - [x] 增加一键复现入口与期望数值校验（`scripts/repro.py`、`scripts/verify_results.py`、`expected/expected_metrics.json`）。
 - [x] 增加任务评分与负向控制（`scripts/score_task.py`、`TASK.md`）。

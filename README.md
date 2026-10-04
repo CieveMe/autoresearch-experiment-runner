@@ -32,6 +32,17 @@ cat runs/demo/report.md
 python -m unittest discover -s tests -v
 ```
 
+已有结果可导出为单文件离线 HTML（标准库，无网络依赖，不重训）：
+
+```bash
+python scripts/html_report.py --results runs/demo-verified/results.json --output runs/html-report/report.html
+make html-report                  # 同上
+```
+
+报告保留主指标方向、训练曲线、数据/配置和源文件 SHA-256、各方案种子。
+它展示单次运行，不自动声称 expected 校验通过或多种子统计显著；
+“未设置阈值”和“预算内未达标”分开标注。详见 [导出设计](docs/html-report-design.md)。
+
 Windows PowerShell 可将 `cat` 换成 `Get-Content`。
 
 Windows 也可以直接运行 `scripts/run_demo.ps1`。
