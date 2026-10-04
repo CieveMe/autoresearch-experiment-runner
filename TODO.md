@@ -15,9 +15,9 @@
 - [x] 把 Schedule-Free 套件也在 MLP trainer 上跑一遍（15 组扫描 + 10 种子）：**方向翻转** —— Schedule-Free 赢调过的 cosine 9/10，但常数学习率仍 9/10 赢 Schedule-Free ⇒ 弱形式两模型成立、强形式不成立。见 `REPRODUCTION.md` 5.8 与 `docs/papers/schedule-free-2024.md`。
 - [x] 用"多阈值"把速度指标从单点升级为曲线：`scripts/threshold_curve.py` + `runs/threshold-curves/`（13 点网格、交叉阈值、SVG 标注固定阈值）。结论：**6 个套件里 4 个的"最快者"依赖阈值**，其中 3 个的固定阈值正好落在交叉点的脆弱一侧；`schedule-free`（logistic）在全部 13 个阈值上稳定，`ademamix`（logistic）在 0.0014 宽区间内翻转 5 次（那两个 arm 在该区间本质持平）。见 `REPRODUCTION.md` 5.9。
 - [x] 用 MLP trainer 复跑优化器套件与 AdEMAMix（含"每个家族为 MLP 重新调参"和"初始化随种子变化"两处修正）：**结论没有被推翻** —— Adam 在两套模型上速度都居中（MLP：20.3 轮 vs AdaGrad 6.2 / 动量 7.0），论文 warmup 在两套模型上都更差，无 warmup 的 AdEMAMix 与 AdamW 无差别。见 `REPRODUCTION.md` 5.6 与 `runs/mlp-verified/`。
-- [ ] 多隐藏层尺寸（如 [8] vs [32] vs [8,8]）复跑同一问题：检查"慢 EMA 无优势"是否也随容量变化（当前只有一种容量）。
+- [x] 多隐藏层尺寸（[8] / [32] / [8,8]）复跑同一问题已完成；范围与后续统计限定见下面的多容量条目及 `REPRODUCTION.md` §5.10、§5.16。不是仅一种容量。
 - [x] 多容量扫描完成（`[32]`、`[8,8]`，每个容量重新调参 + 10 种子）：**AdEMAMix 无优势在三个容量上都稳定**（各 1/10 种子更好）；**SF 的方向翻转是架构/阈值效应而非容量效应**（三种 MLP 容量上都赢调过的 cosine）；**容量变大后 AdaGrad 在测试损失上胜出**（9/10、10/10）；训练/测试损失排名随容量分家。见 `REPRODUCTION.md` 5.10。
-- [ ] 阈值曲线与容量扫描的交叉：目前"交叉点"只在 seed 7 的曲线上定位，应把 10 个种子的曲线都画出来，看交叉点本身的稳定性（当前结论只到"存在交叉"这一层）。
+- [x] 阈值曲线与容量扫描的交叉：10 种子交叉稳定性已完成，见下面的交叉稳定性条目及 `REPRODUCTION.md` §5.11；存在性、位置与固定阈值胜者分别报告。
 - [x] 10 种子交叉稳定性完成：`optimizers`(logistic) 交叉 10/10 种子但位置散布 0.0456（可用的是"固定阈值下 adagrad 每个种子都更快"）；`schedule-free-mlp` 交叉 10/10 但**固定阈值胜者逐种子变化** ⇒ 该卡里 seed-7 的速度句改为"单种子陈述"；`capacity-h32/h8x8` 实为**并列带而非交叉**。同时修掉第三例"数字来自工具"的缺陷（并列被字母序裁决）。见 `REPRODUCTION.md` 5.11。
 - [x] 交叉稳定性补齐到 8 对（含 schedule-free logistic、ademamix logistic、ademamix-mlp）：**5 对在固定阈值下逐种子稳定、3 对不稳定，且 3 对不稳定的全是 MLP 套件**。
 - [x] 指标口径成节（`REPRODUCTION.md` 5.12）：训练/测试损失的 top-1 只在两个更大容量上分家，排名扰动随容量增长（0→2→3→4→5 个 arm 移动 ≥2 位）；`epochs_to_target` 基于训练曲线，故"更快"与"更好"必须分开陈述。
@@ -31,8 +31,8 @@
 - [ ] 是否提高种子数（当前 10 种子只能检出 ≈0.99 σ_d 的效应，§5.16 已把它写进限制）：属"重复次数"而非新实验轴，若要做得重跑全部套件，成本高，等 A3 写作需要时再定。
 - [ ] 增加失败实验重试、断点恢复和超时控制。
 - [ ] 增加 PyTorch 适配器，同时保持标准库示例可离线运行。
-- [ ] 增加实验结果可视化和 HTML 报告导出。
+- [ ] 增加 HTML 报告导出（SVG 可视化已完成，见 `scripts/figures.py` 和上面的结果可视化条目）。
 - [x] 增加 CI，在干净环境中运行配置校验、单元测试和确定性检查（`.github/workflows/repro.yml`，Python 3.10/3.12 + 容器）。
 - [x] 增加一键复现入口与期望数值校验（`scripts/repro.py`、`scripts/verify_results.py`、`expected/expected_metrics.json`）。
 - [x] 增加任务评分与负向控制（`scripts/score_task.py`、`TASK.md`）。
-- [ ] 运行 `T-ADAM-01B/01C/01D` 三个任务变体各一轮，记录智能体实际表现（尝试次数、得分曲线）。
+- [x] `T-ADAM-01B/01C/01D` 已运行并留档于 `runs/task-runs/`：01B 第三次 drop-in 才通过（100 分但负控失效的第二次被拒）；01C 消融的预注册假设被证伪；01D 植入缺陷再修复。记录不代表新的独立智能体总体性能评测。

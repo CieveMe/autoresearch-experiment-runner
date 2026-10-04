@@ -20,7 +20,20 @@ The precedent is v0.5.0: its release notes quote a sentence about a threshold cr
 shown to be produced by a tie-break bug. v0.5.0 was not touched; v0.6.0's body opens with the explicit
 correction.
 
-## Deferred: the queue is holding a prepared v0.12.0 (decided 2026-09-30)
+## Current status (2026-10-05): v0.12.0 is released; CI checkout repair is pending a new run
+
+The dated deferral below is historical: the user subsequently approved publication and v0.12.0
+was released at `aef012b`. Its DOI is `10.5281/zenodo.23055022`, and the README update landed at
+`0d2ce81`. Do not re-release or move that tag because the historical deferral text remains here.
+
+The next release body should cite the checkout-history repair and its eventual run verdict:
+see `docs/ci-checkout-history.md`. Runs #72/#74 passed all 474 numerical checks but failed a
+Git-dependent unit test because their shallow checkouts lacked historical release tags. The fix
+supplies full history to the reproduction jobs; it does not change test coverage or tolerances.
+Run #75 on `b8d8ff0` is the first repair run. Its final conclusion must be read before describing CI
+as green. Old published bodies and tags remain intact.
+
+## Historical deferral: prepared v0.12.0 (decided 2026-09-30, subsequently released)
 
 An inventory of this file found the open items below, and `docs/release-notes-v0.12.0.published.md` — written
 and committed on 2026-09-30 — carries every one of them. The decision is to **hold**, not to release:
