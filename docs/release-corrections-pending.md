@@ -20,18 +20,34 @@ The precedent is v0.5.0: its release notes quote a sentence about a threshold cr
 shown to be produced by a tie-break bug. v0.5.0 was not touched; v0.6.0's body opens with the explicit
 correction.
 
-## Current status (2026-10-05): v0.12.0 is released; CI checkout repair is pending a new run
+## Current status (2026-10-05): v0.12.0 retained; checkout repair and HTML export accepted
 
 The dated deferral below is historical: the user subsequently approved publication and v0.12.0
 was released at `aef012b`. Its DOI is `10.5281/zenodo.23055022`, and the README update landed at
 `0d2ce81`. Do not re-release or move that tag because the historical deferral text remains here.
 
-The next release body should cite the checkout-history repair and its eventual run verdict:
+The next release body should cite the checkout-history repair and its actual run verdict:
 see `docs/ci-checkout-history.md`. Runs #72/#74 passed all 474 numerical checks but failed a
 Git-dependent unit test because their shallow checkouts lacked historical release tags. The fix
 supplies full history to the reproduction jobs; it does not change test coverage or tolerances.
-Run #75 on `b8d8ff0` is the first repair run. Its final conclusion must be read before describing CI
-as green. Old published bodies and tags remain intact.
+Run #75 on `b8d8ff0` was cancelled by the following branch push and has no acceptance verdict.
+Run #76 on `fee5ae8` passed all six jobs; the later HTML-export commit `7874910` has its own successful
+six-job run #77, including 105 unit tests and all four detected negative controls. These conclusions
+apply to their exact commits, not automatically to subsequent edits. Old published bodies and tags
+remain intact; publication still requires the owner's specific authorization.
+
+### Interpretation correction queued after the A3 internal review
+
+The old §5.16/Card wording treated approximate minimum detectable effect (MDE) as an upper bound
+inferred from non-detection. That implication is withdrawn: MDE describes design sensitivity at a
+specified power, not a confidence bound on the unknown effect or an equivalence result. Effect
+estimates, pointwise intervals and exact/family-corrected results remain unchanged. The approximation
+also does not guarantee 80% power for the combined exact-test/Holm procedure. The next authorized
+release body must state this interpretation correction; do not rewrite already-published bodies or
+automatically release a new version.
+
+Basis: the project's `minimal_detectable_effect` formula, and the distinction between interval
+precision and test power in [NIST's sample-size guidance](https://www.itl.nist.gov/div898/handbook/prc/section2/prc222.htm).
 
 ## Historical deferral: prepared v0.12.0 (decided 2026-09-30, subsequently released)
 

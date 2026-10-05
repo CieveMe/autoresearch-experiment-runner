@@ -1,6 +1,6 @@
 # A3 data pack: the two things the methods paper asks this repository for
 
-Prepared on request (`§5.16`'s headline wording, and the six-defect appendix table). Everything here is
+Prepared on request (`§5.16`'s headline wording, and the seven-case appendix table). Everything here is
 quoted or computed from committed artifacts; nothing new was run to produce it, and every row says how to
 check it. If a number below disagrees with the artifact, **the artifact is right and this file is stale**
 — which is the rule the family in `docs/defect-family.md` exists to enforce.
@@ -24,11 +24,17 @@ make figures    # runs/figures/*.svg + runs/figures/stability.csv
 > 0.1934). Everything else … is **no evidence of a difference at this budget**, with MDE between 0.0013
 > and 0.0094.
 
-> **2. The AdEMAMix verdict is a bound, not an equality — and this applies to the repository's own
-> wording.** No comparison in that family survives (smallest adjusted p = 0.2363, and that one,
+> **2. The AdEMAMix verdict is non-detection with uncertainty, not equality.**
+> No comparison in that family survives (smallest adjusted p = 0.2363, and that one,
 > `init-he` with a raw p of 0.0215, has AdEMAMix *worse*). A null hypothesis cannot be confirmed by a
 > test that fails to reject, so "AdEMAMix has no advantage" is not something these ten seeds can
 > establish.
+
+The 2026-10-05 internal review clarified the interpretation in §5.16: an approximate MDE is a
+design-sensitivity quantity, not a confidence bound inferred from a non-significant result. Quote
+effect estimates and their pointwise intervals alongside non-detection; do not infer equivalence or
+certify that every effect larger than MDE is absent. The calculation is not an 80%-power guarantee
+for the exact-test/Holm procedure. No statistic or pin changed.
 
 **Numbers behind the headline** (`runs/paired-tests/paired-tests.json`, field paths given so a reviewer
 can check rather than trust):

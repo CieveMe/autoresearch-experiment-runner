@@ -194,18 +194,18 @@ without a magnitude is not evidence.**
 ### The paired tests (§5.16) — and why this card says "no advantage detected", not "no advantage"
 
 With a test in hand the case above resolves the way the win count alone could not: 8/10 seeds, median
-difference −0.00005, raw p = 0.1309 — a consistent sign and no effect. Across the eleven suites that
+difference −0.00005, raw p = 0.1309 — a consistent sign without a statistically established effect. Across the eleven suites that
 test this claim at matched settings, **no comparison survives a family correction** (smallest adjusted
 p = 0.2363, and that one has AdEMAMix worse).
 
-A test that fails to reject cannot confirm a null, so the claim this card makes is now stated as a
-bound:
+A test that fails to reject cannot confirm a null. Report non-detection together with uncertainty:
 
 > **No advantage over AdamW at matched settings was detected.** Across eleven suites (two model
 > families, five capacities, three activations, five normalisation/initialisation settings) the
-> per-seed median difference runs from −0.00005 to +0.00411 — indistinguishable or slightly worse —
-> and with ten seeds the design could have detected an advantage of about 0.0003 to 0.008 depending on
-> the suite's per-seed spread.
+> estimated median difference runs from −0.00005 to +0.00411. The pointwise intervals and
+> approximate minimum detectable effects in `runs/paired-tests/paired-tests.json` describe
+> uncertainty and design sensitivity. MDE is not a confidence bound on the true effect and does
+> not establish that all larger advantages are absent; this is not an equivalence result.
 
 That is a weaker verb than "has no advantage", and it is the one the evidence supports. It does not
 weaken the practical conclusion (there is nothing here to justify using AdEMAMix at this scale), and it

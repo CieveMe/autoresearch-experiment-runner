@@ -62,7 +62,7 @@ docker compose up --build      # 容器内跑同一套流程，产物写到 ./ru
 
 ```bash
 python scripts/seed_sweep.py --seeds 0-9      # 10 个种子 + 配对提升，输出 summary.json / summary.md
-python scripts/score_task.py                  # 任务评分（0-100 部分得分）+ 两个负向控制
+python scripts/score_task.py                  # 任务评分（0-100 部分得分）+ 四个负向控制
 python scripts/threshold_curve.py --suite schedule-free --suite schedule-free-mlp
 # ↑ "达标轮数"是阈值的函数：输出每个阈值下谁最快、谁从未达标、排名在哪里翻转（表格 + CSV + SVG）
 ```

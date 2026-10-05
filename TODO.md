@@ -9,7 +9,7 @@
 - [ ] 增加稀疏梯度场景（论文声称的优势场景之一），当前实验是稠密小批量等价的全批量。
 - [x] 增加学习率扫描，消除"各优化器只在手选学习率上比较"这一质疑（`examples/optimizers-sweep.json`，24 组）。
 - [ ] 把学习率网格向大值方向延伸并加密：当前每个自适应家族的最优都在网格边缘，说明网格未饱和。
-- [ ] 用同一套 `epochs_to_target` 跑多个目标阈值（如 0.30 / 0.20 / 0.16）并画成"达标轮数 vs 阈值"曲线。
+- [x] 多目标阈值曲线已完成：`scripts/threshold_curve.py`、`runs/threshold-curves/`和`REPRODUCTION.md` §5.9；沿真实损失区间取网格，不为旧举例值增加实验。
 - [x] 按 Roadmap 接入第一篇 2024 年论文（AdEMAMix）：适配器重构（`trainers/` + `optimizers.py` + `schedules.py` + `datasets.py`）、20 组调参扫描、10 种子配对、论文卡与负向控制，结论为负（不更快）。见 `docs/papers/ademamix-2024.md`。
 - [x] 第二篇论文：Schedule-Free AdamW（2024，arXiv:2405.15682）。已按 reference 实现移植并做"**无计划 vs 调过的 cosine 计划**"对照（21 组扫描同时调 lr 与 min_lr_factor，另加常数学习率基线）：**"打平"勉强成立、"超过"不成立**（10/10 种子败给调过的 cosine；常数学习率最好）。见 `docs/papers/schedule-free-2024.md`。
 - [x] 把 Schedule-Free 套件也在 MLP trainer 上跑一遍（15 组扫描 + 10 种子）：**方向翻转** —— Schedule-Free 赢调过的 cosine 9/10，但常数学习率仍 9/10 赢 Schedule-Free ⇒ 弱形式两模型成立、强形式不成立。见 `REPRODUCTION.md` 5.8 与 `docs/papers/schedule-free-2024.md`。

@@ -953,15 +953,17 @@ effect holds at five capacities and three activations": what holds across the ma
 of the median difference; what is statistically established is one large effect at the deepest
 capacity.
 
-**2. The AdEMAMix verdict is a bound, not an equality — and this applies to the repository's own
-wording.** No comparison in that family survives (smallest adjusted p = 0.2363, and that one,
+**2. The AdEMAMix verdict is non-detection with uncertainty, not equality.**
+No comparison in that family survives (smallest adjusted p = 0.2363, and that one,
 `init-he` with a raw p of 0.0215, has AdEMAMix *worse*). A null hypothesis cannot be confirmed by a
 test that fails to reject, so "AdEMAMix has no advantage" is not something these ten seeds can
-establish. What they can establish is a bound: across eleven suites the median difference per seed runs
-from −0.00005 to +0.00411 — i.e. AdEMAMix is either indistinguishable from AdamW at matched settings or
-slightly worse — and the design could have detected an advantage of roughly 0.0003 to 0.008 in the
-suites where the per-seed spread is smallest and largest respectively. The cards are worded that way
-now.
+establish. Across eleven suites the estimated median difference per seed runs from −0.00005 to
++0.00411. Report these estimates with their intervals and the design's approximate minimum
+detectable effects (MDE), rather than certifying that larger advantages are absent. MDE describes
+design sensitivity at a specified power; it is not an observed confidence bound on the true effect.
+The artifact's intervals are pointwise, not simultaneous family-wise intervals, and its approximate
+MDE calculation does not guarantee 80% power for the combined exact-test/Holm procedure. The result
+is **no family-corrected advantage detected at this budget**, not equivalence.
 
 **3. The rule that produced this section, in the two cases that motivated it.**
 

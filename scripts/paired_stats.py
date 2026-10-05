@@ -274,8 +274,9 @@ def minimal_detectable_effect(differences: Sequence[float], power: float = 0.8) 
     Two-sided alpha = 0.05, normal-approximation formula
     ``(t_{1-a/2} + t_{power}) * sd / sqrt(n)``. This is the number that turns "the test did not
     reject" into something a reader can use: with ten paired seeds it comes out at roughly one
-    per-seed standard deviation of the differences, so only a large effect is detectable and a
-    null result bounds the effect rather than establishing its absence.
+    per-seed standard deviation of the differences. It describes approximate design sensitivity,
+    not a confidence bound inferred from a non-significant result. This approximation is not a
+    power calculation for the combined exact tests and subsequent Holm correction.
     """
     if len(differences) < 2:
         return float("nan")
